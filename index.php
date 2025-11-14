@@ -1,4 +1,9 @@
 <?php
+
+require_once 'vendor/autoload.php';
+
+use src\modelo\permiso;
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -16,8 +21,7 @@ if (!isset($_SESSION['usuario']) && ($_GET['c'] ?? '') !== 'loginControlador') {
 }
 
 if (isset($_SESSION['usuario'])) {
-    require_once 'modelo/Permiso.php';
-    $permiso = new Permiso();
+    $permiso = new permiso();
     
     $controlador = $_GET['c'] ?? '';
     $modulo = $permiso->getModuloPorControlador($controlador);

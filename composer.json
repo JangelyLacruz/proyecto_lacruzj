@@ -1,5 +1,18 @@
 {
+    "name": "carlos/lacruz",
+    "description": "proyecto universitario",
+    "autoload": {
+        "psr-4": {
+            "src\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ANDERSON",
+            "email": "andersonfreitez6@gmail.com"
+        }
+    ],
     "require": {
-        "setasign/fpdf": "1.8"
+        "setasign/fpdf": "^1.8"
     }
 }
