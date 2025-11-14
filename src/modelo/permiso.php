@@ -1,6 +1,7 @@
 <?php
 
 namespace src\modelo;
+
 use src\modelo\conexion;
 class permiso {
     private $pdo;

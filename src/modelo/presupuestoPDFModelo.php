@@ -1,5 +1,5 @@
 <?php
-namespace modelo;
+namespace src\modelo;
 use FPDF;
 class PresupuestoPDFModelo extends FPDF {
     private $presupuestoData;

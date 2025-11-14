@@ -1,6 +1,6 @@
 <?php
 
-
+namespace src\modelo;
 class conexion {
     protected $pdo;
 

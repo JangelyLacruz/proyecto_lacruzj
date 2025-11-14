@@ -1,6 +1,6 @@
 <?php
 
-namespace modelo;
+namespace src\modelo;
 use FPDF;
 
 class ReporteMateriaPrimaModelo extends FPDF {

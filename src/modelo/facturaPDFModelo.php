@@ -1,5 +1,5 @@
 <?php
-namespace modelo;
+namespace src\modelo;
 use FPDF;
 class FacturaPDFModelo extends FPDF {
     private $facturaData;

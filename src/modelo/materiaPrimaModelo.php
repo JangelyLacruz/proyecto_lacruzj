@@ -1,6 +1,6 @@
 <?php
-namespace modelo;
-use modelo\conexion;
+namespace src\modelo;
+use src\modelo\conexion;
 use PDO;
 use PDOException;
 use Exception;

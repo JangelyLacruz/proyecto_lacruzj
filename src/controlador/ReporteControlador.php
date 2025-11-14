@@ -1,13 +1,14 @@
 <?php
 
-require_once 'modelo/ReporteVentasModelo.php';
-require_once 'modelo/ReporteComprasModelo.php';
-require_once 'modelo/ReporteVentasPDFModelo.php';
-require_once 'modelo/ReporteComprasPDFModelo.php';
-require_once 'modelo/ReporteProductoModelo.php';
-require_once 'modelo/ReporteServicioModelo.php';
-require_once 'modelo/ReporteMateriaPrimaModelo.php';
-require_once 'controlador/verificar_sesion.php';
+use src\modelo\ReporteVentasModelo;
+use src\modelo\ReporteComprasModelo;
+use src\modelo\ReporteComprasPDFModelo;
+use src\modelo\ReporteVentasPDFModelo;
+use src\modelo\ReporteServicioModelo;
+use src\modelo\ReporteMateriaPrimaModelo;
+use src\modelo\ReporteProductoModelo;
+
+require_once 'src/controlador/verificar_sesion.php';
 
 
 function isAjaxRequest() {
@@ -32,7 +33,7 @@ $reporteComprasModelo = new ReporteComprasModelo();
 
 switch ($metodo) {
     case 'index':
-        require 'vista/parcial/reportes.php';
+        require 'src/vista/parcial/reportes.php';
         break;
 
     case 'ajaxCargarItems':

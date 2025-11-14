@@ -1,4 +1,4 @@
-<?php require_once 'vista/parcial/header.php' ?>
+<?php require_once 'src/vista/parcial/header.php' ?>
 
 <div class="container-fluid">
     <div class="row">

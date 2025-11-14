@@ -1,6 +1,8 @@
 <?php 
-require_once 'modelo/Permiso.php';
-$permiso = new Permiso();
+
+use src\modelo\permiso;
+
+$permiso = new permiso();
 ?>
 <!DOCTYPE html>
 <html lang="es">

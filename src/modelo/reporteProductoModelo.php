@@ -1,8 +1,8 @@
 <?php
 
-namespace modelo;
+namespace src\modelo;
 use FPDF;
-use modelo\Conexion;
+use src\modelo\conexion;
 use PDO;
 use PDOException;
 use Exception;

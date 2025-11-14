@@ -39,7 +39,7 @@ if (isset($_SESSION['usuario'])) {
 $controlador = $_GET['c'];
 $metodo      = $_GET['m'];
 
-$archivo = "controlador/{$controlador}.php";
+$archivo = "src/controlador/{$controlador}.php";
 
 if (file_exists($archivo)) {
     require_once $archivo;
