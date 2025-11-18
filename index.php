@@ -30,6 +30,7 @@ if (isset($_SESSION['usuario'])) {
     if ($modulo !== 'loginControlador' && !$permiso->tienePermiso($id_rol, $modulo)) {
         http_response_code(403);
         echo "<h3>Acceso Denegado</h3>";
+        echo "hola muchachos";
         echo "<p>No tienes permisos para acceder a esta sección.</p>";
         echo '<a href="index.php?c=loginControlador&m=home" class="btn btn-primary">Volver al Inicio</a>';
         exit;
