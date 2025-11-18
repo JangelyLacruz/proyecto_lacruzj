@@ -122,10 +122,10 @@ class reporteServicioModelo extends FPDF {
     }
     
     public function obtenerDatosServicios() {
-        require_once 'modelo/conexion.php';
+        
         
         try {
-            $conexion = new Conexion();
+            $conexion = new conexion();
             $pdo = $conexion->getPdo();
             
             $sql = "SELECT 

@@ -139,7 +139,6 @@ class reporteProductoModelo extends FPDF {
     }
     
     public function obtenerDatosProductos() {
-        require_once 'modelo/conexion.php';
         
         try {
             $conexion = new Conexion();

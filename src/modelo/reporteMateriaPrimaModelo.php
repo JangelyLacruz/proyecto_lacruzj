@@ -134,8 +134,6 @@ class reporteMateriaPrimaModelo extends FPDF {
     }
     
     public function obtenerDatosMateriasPrimas() {
-        require_once 'modelo/conexion.php';
-        
         try {
             $conexion = new Conexion();
             $pdo = $conexion->getPdo();
