@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 27-11-2025 a las 02:05:07
+-- Tiempo de generación: 09-12-2025 a las 01:42:07
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -78,6 +78,19 @@ CREATE TABLE `cambios_iva` (
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `cambios_iva`
+--
+
+INSERT INTO `cambios_iva` (`id_cambio_iva`, `monto_cambio_iva`, `fecha_cambio_iva`, `status`) VALUES
+(1, 12, '2025-12-05 18:15:15', 1),
+(2, 13, '2025-12-05 18:17:41', 1),
+(3, 13, '2025-12-05 18:17:55', 1),
+(4, 14, '2025-12-05 18:18:02', 1),
+(5, 12, '2025-12-06 15:56:00', 1),
+(6, 12.01, '2025-12-06 15:56:12', 1),
+(7, 12, '2025-12-06 15:56:22', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -87,10 +100,20 @@ CREATE TABLE `cambios_iva` (
 CREATE TABLE `cambios_monedas` (
   `id_cambio_moneda` int(11) NOT NULL,
   `id_moneda` int(11) NOT NULL,
-  `valor_cambio` int(11) NOT NULL,
-  `fecha_cambio` int(11) NOT NULL,
+  `valor_moneda` float NOT NULL,
+  `fecha_cambio` datetime NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `cambios_monedas`
+--
+
+INSERT INTO `cambios_monedas` (`id_cambio_moneda`, `id_moneda`, `valor_moneda`, `fecha_cambio`, `status`) VALUES
+(1, 1, 17, '2025-12-06 20:12:19', 1),
+(2, 5, 2, '2025-12-06 20:13:37', 1),
+(3, 2, 3, '2025-12-06 20:13:48', 1),
+(4, 1, 257.93, '2025-12-06 20:14:15', 1);
 
 -- --------------------------------------------------------
 
@@ -185,7 +208,6 @@ CREATE TABLE `insumos_ventas` (
 
 CREATE TABLE `materias_primas` (
   `id_materia_prima` int(11) NOT NULL,
-  `id_presentacion` int(11) NOT NULL,
   `nombre_materia_prima` varchar(50) NOT NULL,
   `stock_materia_prima` int(15) NOT NULL,
   `costo_materia_prima` float NOT NULL,
@@ -203,6 +225,19 @@ CREATE TABLE `materias_primas_compras` (
   `id_compra` int(11) NOT NULL,
   `id_materia_prima` int(11) NOT NULL,
   `cantidad_materia_prima` int(11) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `materias_primas_presentaciones`
+--
+
+CREATE TABLE `materias_primas_presentaciones` (
+  `id_materia_prima_presentacion` int(11) NOT NULL,
+  `id_materia_prima` int(11) NOT NULL,
+  `id_presentacion` int(11) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -233,6 +268,19 @@ CREATE TABLE `metodos_pagos` (
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `metodos_pagos`
+--
+
+INSERT INTO `metodos_pagos` (`id_metodo_pago`, `nombre_metodo_pago`, `necesita_moneda`, `status`) VALUES
+(1, 'EFECTIVO', 1, 1),
+(2, 'TRANSFERENCIA', 0, 1),
+(3, 'PAGO MÓVIL', 0, 1),
+(4, 'ZELLE', 1, 0),
+(5, 'BINANCE', 1, 0),
+(6, 'BINANCE', 1, 1),
+(7, 'ZELLE', 1, 1);
+
 -- --------------------------------------------------------
 
 --
@@ -245,6 +293,21 @@ CREATE TABLE `modulos` (
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `modulos`
+--
+
+INSERT INTO `modulos` (`id_modulo`, `nombre_modulo`, `status`) VALUES
+(1, 'clientes', 1),
+(2, 'presupuesto', 1),
+(3, 'ventas', 1),
+(4, 'productos', 1),
+(5, 'servicios', 1),
+(6, 'materias_primas', 1),
+(7, 'proveedores', 1),
+(8, 'compras', 1),
+(9, 'usuarios', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -254,9 +317,21 @@ CREATE TABLE `modulos` (
 CREATE TABLE `monedas` (
   `id_moneda` int(11) NOT NULL,
   `nombre_moneda` varchar(20) NOT NULL,
+  `simbolo_moneda` varchar(3) NOT NULL,
   `valor_moneda` float NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `monedas`
+--
+
+INSERT INTO `monedas` (`id_moneda`, `nombre_moneda`, `simbolo_moneda`, `valor_moneda`, `status`) VALUES
+(1, 'DÓLAR', '$', 257.93, 1),
+(2, 'EURO', '€', 3, 1),
+(3, 'YUAN', '¥', 12, 1),
+(4, 'AGUACATE', '$O', 1, 0),
+(5, 'BÓLIVAR', 'BS', 2, 1);
 
 -- --------------------------------------------------------
 
@@ -313,6 +388,17 @@ CREATE TABLE `permisos` (
   `status` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `permisos`
+--
+
+INSERT INTO `permisos` (`id_permiso`, `nombre_permiso`, `status`) VALUES
+(1, 'ver', 1),
+(2, 'listar', 1),
+(3, 'registrar', 1),
+(4, 'actualizar', 1),
+(5, 'eliminar', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -335,7 +421,6 @@ CREATE TABLE `presentaciones` (
 
 CREATE TABLE `productos` (
   `id_producto` int(11) NOT NULL,
-  `id_presentacion` int(11) NOT NULL,
   `nombre_producto` varchar(100) NOT NULL,
   `costo_producto_detal` float NOT NULL,
   `costo_producto_mayor` float NOT NULL,
@@ -355,6 +440,19 @@ CREATE TABLE `productos_compras` (
   `id_compra` int(11) NOT NULL,
   `id_producto` int(11) NOT NULL,
   `cantidad_producto` int(11) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `productos_presentaciones`
+--
+
+CREATE TABLE `productos_presentaciones` (
+  `id_producto_presentacion` int(11) NOT NULL,
+  `id_producto` int(11) NOT NULL,
+  `id_presentacion` int(11) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -412,6 +510,16 @@ CREATE TABLE `roles` (
   `nombre_rol` varchar(50) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id_rol`, `nombre_rol`, `status`) VALUES
+(1, 'ADMINISTRADOR', 1),
+(2, 'OFICINISTA', 1),
+(5, 'CAJERO', 0),
+(6, 'CAJEROTA', 0);
 
 -- --------------------------------------------------------
 
@@ -471,6 +579,17 @@ CREATE TABLE `usuarios` (
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`cedula_usuario`, `id_rol`, `nombre_usuario`, `apellido_usuario`, `usuario_usuario`, `contrasena_usuario`, `telefono_usuario`, `correo_usuario`, `status`) VALUES
+(1234567, 1, 'ANDERS', 'DAVID', 'ander1234', '$2y$10$tnkCgC.SA4fIWZ1jyJ1Nc.at2Ke5PF0PpZbGwmnBxjFZAeAltJjMW', '12345678901', 'ander2@gmail.com', 1),
+(12345612, 1, 'ANDER', 'DAVID', 'ander1223', '$2y$10$PfF6nDUwP8glGtheVMQSWeLB9KljVn/hR1tyAbbgWbJMgHF5ystXi', '12345678901', 'ander3@gmail.com', 0),
+(12345678, 1, 'ANDER', 'DAVID', 'David1234', '$2y$10$XkJLaTMns3kXJSxlSrpJ.uqTjP.gzLwLGdL22zeHLRjbxIW6MLGVS', '12345678901', 'ander1@gmail.com', 0),
+(30485684, 2, 'ANDERSON', 'FREITEZ', 'Ander123', '$2y$10$3xuW0Z34n9oScdoEDKoo1.OWgDGnch8iJQn2zbeI/Ci0PRP9qCQke', '04169484649', 'andersonfreitez6@gmail.com', 1),
+(123456789, 1, 'ANDERSON', 'DAVID', 'ander1234', '$2y$10$2LkOTyTXAcml2JuDnEZPXethdOI1EsrT7iQEGX/ql2hPxQ4GrPs6m', '12345678901', 'ander2@gmail.com', 0);
+
 -- --------------------------------------------------------
 
 --
@@ -523,6 +642,7 @@ ALTER TABLE `cambios_iva`
 -- Indices de la tabla `cambios_monedas`
 --
 ALTER TABLE `cambios_monedas`
+  ADD PRIMARY KEY (`id_cambio_moneda`),
   ADD KEY `id_moneda_cambio_fk` (`id_moneda`);
 
 --
@@ -573,8 +693,7 @@ ALTER TABLE `insumos_ventas`
 -- Indices de la tabla `materias_primas`
 --
 ALTER TABLE `materias_primas`
-  ADD PRIMARY KEY (`id_materia_prima`),
-  ADD KEY `id_presentacion_materias_primas_fk` (`id_presentacion`);
+  ADD PRIMARY KEY (`id_materia_prima`);
 
 --
 -- Indices de la tabla `materias_primas_compras`
@@ -583,6 +702,14 @@ ALTER TABLE `materias_primas_compras`
   ADD PRIMARY KEY (`id_materia_prima_compra`),
   ADD KEY `id_compra_materias_primas_compras_fk` (`id_compra`),
   ADD KEY `id_materia_prima_materias_primas_compras_fk` (`id_materia_prima`);
+
+--
+-- Indices de la tabla `materias_primas_presentaciones`
+--
+ALTER TABLE `materias_primas_presentaciones`
+  ADD PRIMARY KEY (`id_materia_prima_presentacion`),
+  ADD KEY `id_materia_prima_materias_primas_presentaciones_fk` (`id_materia_prima`),
+  ADD KEY `id_presentacion_materias_primas_presentaciones_fk` (`id_presentacion`);
 
 --
 -- Indices de la tabla `materias_primas_productos`
@@ -647,8 +774,7 @@ ALTER TABLE `presentaciones`
 -- Indices de la tabla `productos`
 --
 ALTER TABLE `productos`
-  ADD PRIMARY KEY (`id_producto`),
-  ADD KEY `id_presentacion_productos_fk` (`id_presentacion`);
+  ADD PRIMARY KEY (`id_producto`);
 
 --
 -- Indices de la tabla `productos_compras`
@@ -657,6 +783,14 @@ ALTER TABLE `productos_compras`
   ADD PRIMARY KEY (`id_producto_compra`),
   ADD KEY `id_compra_productos_compras_fk` (`id_compra`),
   ADD KEY `id_producto_productos_compras_fk` (`id_producto`);
+
+--
+-- Indices de la tabla `productos_presentaciones`
+--
+ALTER TABLE `productos_presentaciones`
+  ADD PRIMARY KEY (`id_producto_presentacion`),
+  ADD KEY `id_producto_presentacion_fk` (`id_producto`),
+  ADD KEY `id_presentacion_productos_presentacion_fk` (`id_presentacion`);
 
 --
 -- Indices de la tabla `productos_servicios_ventas`
@@ -748,7 +882,13 @@ ALTER TABLE `bitacora`
 -- AUTO_INCREMENT de la tabla `cambios_iva`
 --
 ALTER TABLE `cambios_iva`
-  MODIFY `id_cambio_iva` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_cambio_iva` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT de la tabla `cambios_monedas`
+--
+ALTER TABLE `cambios_monedas`
+  MODIFY `id_cambio_moneda` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `compras`
@@ -787,6 +927,12 @@ ALTER TABLE `materias_primas_compras`
   MODIFY `id_materia_prima_compra` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `materias_primas_presentaciones`
+--
+ALTER TABLE `materias_primas_presentaciones`
+  MODIFY `id_materia_prima_presentacion` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `materias_primas_productos`
 --
 ALTER TABLE `materias_primas_productos`
@@ -796,19 +942,19 @@ ALTER TABLE `materias_primas_productos`
 -- AUTO_INCREMENT de la tabla `metodos_pagos`
 --
 ALTER TABLE `metodos_pagos`
-  MODIFY `id_metodo_pago` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_metodo_pago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT de la tabla `modulos`
 --
 ALTER TABLE `modulos`
-  MODIFY `id_modulo` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_modulo` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `monedas`
 --
 ALTER TABLE `monedas`
-  MODIFY `id_moneda` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_moneda` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `notificaciones`
@@ -832,7 +978,7 @@ ALTER TABLE `pagos`
 -- AUTO_INCREMENT de la tabla `permisos`
 --
 ALTER TABLE `permisos`
-  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_permiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `presentaciones`
@@ -853,6 +999,12 @@ ALTER TABLE `productos_compras`
   MODIFY `id_producto_compra` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `productos_presentaciones`
+--
+ALTER TABLE `productos_presentaciones`
+  MODIFY `id_producto_presentacion` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `productos_servicios_ventas`
 --
 ALTER TABLE `productos_servicios_ventas`
@@ -862,7 +1014,7 @@ ALTER TABLE `productos_servicios_ventas`
 -- AUTO_INCREMENT de la tabla `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_rol` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT de la tabla `servicios_ventas`
@@ -875,12 +1027,6 @@ ALTER TABLE `servicios_ventas`
 --
 ALTER TABLE `unidades_medida`
   MODIFY `id_unidad_medida` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de la tabla `usuarios`
---
-ALTER TABLE `usuarios`
-  MODIFY `cedula_usuario` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `ventas`
@@ -943,17 +1089,18 @@ ALTER TABLE `insumos_ventas`
   ADD CONSTRAINT `id_venta_insumos_ventas_fk` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id_venta`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `materias_primas`
---
-ALTER TABLE `materias_primas`
-  ADD CONSTRAINT `id_presentacion_materias_primas_fk` FOREIGN KEY (`id_presentacion`) REFERENCES `presentaciones` (`id_presentacion`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `materias_primas_compras`
 --
 ALTER TABLE `materias_primas_compras`
   ADD CONSTRAINT `id_compra_materias_primas_compras_fk` FOREIGN KEY (`id_compra`) REFERENCES `compras` (`id_compra`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `id_materia_prima_materias_primas_compras_fk` FOREIGN KEY (`id_materia_prima`) REFERENCES `materias_primas` (`id_materia_prima`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `materias_primas_presentaciones`
+--
+ALTER TABLE `materias_primas_presentaciones`
+  ADD CONSTRAINT `id_materia_prima_materias_primas_presentaciones_fk` FOREIGN KEY (`id_materia_prima`) REFERENCES `materias_primas` (`id_materia_prima`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `id_presentacion_materias_primas_presentaciones_fk` FOREIGN KEY (`id_presentacion`) REFERENCES `presentaciones` (`id_presentacion`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `materias_primas_productos`
@@ -982,17 +1129,18 @@ ALTER TABLE `presentaciones`
   ADD CONSTRAINT `id_unidad_medida_presentaciones_fk` FOREIGN KEY (`id_unidad_medida`) REFERENCES `unidades_medida` (`id_unidad_medida`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `productos`
---
-ALTER TABLE `productos`
-  ADD CONSTRAINT `id_presentacion_productos_fk` FOREIGN KEY (`id_presentacion`) REFERENCES `presentaciones` (`id_presentacion`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `productos_compras`
 --
 ALTER TABLE `productos_compras`
   ADD CONSTRAINT `id_compra_productos_compras_fk` FOREIGN KEY (`id_compra`) REFERENCES `compras` (`id_compra`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `id_producto_productos_compras_fk` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `productos_presentaciones`
+--
+ALTER TABLE `productos_presentaciones`
+  ADD CONSTRAINT `id_presentacion_productos_presentacion_fk` FOREIGN KEY (`id_presentacion`) REFERENCES `presentaciones` (`id_presentacion`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `id_producto_presentacion_fk` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id_producto`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `productos_servicios_ventas`
