@@ -5,7 +5,8 @@ use src\config\inc\componentesModelo;
 use src\modelos\PDF;
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
-  $reporte = $_POST["reporte"] ?? '';
+  $datos = json_decode(file_get_contents('php://input'), true) ?? $_POST;
+  $reporte = $datos["reporte"] ?? '';
   $objReportes = new reportesModelo();
 
   ob_clean();
@@ -15,13 +16,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   ];
   switch ($reporte) {
     case "reporteVentas":
-      $resultado = $objReportes->reporteVentas($_POST);
+      $resultado = $objReportes->reporteVentas($datos);
       break;
     case "reporteCompras":
-      $resultado = $objReportes->reporteCompras($_POST);
+      $resultado = $objReportes->reporteCompras($datos);
       break;
     case "reporteCierre":
-      $resultado = $objReportes->reporteCierre($_POST);
+      $resultado = $objReportes->reporteCierre($datos);
       break;
     case "reporteServicios":
       $resultado = $objReportes->reporteServicios();

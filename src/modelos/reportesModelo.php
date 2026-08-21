@@ -8,9 +8,30 @@ use src\modelos\pdfModel;
 class reportesModelo extends conexion {
 
   private array $filtros = [];
-  
+
+  private function normalizarFecha(string $fecha): string {
+    $fecha = trim($fecha);
+    if (empty($fecha)) return '';
+
+    // Formato DD-MM-YYYY o DD/MM/YYYY
+    if (preg_match('/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/', $fecha, $m)) {
+      return sprintf('%04d-%02d-%02d', $m[3], $m[2], $m[1]);
+    }
+
+    // Formato YYYY-MM-DD
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $fecha)) {
+      return $fecha;
+    }
+
+    $ts = strtotime($fecha);
+    if ($ts !== false) {
+      return date('Y-m-d', $ts);
+    }
+    return $fecha;
+  }
+
   public function reporteVentas(array $filtros) {
-    if ($filtros['fecha_desde'] == '' || $filtros['fecha_hasta'] == '') {
+    if (empty($filtros['fecha_desde']) || empty($filtros['fecha_hasta'])) {
       return [
         'tipo' => 'simple',
         'icono' => 'error',
@@ -18,8 +39,10 @@ class reportesModelo extends conexion {
         'texto' => 'Debe agregar una fecha de inicio y fin para el reporte'
       ];
     }
-    $this->filtros['fecha_desde'] = $this->FechaHora_Sel("fecha_BD", $filtros['fecha_desde']);
-    $this->filtros['fecha_hasta'] = $this->FechaHora_Sel("fecha_BD", $filtros['fecha_hasta']);
+    $this->filtros['tipo_producto'] = $filtros['tipo_producto'] ?? 'todos';
+    $this->filtros['fecha_desde']   = $this->normalizarFecha($filtros['fecha_desde']);
+    $this->filtros['fecha_hasta']   = $this->normalizarFecha($filtros['fecha_hasta']);
+
     if ($this->filtros['fecha_desde'] > $this->filtros['fecha_hasta']) {
       return [
         'tipo' => 'simple',
@@ -31,8 +54,9 @@ class reportesModelo extends conexion {
 
     return $this->reporteVentasP();
   }
+
   public function reporteCompras(array $filtros) {
-    if ($filtros['fecha_desde'] == '' || $filtros['fecha_hasta'] == '') {
+    if (empty($filtros['fecha_desde']) || empty($filtros['fecha_hasta'])) {
       return [
         'tipo' => 'simple',
         'icono' => 'error',
@@ -40,8 +64,11 @@ class reportesModelo extends conexion {
         'texto' => 'Debe agregar una fecha de inicio y fin para el reporte'
       ];
     }
-    $this->filtros['fecha_desde'] = $this->FechaHora_Sel("fecha_BD", $filtros['fecha_desde']);
-    $this->filtros['fecha_hasta'] = $this->FechaHora_Sel("fecha_BD", $filtros['fecha_hasta']);
+
+    $this->filtros['tipo_item']   = $filtros['tipo_item'] ?? 'todos';
+    $this->filtros['fecha_desde'] = $this->normalizarFecha($filtros['fecha_desde']);
+    $this->filtros['fecha_hasta'] = $this->normalizarFecha($filtros['fecha_hasta']);
+
     if ($this->filtros['fecha_desde'] > $this->filtros['fecha_hasta']) {
       return [
         'tipo' => 'simple',
@@ -53,8 +80,9 @@ class reportesModelo extends conexion {
 
     return $this->reporteComprasP();
   }
+
   public function reporteCierre(array $filtros) {
-    if (($filtros['fecha_cierre'] == '')) {
+    if (empty($filtros['fecha_cierre'])) {
       return [
         'tipo' => 'simple',
         'icono' => 'error',
@@ -63,20 +91,8 @@ class reportesModelo extends conexion {
       ];
     }
 
-    $this->filtros['fecha_cierre'] = $this->FechaHora_Sel("fecha_BD", $filtros['fecha_cierre']);
+    $this->filtros['fecha_cierre'] = $this->normalizarFecha($filtros['fecha_cierre']);
 
-    // Validar fecha
-    $fecha_cierre = date('Y-m-d', strtotime($this->filtros['fecha_cierre']));
-    $fecha_actual = date('Y-m-d');
-
-    if ($fecha_cierre > $fecha_actual) {
-      return [
-        'tipo' => 'simple',
-        'icono' => 'error',
-        'titulo' => 'Fecha de cierre es mayor a la fecha actual',
-        'texto' => 'La fecha de cierre del reporte debe ser menor o igual a la fecha actual'
-      ];
-    }
     return $this->reporteCierreP();
   }
   public function reporteServicios() {
@@ -202,45 +218,58 @@ class reportesModelo extends conexion {
   }
 
   private function reporteVentasP() {
+    //$Filtro = "";
+    $tipoProducto = $this->filtros['tipo_producto'] ?? 'todos';
+
+    switch ($tipoProducto) {
+        case 'productos':
+            $textoFiltroTipo = 'Solo Productos';
+            break;
+        case 'servicios':
+            $textoFiltroTipo = 'Solo Servicios';
+            break;
+        default:
+            $textoFiltroTipo = 'Todos los Items';
+            break;
+    }
+
     $instruccionesDB = [
       'tabla' => 'ordenes_entregas_presupuestos as f',
       'campos' => "
-                    f.id_orden_entrega_presupuesto,
-                    f.fecha_orden_entrega_presupuesto,
-                    COALESCE(c.rif_cedula_cliente, 'Publico General') AS cliente,
-                    COALESCE(SUM(pf.cantidad_producto * pr.precio_producto), 0) + 
-                    COALESCE(SUM(sf.cantidad_servicio * s.precio_servicio), 0) + 
-                    COALESCE(ci.monto_cambio_iva, 0) AS total_venta,
-                    'Completada' AS estado_venta,
-                CASE 
-                   WHEN pf.id_producto_factura IS NOT NULL THEN pr.nombre_producto
-                   WHEN sf.id_servicio_factura IS NOT NULL THEN s.nombre_servicio
-                   ELSE 'N/A'
-                END AS item,
-                CASE 
-                   WHEN pf.id_producto_factura IS NOT NULL THEN 'Producto'
-                   WHEN sf.id_servicio_factura IS NOT NULL THEN 'Servicio'
-                ELSE 'N/A'
-                END AS tipo_item,
-                   COALESCE(pf.cantidad_producto, sf.cantidad_servicio, 0) AS cantidad
+            f.id_orden_entrega_presupuesto,
+            f.fecha_orden_entrega_presupuesto,
+            COALESCE(c.razon_social_cliente, f.rif_cedula_cliente) as rif_cedula_cliente,
+            
+            (SELECT COUNT(*) 
+             FROM productos_ordenes_entregas_presupuestos pf 
+             WHERE pf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND pf.status != 0) AS cant_productos,
+            
+            (SELECT COUNT(*) 
+             FROM servicios_ordenes_entregas_presupuestos sf 
+             WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status != 0) AS cant_servicios,
+
+            COALESCE((
+              SELECT SUM(dp.monto_pago * m.valor_moneda)
+              FROM pagos p
+              LEFT JOIN detalles_pagos dp ON p.id_pago = dp.id_pago
+              LEFT JOIN monedas m ON dp.id_moneda = m.id_moneda
+              WHERE p.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND p.status != 0
+            ), 0) AS total_venta
       ",
       'datosJoins' => [
-        'clientes as c' => 'f.rif_cedula_cliente = c.rif_cedula_cliente',
-        'cambios_iva as ci' => 'f.id_cambio_iva = ci.id_cambio_iva',
-        'productos_ordenes_entregas_presupuestos as pf' => 'f.id_orden_entrega_presupuesto = pf.id_producto_factura',
-        'productos as pr' => 'pf.id_producto_factura = pr.id_producto',
-        'servicios_ordenes_entregas_presupuestos as sf' => 'f.id_orden_entrega_presupuesto = sf.id_orden_entrega_presupuesto',
-        'servicios as s' => 'sf.id_servicio_factura = s.id_servicio',
+        'LEFT clientes as c' => 'f.rif_cedula_cliente = c.rif_cedula_cliente',
       ],
       'WHERE' => [
         'f.fecha_orden_entrega_presupuesto' => [
-          '>=' => $this->filtros['fecha_desde'],
-          '<=' => $this->filtros['fecha_hasta'],
+          '>=' => $this->filtros['fecha_desde'] . ' 00:00:00',
+          '<=' => $this->filtros['fecha_hasta'] . ' 23:59:59',
         ]
-      ]
+      ],
+      'ORDER' => 'f.fecha_orden_entrega_presupuesto DESC'
     ];
+
     $infoCeldas = $this->seleccionarDatos2($instruccionesDB)->fetchAll();
-    if ($infoCeldas == [] ||  $infoCeldas[0]['id_orden_entrega_presupuesto'] == [] || $infoCeldas[0]['fecha_orden_entrega_presupuesto'] == []) {
+    if (empty($infoCeldas) || empty($infoCeldas[0]['id_orden_entrega_presupuesto'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Sin registros existentes',
@@ -249,54 +278,161 @@ class reportesModelo extends conexion {
       ];
     }
 
+    if ($tipoProducto === 'productos') {
+        $infoCeldas = array_filter($infoCeldas, function($fila) {
+            return $fila['cant_productos'] > 0 && $fila['cant_servicios'] == 0;
+        });
+    } elseif ($tipoProducto === 'servicios') {
+        $infoCeldas = array_filter($infoCeldas, function($fila) {
+            return $fila['cant_servicios'] > 0 && $fila['cant_productos'] == 0;
+        });
+    }
+
+    // Acumulador para el total general
+    $montoTotalVentas = 0;
+
     //Modificamos la fecha a formato AM/PM  
     foreach ($infoCeldas as &$fila) {
+      $montoTotalVentas += floatval($fila['total_venta']);
       $fila['fecha_orden_entrega_presupuesto'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_orden_entrega_presupuesto']);
-      //$fila['valor_moneda'] .= ' Bs';
+      $fila['total_venta'] = number_format((float)$fila['total_venta'], 2, ',', '.') . ' Bs';
     }
     unset($fila);
+    $infoCeldas = array_values($infoCeldas);
+
+       $infoCeldas[] = [
+      'id_orden_entrega_presupuesto' => '',
+      'rif_cedula_cliente'           => '',
+      'fecha_orden_entrega_presupuesto' => 'TOTAL DEL DÍA:',
+      'total_venta'                  => number_format($montoTotalVentas, 2, ',', '.') . ' Bs'
+    ];
+
+    $fechaDesde = date('d/m/Y', strtotime($this->filtros['fecha_desde']));
+    $fechaHasta = date('d/m/Y', strtotime($this->filtros['fecha_hasta']));
 
     //Creación del PDF
     $objetoPDF = new pdfModel();
     $objetoPDF->SetTitle('REPORTE DE VENTAS');
     return $objetoPDF->crearPDF([
       "tituloReporte" => "REPORTE DE VENTAS",
+      "rangoFechas"    => "{$fechaDesde} al {$fechaHasta}",
+      "filtroAplicado" => $textoFiltroTipo,
+      "datosExtCabecera" => [
+        "Rango de Fechas: {$fechaDesde} al {$fechaHasta}",
+        "Filtro Aplicado: {$textoFiltroTipo}"
+      ],
       "configColumnas" => [
         'id_orden_entrega_presupuesto' => ['NRO FACTURA', 40],
-        'rif_cedula_cliente' => ['CLIENTE', 60],
-        'fecha_orden_entrega_presupuesto' => ['FECHA', 60],
-        'total_venta' => ['MONTO', 60],
+        'rif_cedula_cliente' => ['CLIENTE', 40],
+        'fecha_orden_entrega_presupuesto' => ['FECHA', 50],
+        'total_venta' => ['MONTO', 50],
       ],
       "infoBD" => $infoCeldas,
     ]);
   }
   private function reporteComprasP() {
-    $instruccionesDB = [
-      'tabla' => 'compras as c',
-      'campos' => '
-        c.id_compra,
-        c.fecha_compra,
-        p.razon_social_proveedor,
-        mp.nombre_materia_prima,
-        mp.precio_materia_prima,
-        SUM(mpc.cantidad_materia_prima) AS cantidad,
-        SUM(mpc.cantidad_materia_prima * mp.precio_materia_prima) AS total_compra
-      ',
-      'datosJoins' => [
-        'materias_primas_compras as mpc' => 'c.id_compra = mpc.id_compra',
-        'materias_primas as mp' => 'mpc.id_materia_prima = mp.id_materia_prima',
-        'proveedores as p' => 'c.rif_proveedor = p.rif_proveedor',
-      ],
-      'WHERE' => [
+    $tipoCompras = $this->filtros['tipo_item'] ?? 'todos';
+
+    $whereFechas = [
         'c.fecha_compra' => [
-          '>=' => $this->filtros['fecha_desde'],
-          '<=' => $this->filtros['fecha_hasta'],
+            '>=' => $this->filtros['fecha_desde'] . ' 00:00:00',
+            '<=' => $this->filtros['fecha_hasta'] . ' 23:59:59',
         ]
-      ],
-      'GROUP BY' => 'mp.id_materia_prima',
-      'ORDER' => 'c.fecha_compra DESC'
     ];
-    $infoCeldas = $this->seleccionarDatos2($instruccionesDB)->fetchAll();
+
+    $resMP = [];
+    $resProd = [];
+
+    // CONSULTA MATERIAS PRIMAS 
+    if (in_array($tipoCompras, ['todos', 'materias_primas'])) {
+        $whereMP = $whereFechas;
+        $whereMP['mpc.status'] = 1;
+        $instruccionesMP = [
+            'tabla' => 'compras as c',
+            'campos' => '
+                  c.id_compra,
+                  c.fecha_compra,
+                  prov.razon_social_proveedor,
+                  mp.nombre_materia_prima AS descripcion,
+                  COALESCE(mp.precio_materia_prima, 0) AS precio,
+                  SUM(mpc.cantidad_materia_prima) AS cantidad,
+                  SUM(mpc.cantidad_materia_prima * COALESCE(mp.precio_materia_prima, 0)) AS total_compra
+            ',
+            'datosJoins' => [
+                 'LEFT materias_primas_compras as mpc' => 'c.id_compra = mpc.id_compra',
+                 'LEFT materias_primas as mp'          => 'mpc.id_materia_prima = mp.id_materia_prima',
+                 'LEFT proveedores as prov'            => 'c.rif_proveedor = prov.rif_proveedor',
+            ],
+            'WHERE' => $whereFechas,
+            'GROUP BY' => 'c.id_compra, mpc.id_materia_prima, c.fecha_compra, prov.razon_social_proveedor, mp.nombre_materia_prima, mp.precio_materia_prima'
+        ];
+        $resMP = $this->seleccionarDatos2($instruccionesMP)->fetchAll() ?: [];
+    }
+
+    // CONSULTA PRODUCTOS / INSUMOS
+    if (in_array($tipoCompras, ['todos', 'productos', 'insumos'])) {
+        $whereProd = $whereFechas;
+
+        // APLICAR FILTRO DE CATEGORÍA SEGÚN EL TIPO SELECCIONADO
+    if ($tipoCompras === 'productos') {
+        // Solo productos fabricados (1) y no fabricados (2)
+        $whereProd['prod.id_categoria_producto'] = [
+                '>=' => 1,
+                '<=' => 2
+            ];
+    } elseif ($tipoCompras === 'insumos') {
+        // Solo insumos (categoría 3)
+        $whereProd ['prod.id_categoria_producto'] = 3;
+    }
+        $whereProd['pc.status'] = 1;
+        
+        $instruccionesProd = [
+            'tabla' => 'compras as c',
+            'campos' => '
+                  c.id_compra,
+                  c.fecha_compra,
+                  COALESCE(prov.razon_social_proveedor, c.rif_proveedor) as razon_social_proveedor,
+                  CONCAT(prod.nombre_producto, IF(p.nombre_presentacion IS NOT NULL AND p.nombre_presentacion != "", CONCAT(" (", p.nombre_presentacion, ")"), "")) AS descripcion,
+                  COALESCE(prod.precio_producto, 0) AS precio,
+                  SUM(pc.cantidad_producto) AS cantidad,
+                  SUM(pc.cantidad_producto * COALESCE(prod.precio_producto, 0)) AS total_compra
+            ',
+            'datosJoins' => [
+                 'LEFT productos_compras as pc'          => 'c.id_compra = pc.id_compra',
+                 'LEFT presentaciones_productos as pres' => 'pc.id_presentacion_producto = pres.id_presentacion_producto',
+                 'LEFT presentaciones as p'              => 'pres.id_presentacion = p.id_presentacion',
+                 'LEFT productos as prod'                => 'pres.id_producto = prod.id_producto',
+                 'LEFT proveedores as prov'              => 'c.rif_proveedor = prov.rif_proveedor',
+            ],
+            'WHERE' => $whereProd,
+            'GROUP BY' => 'c.id_compra, pc.id_presentacion_producto, c.fecha_compra, prov.razon_social_proveedor, prod.nombre_producto, p.nombre_presentacion, prod.precio_producto'
+        ];
+    $resProd = $this->seleccionarDatos2($instruccionesProd)->fetchAll() ?: [];
+}
+
+    switch ($tipoCompras) {
+        case 'materias_primas':
+            $textoFiltroTipo = 'Materias Primas';
+            $infoCeldas = $resMP;
+            break;
+        case 'productos':
+            $textoFiltroTipo = 'Productos';
+            $infoCeldas = $resProd;
+            break;
+        case 'insumos':
+            $textoFiltroTipo = 'Insumos';
+            $infoCeldas = $resProd;
+            break;
+        default:
+            $textoFiltroTipo = 'Todos los Items';
+            $infoCeldas = array_merge($resMP, $resProd);
+
+            // Ordenar el arreglo combinado por fecha descendente
+            usort($infoCeldas, function($a, $b) {
+                return strtotime($b['fecha_compra']) - strtotime($a['fecha_compra']);
+            });
+            break;
+    }
 
     if ($infoCeldas == [] || ($infoCeldas[0]['id_compra'] ?? null) == null) {
       return [
@@ -305,52 +441,91 @@ class reportesModelo extends conexion {
         'texto' => 'No hay registros dentro de ese intervalo de tiempo',
         'icono' => 'warning',
       ];
-    }
+    }   
 
-    //Modificamos la fecha a formato AM/PM  
+    $montoTotalCompras = 0;
+
     foreach ($infoCeldas as &$fila) {
-      $fila['fecha_compra'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_compra']);
-      $fila['total_compra'] .= ' Bs';
+      $montoTotalCompras += floatval($fila['total_compra'] ?? 0);
+      $precioUnitario = $fila['precio'] ?? 0;
+      
+      $fila['id_compra']              = (string) ($fila['id_compra'] ?? '');
+      $fila['fecha_compra']           = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_compra'] ?? '');
+      $fila['razon_social_proveedor'] = (string) ($fila['razon_social_proveedor'] ?? '');
+      $fila['descripcion']            = (string) ($fila['descripcion'] ?? '');
+      $fila['cantidad']               = (string) ($fila['cantidad'] ?? '0');
+      $fila['precio']                 = number_format((float)$precioUnitario, 2, ',', '.') . ' Bs';
+      $fila['total_compra']           = number_format((float)$fila['total_compra'], 2, ',', '.') . ' Bs';
     }
     unset($fila);
+   
+    // Fila del Total General
+    $infoCeldas[] = [
+        'id_compra'              => '',
+        'fecha_compra'           => '',
+        'razon_social_proveedor' => '',
+        'descripcion'            => 'TOTAL COMPRAS:',
+        'cantidad'               => '',
+        'precio'                 => '',
+        'total_compra'           => number_format($montoTotalCompras, 2, ',', '.') . ' Bs'
+    ];
+
+    $fechaDesde = date('d/m/Y', strtotime($this->filtros['fecha_desde']));
+    $fechaHasta = date('d/m/Y', strtotime($this->filtros['fecha_hasta']));
 
     //Creación del PDF
-    $objetoPDF = new pdfModel('L');
+    $objetoPDF = new pdfModel();
     $objetoPDF->SetTitle('REPORTE DE COMPRAS');
 
     return $objetoPDF->crearPDF([
       "tituloReporte" => "REPORTE DE COMPRAS",
+      "rangoFechas"   => "{$fechaDesde} al {$fechaHasta}",
+      "filtroAplicado" => $textoFiltroTipo,
+      "datosExtCabecera" => [
+        "Rango de Fechas: {$fechaDesde} al {$fechaHasta}",
+        "Filtro Aplicado: {$textoFiltroTipo}"
+      ],
       "configColumnas" => [
-        'id_compra' => ['CÓDIGO', 25],
+        'id_compra' => ['CÓDIGO', 20],
         'fecha_compra' => ['FECHA', 25],
-        'razon_social_proveedor' => ['PROVEEDOR', 30],
-        'nombre_materia_prima' => ['MATERIA PRIMA', 40],
+        'razon_social_proveedor' => ['PROVEEDOR', 35],
+        'descripcion' => ['DESCRIPCIÓN', 40],
         'cantidad' => ['CANTIDAD', 25],
-        'precio_materia_prima' => ['PRECIO', 25],
-        'total_compra' => ['TOTAL', 25],
+        'precio' => ['PRECIO', 25],
+        'total_compra' => ['TOTAL', 30],
       ],
       "infoBD" => $infoCeldas,
     ]);
   }
   private function reporteCierreP() {
     $instruccionesDB = [
-      'tabla' => 'ordenes_entregas_presupuestos as f',
-      'campos' => '
-                    f.id_orden_entrega_presupuesto,
-                    c.rif_cedula_cliente,
-                    f.fecha_orden_entrega_presupuesto
-      ',
-      'datosJoins' => [
-        'clientes as c' => 'f.rif_cedula_cliente = c.rif_cedula_cliente',
-
+        'tabla'  => 'pagos as p',
+        'campos' => '
+              p.id_orden_entrega_presupuesto,
+              COALESCE(c.razon_social_cliente, c.rif_cedula_cliente, f.rif_cedula_cliente, "") as rif_cedula_cliente,
+              p.fecha_pago,
+              f.fecha_orden_entrega_presupuesto,
+              COALESCE(mp.nombre_metodo_pago, "Efectivo") as nombre_metodo_pago,
+              COALESCE(m.simbolo_moneda, "Bs") as simbolo_moneda,
+              COALESCE(dp.monto_pago, 0) as monto_pago,
+              (COALESCE(dp.monto_pago, 0) * COALESCE(m.valor_moneda, 1)) AS monto_pago_bs
+        ',
+        'datosJoins' => [
+              'LEFT ordenes_entregas_presupuestos as f' => 'p.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto',
+              'LEFT clientes as c' => 'f.rif_cedula_cliente = c.rif_cedula_cliente',
+              'LEFT detalles_pagos as dp' => 'p.id_pago = dp.id_pago',
+              'LEFT metodos_pagos as mp' => 'dp.id_metodo_pago = mp.id_metodo_pago',
+              'LEFT monedas as m' => 'dp.id_moneda = m.id_moneda',
       ],
       'WHERE' => [
-        'f.fecha_orden_entrega_presupuesto' => [
-          '>=' => $this->filtros['fecha_cierre'],
+        'p.fecha_pago' => [
+            '>=' => $this->filtros['fecha_cierre'] . ' 00:00:00',
+            '<=' => $this->filtros['fecha_cierre'] . ' 23:59:59',
         ]
       ],
-      'ORDER' => 'f.fecha_orden_entrega_presupuesto DESC'
+      'ORDER' => 'p.fecha_pago DESC'
     ];
+
     $infoCeldas = $this->seleccionarDatos2($instruccionesDB)->fetchAll();
     if ($infoCeldas == []) {
       return [
@@ -361,12 +536,32 @@ class reportesModelo extends conexion {
       ];
     }
 
-    //Modificamos la fecha a formato AM/PM  
+    // Acumulador para la sumatoria total
+    $totalGeneralDia = 0;
+
     foreach ($infoCeldas as &$fila) {
-      $fila['fecha_orden_entrega_presupuesto'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_orden_entrega_presupuesto']);
-      //$fila['valor_moneda'] .= ' Bs';
+      $totalGeneralDia += floatval($fila['monto_pago_bs']);  
+      $fila['fecha_pago'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_pago']);
+
+      // Formatear montos con su símbolo y decimales
+      $montoOriginal = number_format($fila['monto_pago'], 2, ',', '.');
+      $fila['monto_detalle'] = $fila['nombre_metodo_pago'] . ' (' . $fila['simbolo_moneda'] . ' ' . $montoOriginal . ')';
+      
+      // Monto a la moneda local
+      $fila['monto_pago_bs'] = number_format($fila['monto_pago_bs'], 2, ',', '.') . ' Bs';
+
+      // Limpiar los campos temporales 
+      unset($fila['monto_pago'], $fila['simbolo_moneda'], $fila['nombre_metodo_pago']);
     }
     unset($fila);
+
+    $infoCeldas[] = [
+        'id_orden_entrega_presupuesto' => '',
+        'rif_cedula_cliente'           => '',
+        'fecha_pago'                   => 'TOTAL DEL DÍA:',
+        'monto_detalle'                => '',
+        'monto_pago_bs'                => number_format($totalGeneralDia, 2, ',', '.') . ' Bs'
+    ];
 
     //Creación del PDF
     $objetoPDF = new pdfModel();
@@ -375,8 +570,10 @@ class reportesModelo extends conexion {
       "tituloReporte" => "REPORTE DE CIERRE DE CAJA",
       "configColumnas" => [
         'id_orden_entrega_presupuesto' => ['NRO FACTURA', 40],
-        'rif_cedula_cliente' => ['CLIENTE', 60],
-        'fecha_orden_entrega_presupuesto' => ['FECHA', 60],
+        'rif_cedula_cliente' => ['CLIENTE', 40],
+        'fecha_pago' => ['FECHA', 40],
+        'monto_detalle' => ['FORMA DE PAGO', 40],
+        'monto_pago_bs' => ['MONTO TOTAL', 35],
       ],
       "infoBD" => $infoCeldas,
     ]);

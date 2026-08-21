@@ -7,91 +7,24 @@ import { driverAyuda, mostrarAyuda } from "/proyecto-lacruz-j/src/assets/js/conf
 
 //#region [ FUNCIONES PROPIAS DEL MODULO ] COMIENZO
 
-// Función para generar reporte de ventas
-async function generarReporteVentas() {
-  const form = document.getElementById('formReporteVentas');
-  const formData = new FormData(form);
+// Función centralizada para generar y visualizar cualquier reporte PDF
+async function ejecutarReporte(formulario, nombreReporte) {
+  const formData = new FormData(formulario);
   const datos = {};
   formData.forEach((value, key) => {
     datos[key] = value;
   });
-  datos.reporte = 'reporte_ventas';
+  datos.reporte = nombreReporte;
 
-  Swal.fire({
-    title: 'Generando reporte',
-    text: 'Por favor espere...',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
-  let resultado = await fetch(rutaAbsoluta + 'reportes', {
-    method: 'POST',
-    headers: encabezadosPeticiones,
-    body: JSON.stringify(datos)
-  })
-  Swal.close();
-  const contentType = resultado.headers.get('content-type');
-  if (contentType == 'application/json') {
-    alertasAjax(resultado.json());
-  } else if (contentType == 'application/pdf') {
-    let pdf = await resultado.blob();
-    const url = window.URL.createObjectURL(pdf);
-    window.open(url, '_blank');
-  } else {
-    console.error('Content type no identificado')
-  }
-}
-// Función para generar reporte de compras
-async function generarReporteCompras() {
-  const form = document.getElementById('formReporteCompras');
-  const formData = new FormData(form);
-  const datos = {};
-  formData.forEach((value, key) => {
-    datos[key] = value;
-  });
-  datos.reporte = 'reporteCompras';
-
-  Swal.fire({
-    title: 'Generando reporte',
-    text: 'Por favor espere...',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
-  let resultado = await fetch(rutaAbsoluta + 'reportes', {
-    method: 'POST',
-    headers: encabezadosPeticiones,
-    body: JSON.stringify(datos)
-  })
-  Swal.close();
-  const contentType = resultado.headers.get('content-type');
-
-  if (contentType == 'application/json' || contentType == 'text/html; charset=UTF-8') {
-    let JSON = await resultado.json()
-    alertasAjax(JSON);
-    console.log('resultado: ', JSON)
-  } else if (contentType == 'application/pdf') {
-    let pdf = await resultado.blob();
-    const url = window.URL.createObjectURL(pdf);
-    window.open(url, '_blank');
-  } else {
-    console.error('Content type no identificado')
-  }
-}
-// Función principal para generar cierre de caja
-async function generarCierreCaja() {
-  const form = $('#formCierreCaja')[0];
-  console.log(form)
-  const formData = new FormData(form);
-  const datos = {};
-  formData.forEach((value, key) => {
-    datos[key] = value;
-  });
-  if (!datos.fecha_cierre) {
-    Swal.fire('Error', 'Debe seleccionar una fecha de cierre', 'error');
+  if (nombreReporte === 'reporteCierre' && !datos.fecha_cierre) {
+    Swal.fire('Atención', 'Debe seleccionar una fecha de cierre', 'warning');
     return;
   }
-  datos.reporte = 'reporteCierre';
+
+  if ((nombreReporte === 'reporteVentas' || nombreReporte === 'reporteCompras') && (!datos.fecha_desde || !datos.fecha_hasta)) {
+    Swal.fire('Atención', 'Debe seleccionar el intervalo de fechas (Desde y Hasta)', 'warning');
+    return;
+  }
 
   Swal.fire({
     title: 'Generando reporte',
@@ -100,94 +33,30 @@ async function generarCierreCaja() {
     didOpen: () => Swal.showLoading()
   });
 
-  let resultado = await fetch(rutaAbsoluta + 'reportes', {
-    method: 'POST',
-    headers: encabezadosPeticiones,
-    body: JSON.stringify(datos)
-  })
-  Swal.close();
-  const contentType = resultado.headers.get('content-type');
-  console.log(contentType)
-  if (contentType == 'application/json') {
-    alertasAjax(resultado.json());
-  } else if (contentType == 'application/pdf') {
-    let pdf = await resultado.blob();
-    const url = window.URL.createObjectURL(pdf);
-    window.open(url, '_blank');
-  } else {
-    console.error('Content type no identificado')
+  try {
+    let resultado = await fetch(rutaAbsoluta + 'reportes', {
+      method: 'POST',
+      headers: encabezadosPeticiones,
+      body: JSON.stringify(datos)
+    });
+    Swal.close();
+
+    const contentType = resultado.headers.get('content-type') || '';
+    if (contentType.includes('application/pdf')) {
+      let pdf = await resultado.blob();
+      const url = window.URL.createObjectURL(pdf);
+      window.open(url, '_blank');
+    } else {
+      let respuesta = await resultado.json();
+      alertasAjax(respuesta);
+    }
+  } catch (error) {
+    Swal.close();
+    console.error('Error al generar reporte:', error);
+    alertasAjax({ icono: 'error', titulo: 'Error', texto: 'No se pudo generar el reporte.' });
   }
 }
-// Función para generar reporte de productos
-async function generarReporteProductos(event) {
-  event.preventDefault();
-  const form = document.getElementById('formReporteProductos');
-  const formData = new FormData(form);
-  const datos = {};
-  formData.forEach((value, key) => {
-    datos[key] = value;
-  });
-  datos.reporte = 'reporteProductos';
 
-  Swal.fire({
-    title: 'Generando reporte',
-    text: 'Por favor espere...',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
-  let resultado = await fetch(rutaAbsoluta + 'reportes', {
-    method: 'POST',
-    headers: encabezadosPeticiones,
-    body: JSON.stringify(datos)
-  })
-  Swal.close();
-  const contentType = resultado.headers.get('content-type');
-  if (contentType == 'application/json') {
-    alertasAjax(resultado.json());
-  } else if (contentType == 'application/pdf') {
-    let pdf = await resultado.blob();
-    const url = window.URL.createObjectURL(pdf);
-    window.open(url, '_blank');
-  } else {
-    console.error('Content type no identificado')
-  }
-}
-// Función para generar reporte de servicios
-async function generarReporteServicios(event) {
-  event.preventDefault();
-  const form = document.getElementById('formReporteServicios');
-  const formData = new FormData(form);
-  const datos = {};
-  formData.forEach((value, key) => {
-    datos[key] = value;
-  });
-  datos.reporte = 'reporteServicios';
-
-  Swal.fire({
-    title: 'Generando reporte',
-    text: 'Por favor espere...',
-    allowOutsideClick: false,
-    didOpen: () => Swal.showLoading()
-  });
-
-  let resultado = await fetch(rutaAbsoluta + 'reportes', {
-    method: 'POST',
-    headers: encabezadosPeticiones,
-    body: JSON.stringify(datos)
-  })
-  Swal.close();
-  const contentType = resultado.headers.get('content-type');
-  if (contentType == 'application/json') {
-    alertasAjax(resultado.json());
-  } else if (contentType == 'application/pdf') {
-    let pdf = await resultado.blob();
-    const url = window.URL.createObjectURL(pdf);
-    window.open(url, '_blank');
-  } else {
-    console.error('Content type no identificado')
-  }
-}
 // Función para cargar items específicos en ventas
 async function cargarItemsVentas() {
   const tipo = document.getElementById('tipo_producto_ventas').value;
@@ -240,6 +109,7 @@ async function cargarItemsVentas() {
     divItem.style.display = 'none';
   }
 }
+
 // Función específica para cargar solo productos
 async function cargarSoloProductos() {
   try {
@@ -263,6 +133,7 @@ async function cargarSoloProductos() {
     console.error('Error cargando productos:', error);
   }
 }
+
 // Función específica para cargar solo servicios
 async function cargarSoloServicios() {
   try {
@@ -332,6 +203,7 @@ async function cargarMateriasPrimas() {
     divMateria.style.display = 'none';
   }
 }
+
 // Función para mostrar campos de período
 function mostrarCamposPeriodo(tipo) {
   const periodo = document.getElementById(`periodo_${tipo}`).value;
@@ -341,6 +213,7 @@ function mostrarCamposPeriodo(tipo) {
   divPersonalizado.style.display = periodo === 'personalizado' ? 'flex' : 'none';
   divEspecifico.style.display = (periodo === 'mes' || periodo === 'anio') ? 'flex' : 'none';
 }
+
 async function renderizarGraficas() {
 
   // Ventas por año
@@ -519,7 +392,7 @@ async function renderizarGraficas() {
       datasets: [
         {
           label: ' Aporte total($) ',
-          data: data.map(row => row.count),
+          data: comprasPorCliente.map(row => row.promedioCompras),
           backgroundColor: [
             'rgba(255, 99, 132, 0.5)',
             'rgba(255, 159, 64, 0.5)',
@@ -571,7 +444,7 @@ function registrarTutorial() {
   driverAyuda('reportes', {
     pasos: [
       {
-        element: '.row .col-6:first-child .card',
+        element: '#formReporteVentas',
         popover: {
           title: 'Reporte de Ventas',
           description: 'Genera reportes de ventas. Puedes filtrar por tipo de item y rango de fechas.',
@@ -580,7 +453,7 @@ function registrarTutorial() {
         }
       },
       {
-        element: '.row .col-6:last-child .card',
+        element: '#formReporteCompras',
         popover: {
           title: 'Reporte de Compras',
           description: 'Genera reportes de compras a proveedores.',
@@ -589,7 +462,7 @@ function registrarTutorial() {
         }
       },
       {
-        element: '.row.mb-5:last-child .col-3:first-child .card',
+        element: '#formCierreCaja',
         popover: {
           title: 'Cierre de Caja',
           description: 'Genera el reporte de cierre de caja para una fecha específica.',
@@ -598,16 +471,16 @@ function registrarTutorial() {
         }
       },
       {
-        element: '.row.mb-5:last-child .col-md-6.col-lg-3.mb-4:nth-child(2) .card',
+        element: '#formReporteServicios',
         popover: {
-          title: 'Reporte de Servicios',
+          title: 'Catálogo de Servicios',
           description: 'Genera un listado completo de todos los servicios disponibles.',
           side: 'top',
           align: 'start'
         }
       },
       {
-        element: '.row.mb-5:last-child .col-md-6.col-lg-3.mb-4:nth-child(3) .card',
+        element: '#formReporteProductos',
         popover: {
           title: 'Inventario de Productos',
           description: 'Genera un listado completo de todos los productos disponibles.',
@@ -616,7 +489,7 @@ function registrarTutorial() {
         }
       },
       {
-        element: '.row.mb-5:last-child .col-md-6.col-lg-3.mb-4:nth-child(4) .card',
+        element: '#formReporteMateriaPrima',
         popover: {
           title: 'Inventario de Materias Primas',
           description: 'Genera un listado completo de todas las materias primas disponibles.',
@@ -634,58 +507,73 @@ function registrarTutorial() {
     ]
   });
 }
+
 //#endregion [ FUNCIONES DE AYUDA ] FIN
 
 //#region [ DELEGACIÓN DE EVENTOS ] COMIENZO
 
 // Evento de carga de la pagina
-$(document).on('DOMContentLoaded', function () {
+$(document).ready(function () {
+  registrarTutorial();
+  
+  setTimeout(() => {
+    const driverPendiente = sessionStorage.getItem('driver_pendiente');
+    if (driverPendiente === 'reportes') {
+      sessionStorage.removeItem('driver_pendiente');
+      setTimeout(() => {
+        mostrarAyuda();
+      }, 800);
+    }
+  }, 600);
+
   let i = 0;
   while ($(`#Datepicker${i}`).length > 0) {
     $(`#Datepicker${i}`).datepicker({
       format: 'dd-mm-yyyy',
       language: 'es',
-      todayHighlight: true
+      todayHighlight: true,
+      autoclose: true
     });
     i++;
   }
 
-  registrarTutorial();
-  
-  const driverPendiente = sessionStorage.getItem('driver_pendiente');
-  if (driverPendiente === 'reportes') {
-    sessionStorage.removeItem('driver_pendiente');
-    setTimeout(() => {
-      mostrarAyuda();
-    }, 1000);
-  }
-});
-
-// Asignar evento al formulario de ventas
-$(document).off('submit', '.formular')
-$(document).on('submit', '.formular', function (e) {
-  e.preventDefault();
-  generarReporteVentas();
-});
-
-// Asignar evento al formulario de ventas
-// Evento para el envío de formularios (Registro y Actualización)
-$(document).off('submit', '.formularioAjax');
-$(document).on('submit', '.formularioAjax', function (e) {
-  e.preventDefault();
-  enviarFormulario({
-    'formulario': this,
-    'modulo': 'reportes',
+  $('.input-daterange').datepicker({
+    format: 'dd-mm-yyyy',
+    language: 'es',
+    todayHighlight: true,
+    autoclose: true
   });
 });
-// Asignar evento al formulario de ventas
-$(document).off('submit', '#formCierreCaja')
-$(document).on('submit', '#formCierreCaja', function (e) {
+
+// Delegación de eventos para los 6 formularios de reportes
+$(document).off('submit', '#formReporteVentas').on('submit', '#formReporteVentas', function (e) {
   e.preventDefault();
-  generarCierreCaja();
-})
+  ejecutarReporte(this, 'reporteVentas');
+});
+
+$(document).off('submit', '#formReporteCompras').on('submit', '#formReporteCompras', function (e) {
+  e.preventDefault();
+  ejecutarReporte(this, 'reporteCompras');
+});
+
+$(document).off('submit', '#formCierreCaja').on('submit', '#formCierreCaja', function (e) {
+  e.preventDefault();
+  ejecutarReporte(this, 'reporteCierre');
+});
+
+$(document).off('submit', '#formReporteServicios').on('submit', '#formReporteServicios', function (e) {
+  e.preventDefault();
+  ejecutarReporte(this, 'reporteServicios');
+});
+
+$(document).off('submit', '#formReporteProductos').on('submit', '#formReporteProductos', function (e) {
+  e.preventDefault();
+  ejecutarReporte(this, 'reporteProductos');
+});
+
+$(document).off('submit', '#formReporteMateriaPrima').on('submit', '#formReporteMateriaPrima', function (e) {
+  e.preventDefault();
+  ejecutarReporte(this, 'reporteMateriaPrima');
+});
 
 //#endregion [ DELEGACIÓN DE EVENTOS ] FIN
-
-
-

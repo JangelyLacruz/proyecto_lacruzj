@@ -398,6 +398,10 @@ function verCambiosCompletos() {
 //#region [ DELEGACIÓN DE EVENTOS ] COMIENZO
 
 $(document).on('DOMContentLoaded', async function() {
+  registrarTutorial();
+  
+  await new Promise(resolve => setTimeout(resolve, 500));
+
   await listarDataTable({
     encabezados: {
       "id_bitacora": "ID",
@@ -458,8 +462,6 @@ $(document).on('DOMContentLoaded', async function() {
       }
     }
   });
-
-  registrarTutorial();
 
   const driverPendiente = sessionStorage.getItem('driver_pendiente');
   if (driverPendiente === 'bitacora') {

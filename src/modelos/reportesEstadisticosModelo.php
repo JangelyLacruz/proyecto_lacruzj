@@ -126,28 +126,38 @@ class reportesEstadisticosModelo extends conexion {
       $stmt->execute();
       $topClientes = $formatChartData($stmt->fetchAll(PDO::FETCH_ASSOC), 'nombre', 'total_pedidos');
 
-      // Ingresos vs Egresos Mensuales
-      $stmt = self::$conexion->prepare("SELECT DATE_FORMAT(o.fecha_orden_entrega_presupuesto, '%Y-%m') as mes, COUNT(o.id_orden_entrega_presupuesto) as ingresos_cant FROM ordenes_entregas_presupuestos o WHERE o.status != 2 AND o.fecha_orden_entrega_presupuesto >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY mes ORDER BY mes ASC");
+      // Ingresos vs Egresos Mensuales (Línea de tiempo de los últimos 6 meses)
+      $stmt = self::$conexion->prepare("SELECT DATE_FORMAT(o.fecha_orden_entrega_presupuesto, '%Y-%m') as mes, COUNT(o.id_orden_entrega_presupuesto) as ingresos_cant FROM ordenes_entregas_presupuestos o WHERE o.status != 0 AND o.status != 2 GROUP BY mes ORDER BY mes ASC");
       $stmt->execute();
       $ingresos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-      $stmt = self::$conexion->prepare("SELECT DATE_FORMAT(c.fecha_compra, '%Y-%m') as mes, COUNT(c.id_compra) as egresos_cant FROM compras c WHERE c.status = 1 AND c.fecha_compra >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH) GROUP BY mes ORDER BY mes ASC");
+      $stmt = self::$conexion->prepare("SELECT DATE_FORMAT(c.fecha_compra, '%Y-%m') as mes, COUNT(c.id_compra) as egresos_cant FROM compras c WHERE c.status != 0 AND c.status != 2 GROUP BY mes ORDER BY mes ASC");
       $stmt->execute();
       $egresos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+      // Generar los últimos 6 meses continuos para garantizar el trazado de la línea
       $meses = [];
-      foreach (array_merge(array_column($ingresos, 'mes'), array_column($egresos, 'mes')) as $m) $meses[$m] = true;
-      $meses = array_keys($meses);
+      for ($i = 5; $i >= 0; $i--) {
+        $meses[] = date('Y-m', strtotime("-$i months"));
+      }
+
+      // Si hay meses en los datos más antiguos o diferentes, incluirlos
+      foreach (array_merge(array_column($ingresos, 'mes'), array_column($egresos, 'mes')) as $m) {
+        if (!empty($m) && !in_array($m, $meses)) {
+          $meses[] = $m;
+        }
+      }
       sort($meses);
 
       $ingresosData = [];
       $egresosData = [];
       foreach ($meses as $mes) {
         $keyIn = array_search($mes, array_column($ingresos, 'mes'));
-        $ingresosData[] = $keyIn !== false ? $ingresos[$keyIn]['ingresos_cant'] : 0;
+        $ingresosData[] = $keyIn !== false ? (int)$ingresos[$keyIn]['ingresos_cant'] : 0;
         $keyEg = array_search($mes, array_column($egresos, 'mes'));
-        $egresosData[] = $keyEg !== false ? $egresos[$keyEg]['egresos_cant'] : 0;
+        $egresosData[] = $keyEg !== false ? (int)$egresos[$keyEg]['egresos_cant'] : 0;
       }
-      $ingresosEgresos = empty($meses) ? ['fechas' => [], 'ingresos' => [], 'egresos' => []] : ['fechas' => $meses, 'ingresos' => $ingresosData, 'egresos' => $egresosData];
+      $ingresosEgresos = ['fechas' => $meses, 'ingresos' => $ingresosData, 'egresos' => $egresosData];
 
       // Productos Vs Servicios
       $stmt1 = self::$conexion->prepare("SELECT COUNT(pof.id_producto_factura) as cant FROM productos_ordenes_entregas_presupuestos pof INNER JOIN ordenes_entregas_presupuestos o ON pof.id_orden_entrega_presupuesto = o.id_orden_entrega_presupuesto WHERE o.status != 2 AND pof.status = 1 $fVentas");

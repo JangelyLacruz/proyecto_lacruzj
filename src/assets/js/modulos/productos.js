@@ -6,7 +6,7 @@ import {
   validarEnTiempoReal, formateoCampos, rutaFotos,
   alertasAjax,
 } from "/proyecto-lacruz-j/src/assets/js/modulos/global.js";
-import { driverAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js"
+import { driverAyuda, mostrarAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js"
 
 //#endregion [ IMPORTACIONES ] FIN
 
@@ -305,6 +305,10 @@ function habilitarDeshabilitarPresentacion(cambio = null) {
 
 //#region [ DELEGACIÓN DE EVENTOS ] COMIENZO
 $(document).on("DOMContentLoaded", async function () {
+  registrarTutorial();
+  
+  await new Promise(resolve => setTimeout(resolve, 500));
+
   await listarDataTable({
     encabezados: {
       "id_producto": "ID",
@@ -369,7 +373,8 @@ $(document).on("DOMContentLoaded", async function () {
         const stockActual = parseFloat(info.valor);
         const stockMinimo = parseFloat(info.fila?.stock_minimo_producto ?? 0);
         const clase = stockActual <= stockMinimo ? 'danger' : 'success';
-        return `<span class="badge bg-${clase} px-2 py-1" style="font-size:.85rem;">${formateoCampos(stockActual,'dinero')}</span>`;
+        const stockFormateado = stockActual.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return `<span class="badge bg-${clase} px-2 py-1" style="font-size:.85rem;">${stockFormateado}</span>`;
       },
     }
   });
@@ -405,6 +410,16 @@ $(document).on("DOMContentLoaded", async function () {
   renderizarPresentaciones();
   renderizarDashboard();
 
+  const driverPendiente = sessionStorage.getItem('driver_pendiente');
+  if (driverPendiente === 'productos') {
+    sessionStorage.removeItem('driver_pendiente');
+    setTimeout(() => {
+      mostrarAyuda();
+    }, 1000);
+  }
+});
+
+function registrarTutorial() {
   driverAyuda('productos', {
     pasos: [
       {
@@ -465,7 +480,7 @@ $(document).on("DOMContentLoaded", async function () {
       }
     ]
   });
-});
+}
 
 $(document).off('click', '.btnVer');
 $(document).on('click', '.btnVer', async function (e) {
@@ -653,5 +668,3 @@ $(document).on('input', '.validar input, .validar select', function () {
   }
 })
 //#endregion [ DELEGACIÓN DE EVENTOS ] FIN
-
-

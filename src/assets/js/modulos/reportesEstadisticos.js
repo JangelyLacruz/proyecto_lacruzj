@@ -217,11 +217,45 @@ const DashboardApp = (function() {
         data: {
           labels: datos.ingresosEgresos.fechas,
           datasets: [
-            { label: 'Ventas', data: datos.ingresosEgresos.ingresos, borderColor: '#6554C0', backgroundColor: gradIngresos, fill: true, tension: 0.4, borderWidth: 3 },
-            { label: 'Compras', data: datos.ingresosEgresos.egresos, borderColor: '#00d2ff', backgroundColor: gradEgresos, fill: true, tension: 0.4, borderWidth: 3 }
+            { 
+              label: 'Ventas', 
+              data: datos.ingresosEgresos.ingresos, 
+              borderColor: '#6554C0', 
+              backgroundColor: gradIngresos, 
+              fill: true, 
+              tension: 0.3, 
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            },
+            { 
+              label: 'Compras', 
+              data: datos.ingresosEgresos.egresos, 
+              borderColor: '#00d2ff', 
+              backgroundColor: gradEgresos, 
+              fill: true, 
+              tension: 0.3, 
+              borderWidth: 3,
+              pointRadius: 5,
+              pointHoverRadius: 7
+            }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+        options: { 
+          responsive: true, 
+          maintainAspectRatio: false, 
+          plugins: { 
+            legend: { position: 'top' } 
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
+        }
       });
     }
 
