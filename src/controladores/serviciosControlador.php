@@ -6,6 +6,7 @@ use src\modelos\accesosModelo;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["accion"]) && isset($_SESSION['cedula'])) {
 
+
   $accion = $_POST["accion"];
   $objeto = new serviciosModelo();
   ob_clean();

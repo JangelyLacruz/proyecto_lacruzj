@@ -78,20 +78,20 @@ function registrarTutorial() {
 function parsearMonto(rawStr) {
   let s = (rawStr || '').trim();
   if (s === '' || s === '0') return 0;
-  // Formato con coma decimal "1.500,50" o "0,50"
+  // Formato con coma decimal "1.500,50" o "0,50" (máscara dinero europea)
   if (s.includes(',')) {
     // Quitar puntos de miles, reemplazar coma por punto
     let clean = s.replace(/\./g, '').replace(',', '.');
     return parseFloat(clean) || 0;
   }
-  // Formato con punto decimal y sin coma
+  // Formato con punto decimal y sin coma (ej: "1500.50")
   if (s.includes('.')) {
     return parseFloat(s) || 0;
   }
-  // Solo números
-  // tomamos el valor tal cual como entero y dividimos entre 100
-  return parseFloat(s.replace(/\D/g, '')) / 100 || 0;
+  // Solo dígitos sin separadores: tomar el valor directo como entero
+  return parseFloat(s.replace(/\D/g, '')) || 0;
 }
+
 
 //El backend espera formato europeo con coma decimal: "0,50", "1500,50"
 
@@ -293,12 +293,16 @@ function calcularRestante() {
     let optMetodo = $(this).find('.sel-metodo-pago option:selected');
     let reqMoneda = optMetodo.data('moneda') == 1;
 
-    let tasaMonedaSeleccionada = 1; // Por defecto Bolívares tiene valor 1
+    let tasaMonedaSeleccionada = 1; // Por defecto Bolívares = 1
 
-    if (reqMoneda) {
-      let optMoneda = $(this).find('.sel-moneda-pago option:selected');
-      if (optMoneda.val() !== '') {
-        tasaMonedaSeleccionada = parseFloat(optMoneda.data('valor') || 1);
+    // Siempre leer el valor de la moneda seleccionada en el selector,
+    // independientemente de si el método requiere moneda o no.
+    // Si el selector está en Bolívar (data-valor=1) la fórmula sigue siendo correcta.
+    let optMoneda = $(this).find('.sel-moneda-pago option:selected');
+    if (optMoneda.length && optMoneda.val() !== '') {
+      let dataValor = parseFloat(optMoneda.data('valor'));
+      if (!isNaN(dataValor) && dataValor > 0) {
+        tasaMonedaSeleccionada = dataValor;
       }
     }
 
@@ -327,13 +331,13 @@ function calcularRestante() {
 
 //#region [ EVENTOS DEL DOM Y EJECUCION ] COMIENZO
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ Registrar el tutorial primero
+  //  Registrar el tutorial primero
   registrarTutorial();
   
   await cargarCatalogos();
   inicializarTablas();
   
-  // ✅ Verificar si hay un driver pendiente para pagos
+  // Verificar si hay un driver pendiente para pagos
   const driverPendiente = sessionStorage.getItem('driver_pendiente');
   if (driverPendiente === 'pagos') {
     sessionStorage.removeItem('driver_pendiente');
@@ -366,7 +370,14 @@ $(document).off("click", ".btn-eliminar-pago").on("click", ".btn-eliminar-pago",
   });
 });
 
-$(document).off("input", "#contenedorDetallesPagoModulo .input-monto-pago").on("input", "#contenedorDetallesPagoModulo .input-monto-pago", calcularRestante);
+$(document).off("input", "#contenedorDetallesPagoModulo .input-monto-pago").on("input", "#contenedorDetallesPagoModulo .input-monto-pago", function() {
+  // setTimeout(0) ensures we read the value AFTER the dinero mask has reformatted it,
+  // since the mask sets .val() synchronously in its own input handler (which doesn't re-fire input).
+  setTimeout(calcularRestante, 0);
+});
+$(document).off("blur", "#contenedorDetallesPagoModulo .input-monto-pago").on("blur", "#contenedorDetallesPagoModulo .input-monto-pago", function() {
+  setTimeout(calcularRestante, 0);
+});
 $(document).off("change", "#contenedorDetallesPagoModulo .sel-moneda-pago").on("change", "#contenedorDetallesPagoModulo .sel-moneda-pago", calcularRestante);
 
 $(document).off("change", "#contenedorDetallesPagoModulo .sel-metodo-pago").on("change", "#contenedorDetallesPagoModulo .sel-metodo-pago", function () {

@@ -280,7 +280,7 @@ private function listarOEPsP() {
         (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
          FROM servicios_ordenes_entregas_presupuestos sf 
          JOIN servicios s ON sf.id_servicio=s.id_servicio 
-         WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status = 1) AS sub_serv,
+         WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status IN (1, 2)) AS sub_serv,
         (SELECT COALESCE(SUM(
            r.precio_ruta * 
            IF(lat.coordenada_latitud LIKE '%|%',
@@ -1070,7 +1070,7 @@ private function recalcularStatusOEPP($idOrden) {
              (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
               FROM servicios_ordenes_entregas_presupuestos sf 
               JOIN servicios s ON sf.id_servicio=s.id_servicio 
-              WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status = 1) AS sub_serv,
+              WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status IN (1, 2)) AS sub_serv,
              (SELECT COALESCE(SUM(
                 r.precio_ruta * 
                 IF(lat.coordenada_latitud LIKE '%|%',
@@ -1099,14 +1099,24 @@ private function recalcularStatusOEPP($idOrden) {
       $statusActual = $f['status'];
       $nuevoStatus = $statusActual;
 
-      if (round($tot - $pag, 2) <= 0.01) {
-        // Está pagada — si estaba despachada (3 o 11) → pasa a 11 (Pagada y Despachada)
-        // si estaba solo procesada (1 o 10) → pasa a 10 (Procesada y Pagada)
-        $nuevoStatus = in_array($statusActual, [3, 11]) ? 11 : 10;
+      if (round($tot - $pag, 2) <= 0) {
+        // Está pagada — determinamos el nuevo status según el grupo de estado actual
+        if (in_array($statusActual, [3, 11])) {
+          $nuevoStatus = 11; // Pagada y Despachada
+        } elseif (in_array($statusActual, [12, 13])) {
+          $nuevoStatus = 13; // Pagada y Ejecutada
+        } else {
+          $nuevoStatus = 10; // Procesada y Pagada
+        }
       } else {
-        // No está pagada totalmente — mantiene el estado de despacho sin cambiar
-        // Status BD reales: 3=Despachada, 1=Procesada (status 4 es solo visualización frontend)
-        $nuevoStatus = in_array($statusActual, [3, 11]) ? 3 : 1;
+        // Pago parcial — revertimos al estado "sin pago" del grupo correspondiente
+        if (in_array($statusActual, [3, 11])) {
+          $nuevoStatus = 3;  // Despachada (sin pago completo)
+        } elseif (in_array($statusActual, [12, 13])) {
+          $nuevoStatus = 12; // Ejecutada (sin pago completo)
+        } else {
+          $nuevoStatus = 1;  // Procesada (sin pago completo)
+        }
       }
 
       if ($statusActual != $nuevoStatus) {

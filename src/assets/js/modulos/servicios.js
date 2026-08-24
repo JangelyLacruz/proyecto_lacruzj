@@ -218,6 +218,7 @@ async function inicializarModalServicio(modal) {
     let idServicio = modal.attr("id_servicio");
     let servicioBD = await pedirDatosAjax({
       modulo: "servicios",
+      noGuardarLocal: true,
       datosPe: {
         'accion': "seleccionarUno",
         'id_servicio': idServicio
@@ -433,9 +434,14 @@ $(document).on("click", ".botonEditar", async function (e) {
     }
   });
 
-  await cargarInputsActualizarQNR.call(modal.find("form"));
   modal.attr("id_servicio", idServicio);
-  inicializarModalServicio(modal);
+
+  // Primero cargar los productos (asíncrono, sin que cargarInputsActualizarQNR los borre)
+  await inicializarModalServicio(modal);
+
+  // Luego actualizar los campos QNR — esto puede resetear inputs del form
+  // pero NO toca la tabla de productos porque está fuera del form de inputs normales
+  await cargarInputsActualizarQNR.call(modal.find("form"));
 });
 
 // Eliminar registro

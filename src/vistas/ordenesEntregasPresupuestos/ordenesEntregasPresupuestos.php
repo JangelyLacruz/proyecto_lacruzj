@@ -34,24 +34,28 @@ echo $componente->listaDataTable($instruccionesLista);
           <!-- SECCIÓN: Datos generales del cliente y la orden -->
           <div class="row g-3 mb-3">
 
-            <!-- Campo para buscar por cédula o RIF del cliente -->
-            <div class="col-md-4">
+            <!-- Campo para buscar cliente mediante modal -->
+            <div class="col-md-3">
               <label class="form-label fw-semibold">
                 Cédula / RIF del Cliente
                 <span class="text-danger">*</span>
               </label>
-              <input type="text"
-                class="form-control"
-                id="inputCedulaClienteOrden"
-                name="rif_cedula_cliente"
-                placeholder="Ej: V12345678"
-                autocomplete="off"
-                maxlength="11"
-                required>
+              <div class="input-group">
+                <input type="text"
+                  class="form-control"
+                  id="inputCedulaClienteOrden"
+                  name="rif_cedula_cliente"
+                  readonly
+                  placeholder="Seleccione un cliente..."
+                  required>
+                <button class="btn btn-outline-primary" type="button" id="btnBuscarClienteOrden">
+                  <i class="fi fi-rs-search"></i> Buscar
+                </button>
+              </div>
             </div>
 
             <!-- Este campo es de solo lectura y se llena solito con el nombre del cliente -->
-            <div class="col-md-4">
+            <div class="col-md-5">
               <label class="form-label fw-semibold">Nombre del Cliente</label>
               <input type="text"
                 class="form-control"
@@ -163,6 +167,14 @@ echo $componente->listaDataTable($instruccionesLista);
                   id="btnAgregarServicioOrden">
                   <i class="fi fi-rs-plus me-1"></i>Agregar Servicio
                 </button>
+              </div>
+
+              <!-- ALERTA DE STOCK PARA SERVICIOS -->
+              <div class="alert alert-warning d-flex align-items-center p-2 mb-3" role="alert" style="font-size: 0.9rem;">
+                <i class="fi fi-rs-exclamation me-2 fs-5"></i>
+                <div>
+                  <strong>Aviso:</strong> El stock de los materiales consumidos por los servicios <u>no se descuenta ahora</u>. Se descontará cuando la Orden de Servicio pase a estado <strong>"Ejecutado"</strong>. Asegúrese de contar con stock suficiente para ese momento.
+                </div>
               </div>
               <div id="contenedorServiciosOrden">
                 <div class="fact-empty-state">
@@ -307,6 +319,36 @@ echo $componente->listaDataTable($instruccionesLista);
      ================================================================ -->
 
 <!-- ================================================================
+     Modal para Seleccionar Cliente
+     ================================================================ -->
+<div class="modal fade" id="modalSelClienteOrden" tabindex="-1" style="z-index: 1060;">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header text-white fact-header-grad">
+        <h5 class="modal-title"><i class="fi fi-rs-users me-2"></i>Seleccionar Cliente</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-hover table-striped w-100" id="dtSelClienteOrden">
+          <thead>
+            <tr>
+              <th>Cédula / RIF</th>
+              <th>Nombre / Razón Social</th>
+              <th>Teléfono</th>
+              <th>Correo</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Llenado dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
      Ventana para mirar con calma todos los detalles de una orden
      ================================================================ -->
 <div class="modal fade modalDetallesOrden" tabindex="-1">
@@ -322,8 +364,17 @@ echo $componente->listaDataTable($instruccionesLista);
           data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body" id="contenidoDetalleOrden">
-        <!-- Todo esto lo llenamos usando Javascript dependiendo de la orden -->
+      <div class="modal-body">
+        <!-- ALERTA DE STOCK PARA SERVICIOS -->
+        <div class="alert alert-warning d-flex align-items-center p-2 mb-3" role="alert" style="font-size: 0.9rem;">
+          <i class="fi fi-rs-exclamation me-2 fs-5"></i>
+          <div>
+            <strong>Aviso:</strong> El stock de los materiales consumidos por los servicios de esta orden <u>no se descuenta aquí</u>. Se descontará cuando sus respectivas Órdenes de Servicio pasen a estado <strong>"Ejecutado"</strong>.
+          </div>
+        </div>
+        <div id="contenidoDetalleOrden">
+          <!-- Todo esto lo llenamos usando Javascript dependiendo de la orden -->
+        </div>
       </div>
 
       <div class="modal-footer">

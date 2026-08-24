@@ -90,10 +90,26 @@ class serviciosModelo extends conexion {
       'requerido' => $requerido,
     ];
 
-    if (isset($info['productos_servicio']) && is_string($info['productos_servicio'])) {
+    // Reconstruir productos_servicio desde claves planas (cuando se envía como formData)
+    // Formato: productos_servicio-{index}-{campo} => valor
+    if (!isset($info['productos_servicio'])) {
+      $productosTemp = [];
+      foreach ($info as $clave => $valor) {
+        if (strpos($clave, 'productos_servicio-') === 0) {
+          $partes = explode('-', $clave, 3); // ['productos_servicio', '0', 'id_producto']
+          if (count($partes) === 3) {
+            $indice = $partes[1];
+            $campo  = $partes[2];
+            $productosTemp[$indice][$campo] = $valor;
+          }
+          unset($info[$clave]);
+        }
+      }
+      ksort($productosTemp);
+      $info['productos_servicio'] = array_values($productosTemp);
+    } elseif (is_string($info['productos_servicio'])) {
       $info['productos_servicio'] = json_decode($info['productos_servicio'], true) ?: [];
-    }
-    if (isset($info['productos_servicio']) && is_array($info['productos_servicio'])) {
+    } elseif (is_array($info['productos_servicio'])) {
       $info['productos_servicio'] = array_values($info['productos_servicio']);
     }
 
@@ -230,29 +246,20 @@ class serviciosModelo extends conexion {
       }
       $servicio = $resultado->fetch(PDO::FETCH_ASSOC);
 
-      // Productos del servicio (materias primas)
+      // Productos del servicio con nombres en una sola consulta JOIN
       $resultado = $this->seleccionarDatos2([
-        'campos' => 'ps.id_producto, ps.cantidad_producto',
+        'campos' => 'ps.id_producto, ps.cantidad_producto, pr.nombre_producto, um.nombre_unidad_medida',
         'tabla' => 'productos_servicios as ps',
+        'datosJoins' => [
+          'productos as pr' => 'ps.id_producto = pr.id_producto',
+          'unidades_medidas as um' => 'pr.id_unidad_medida = um.id_unidad_medida',
+        ],
         'WHERE' => [
-          "ps.id_servicio" => $this->idServicio
+          'ps.id_servicio' => $this->idServicio
         ]
       ]);
-      $productosServicioRaw = $resultado->fetchAll(PDO::FETCH_ASSOC);
+      $productosServicio = $resultado->fetchAll(PDO::FETCH_ASSOC);
 
-      $productosServicio = [];
-      $objProductos = new productosModelo();
-      foreach ($productosServicioRaw as $ps) {
-        $infoProd = $objProductos->seleccionarProductos([
-          'id_producto' => $ps['id_producto'],
-          'isInterno' => true
-        ]);
-        if ($infoProd && !isset($infoProd['tipo'])) {
-          $ps['nombre_producto'] = $infoProd['nombre_producto'] ?? '';
-          $ps['nombre_unidad_medida'] = $infoProd['nombre_unidad_medida'] ?? '';
-          $productosServicio[] = $ps;
-        }
-      }
       $servicio['detallesExtra'] = [
         'productos_servicio' => $productosServicio,
       ];
@@ -280,7 +287,7 @@ class serviciosModelo extends conexion {
 
     // Foto
     $nombreImagen = '';
-    if ($this->fotoServicio != '') {
+    if (!empty($this->fotoServicio)) {
       $nombreImagen = $this->Imagenes_Reg(
         'servicios',
         $this->fotoServicio,
@@ -404,7 +411,7 @@ class serviciosModelo extends conexion {
       ]);
     };
 
-    $servicioActual = $this->seleccionarServicios(['id_servicio' => $this->idServicio]);
+    $servicioActual = $this->seleccionarServicios(['id_servicio' => $this->idServicio, 'isInterno' => true]);
 
     $datosGenerales = [
       "id_unidad_medida" => $this->idUnidadMedida,
@@ -414,7 +421,7 @@ class serviciosModelo extends conexion {
     ];
 
     // Foto
-    if ($this->fotoServicio != '') {
+    if (!empty($this->fotoServicio)) {
       $nombreImagen = $this->Imagenes_Reg(
         'servicios',
         $this->fotoServicio,
@@ -582,6 +589,7 @@ class serviciosModelo extends conexion {
 
     $servicioActual = $this->seleccionarServicios([
       'id_servicio' => $this->idServicio,
+      'isInterno' => true,
     ]);
 
     // Productos del servicio

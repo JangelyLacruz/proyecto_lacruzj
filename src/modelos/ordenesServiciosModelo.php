@@ -8,6 +8,7 @@ use src\modelos\mensajesWSModelo;
 use src\modelos\serviciosModelo;
 use src\modelos\productosModelo;
 use src\modelos\accesosModelo;
+use src\modelos\ordenesEntregasPresupuestosModelo;
 use PDO;
 
 class ordenesServiciosModelo extends conexion {
@@ -299,18 +300,28 @@ class ordenesServiciosModelo extends conexion {
       $datosActualizar['fecha_ejecucion'] = $this->nuevaFechaEjecucion;
     }
 
-    if ($this->nuevoStatus == 4 && $statusAnterior != 4) {
+    if ($this->nuevoStatus == 2 && $statusAnterior != 2) {
       foreach ($this->productosAsociados as $producto) {
-        $cantidadADevolver = $producto['cantidad_producto'] * $cantidadServicio;
+        $cantidadADescontar = $producto['cantidad_producto'] * $cantidadServicio;
         $stockActual = $this->seleccionarDatos2([
           'campos' => 'stock_producto',
           'tabla' => 'productos',
           'WHERE' => ['id_producto' => $producto['id_producto']]
         ])->fetch(PDO::FETCH_COLUMN);
 
+        if ($stockActual < $cantidadADescontar) {
+          $error();
+          return [
+            'tipo' => 'simple',
+            'titulo' => 'Stock insuficiente',
+            'texto' => 'No hay suficiente stock de ' . ($producto['nombre_producto'] ?? 'un material') . ' para ejecutar este servicio. Stock actual: ' . $stockActual . ', Requerido: ' . $cantidadADescontar,
+            'icono' => 'error'
+          ];
+        }
+
         $resultado = $this->actualizarDatos2([
           'tabla' => 'productos',
-          'datos' => ['stock_producto' => $stockActual + $cantidadADevolver],
+          'datos' => ['stock_producto' => $stockActual - $cantidadADescontar],
           'WHERE' => ['id_producto' => $producto['id_producto']]
         ]);
 
@@ -318,8 +329,8 @@ class ordenesServiciosModelo extends conexion {
           $error();
           return [
             'tipo' => 'simple',
-            'titulo' => 'Error al devolver stock',
-            'texto' => 'No se pudo devolver el stock del producto',
+            'titulo' => 'Error al descontar stock',
+            'texto' => 'No se pudo descontar el stock del producto',
             'icono' => 'error'
           ];
         }
@@ -342,6 +353,55 @@ class ordenesServiciosModelo extends conexion {
       ];
     }
     
+    $objOep = new ordenesEntregasPresupuestosModelo();
+    $detalleOep = $objOep->ObtenerDetalleOrdenInterno($ordenAntes['id_orden_entrega_presupuesto']);
+    
+    if (isset($detalleOep['cabecera'])) {
+      $restante = floatval($detalleOep['cabecera']['restante'] ?? 0);
+      
+      if ($this->nuevoStatus == 4 && $restante < -0.01) {
+        $error();
+        return [
+          'tipo' => 'simple',
+          'titulo' => 'Pago excede nuevo total',
+          'texto' => 'No se puede cancelar el servicio porque los pagos ya registrados en la OEP excederían el nuevo total a pagar. Ajuste o anule los pagos primero.',
+          'icono' => 'error'
+        ];
+      }
+
+      $tienePendientes = false;
+      $tieneEjecutados = false;
+      if (isset($detalleOep['servicios'])) {
+        foreach ($detalleOep['servicios'] as $srv) {
+          if ($srv['status'] == 1) $tienePendientes = true;
+          if ($srv['status'] == 2) $tieneEjecutados = true;
+        }
+      }
+      
+      if (!$tienePendientes && $tieneEjecutados) {
+        $statusOep = (int)$detalleOep['cabecera']['status'];
+        if ($statusOep == 1 || $statusOep == 10) {
+          $nuevoStatusOep = ($restante <= 0) ? 13 : 12; 
+          $this->actualizarDatos2([
+            'tabla' => 'ordenes_entregas_presupuestos',
+            'datos' => ['status' => $nuevoStatusOep],
+            'WHERE' => ['id_orden_entrega_presupuesto' => $ordenAntes['id_orden_entrega_presupuesto']]
+          ]);
+        }
+      }
+    
+      if (!$tienePendientes && !$tieneEjecutados) {
+        $statusOep = (int)$detalleOep['cabecera']['status'];
+        if ($statusOep == 1 || $statusOep == 10) {
+          $this->actualizarDatos2([
+            'tabla' => 'ordenes_entregas_presupuestos',
+            'datos' => ['status' => 2], 
+            'WHERE' => ['id_orden_entrega_presupuesto' => $ordenAntes['id_orden_entrega_presupuesto']]
+          ]);
+        }
+      }
+    }
+
     $ordenDespues = $this->listarOrdenesServicios(['id_servicio_factura' => $this->idOrdenServicio]);
 
     $objBitacora->registrarBitacora([
