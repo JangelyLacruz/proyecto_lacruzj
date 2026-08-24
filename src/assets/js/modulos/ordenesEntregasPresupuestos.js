@@ -14,7 +14,8 @@ let serviciosOrden = [];
 let cachePresentaciones = null;
 let cacheServicios = null;
 let cacheRutas = null;
-let timerCedula = null; // debounce para búsqueda de cliente
+let dtClientesOrden = null; // DataTable del modal de selección de clientes
+let clientesSeleccionados = {}; // caché de clientes disponibles para selección
 let mapaDelivery = null;
 let marcadorDelivery = null;
 let tasaBolivar = 1;
@@ -84,46 +85,29 @@ async function cargarDatosFinancieros() {
   }
 }
 
-// Esta función revisa al instante si el cliente está registrado en el sistema mientras escribimos su cédula
-async function validarCedulaCliente(cedula) {
-  let input = $('#inputCedulaClienteOrden');
-  let feedback = $('#feedbackClienteOrden');
-  let nombre = $('#nombreClienteOrden');
-
-  cedula = cedula.trim();
-
-  // Primero dejamos todo en blanco por si había un mensaje de antes
-  nombre.val('');
-  feedback.html('');
-  input.removeClass('is-valid is-invalid').css({ 'border-color': '', 'background-color': '' });
-
-  if (!cedula) return;
-
-  // Mostramos un mensajito diciendo que estamos buscando...
-  feedback.html('<span class="text-muted"><i class="fi fi-rs-loading me-1"></i>Buscando...</span>');
-
-  let resultado = await pedirDatosAjax({
-    modulo: 'clientes',
-    noGuardarLocal: true,
-    datosPe: { accion: 'seleccionarUno', rif_cedula_cliente: cedula }
+// Inicializa el DataTable de selección de clientes (se llama una sola vez)
+function inicializarDtClientes() {
+  if (dtClientesOrden) return; // ya fue inicializado
+  dtClientesOrden = listarDataTable({
+    selectorTabla: '#dtSelClienteOrden',
+    encabezados: {
+      'rif_cedula_cliente'   : 'CÉDULA / RIF',
+      'razon_social_cliente' : 'NOMBRE / RAZÓN SOCIAL',
+      'telefono_cliente'     : 'TELÉFONO',
+      'correo_cliente'       : 'CORREO',
+    },
+    informacionPe: {
+      modulo: 'clientes',
+      noGuardarLocal: true,
+      datosPe: { accion: 'listar' }
+    },
+    botones: ({ fila }) => {
+      // Guardamos la fila en el caché para recuperarla al elegir
+      clientesSeleccionados[fila.rif_cedula_cliente] = fila;
+      return `<button type="button" class="btn btn-sm btn-success btnElegirClienteOrden" data-id="${fila.rif_cedula_cliente}"><i class="fi fi-rs-check"></i> Elegir</button>`;
+    }
   });
-
-  // Si el servidor nos devuelve un error o no trae nada bueno, es porque el cliente no existe
-  if (!resultado || resultado.icono === 'error' || Array.isArray(resultado)) {
-    input.addClass('is-invalid');
-    feedback.html('<span class="text-danger"><i class="fi fi-rs-cross-circle me-1"></i>Cliente no encontrado</span>');
-    nombre.val('');
-    return;
-  }
-
-  //  Encontramos al cliente, así que pintamos la cajita de verde 
-  let razon = resultado.razon_social_cliente || resultado.CLIENTE || '';
-  input.addClass('is-valid').css({ 'border-color': '#42ba96', 'background-color': '#f2fcf5' });
-  feedback.html(`<span class="text-success"><i class="fi fi-rs-check-circle me-1"></i>${razon}</span>`);
-  nombre.val(razon);
 }
-
-// Ya no usamos cargarClientes() porque ahora verificamos la cédula directamente mientras el usuario escribe
 
 async function cargarPresentaciones() {
   if (cachePresentaciones) return cachePresentaciones;
@@ -324,6 +308,7 @@ function calcularTotales() {
 
   // Aquí revisamos que tengamos suficiente de cada cosa antes de dejar Ordenr
   let consumoPorProducto = {};
+  let consumoBloqueante = {}; // Solo para los productos directos
 
   // Contamos cuántos productos sueltos pusimos en la Orden (agrupados por id_producto real)
   productosOrden.forEach(p => {
@@ -334,8 +319,11 @@ function calcularTotales() {
       stock: p.stock,
       unidad: p.unidad 
     };
-    // Sumamos el VOLUMEN (cantidad de presentaciones * capacidad de c/u)
-    consumoPorProducto[id].cantidad_volumen += (p.cantidad * p.capacidad);
+    if (!consumoBloqueante[id]) consumoBloqueante[id] = 0;
+    
+    let vol = (p.cantidad * p.capacidad);
+    consumoPorProducto[id].cantidad_volumen += vol;
+    consumoBloqueante[id] += vol;
   });
 
   // Y le sumamos los materiales que gastan los servicios, para tener el total real
@@ -357,6 +345,7 @@ function calcularTotales() {
 
   let errorStock = false;
   let htmlErrores = '';
+  let htmlErroresNoBloqueantes = '';
 
   // Limpiamos las marcas de error rojo de antes para empezar frescos
   $('.cantProdOrden').removeClass('is-invalid');
@@ -364,29 +353,38 @@ function calcularTotales() {
 
   Object.keys(consumoPorProducto).forEach(id => {
     let cons = consumoPorProducto[id];
+    let esBloqueante = consumoBloqueante[id] && consumoBloqueante[id] > cons.stock;
+    
     if (cons.cantidad_volumen > cons.stock) {
-      errorStock = true;
-      htmlErrores += `<li>${cons.nombre}: Stock ${cons.stock} ${cons.unidad}, Requiere ${cons.cantidad_volumen % 1 === 0 ? cons.cantidad_volumen : cons.cantidad_volumen.toFixed(2)} ${cons.unidad}</li>`;
+      let mensajeError = `<li>${cons.nombre}: Stock ${cons.stock} ${cons.unidad}, Requiere ${cons.cantidad_volumen % 1 === 0 ? cons.cantidad_volumen : cons.cantidad_volumen.toFixed(2)} ${cons.unidad}</li>`;
+      
+      if (esBloqueante) {
+        errorStock = true;
+        htmlErrores += mensajeError;
+        // Pintamos de rojo el producto si no nos alcanza el stock
+        $(`.cantProdOrden`).filter(function () {
+          let i = $(this).data('index');
+          return productosOrden[i].id_producto == id;
+        }).addClass('is-invalid');
+      } else {
+        htmlErroresNoBloqueantes += mensajeError;
+      }
 
-      // Pintamos de rojo el producto si no nos alcanza el stock
-      $(`.cantProdOrden`).filter(function () {
-        let i = $(this).data('index');
-        return productosOrden[i].id_producto == id;
-      }).addClass('is-invalid');
-
-      // Hacemos lo mismo para los materiales que van dentro de los servicios
+      // Pintamos los materiales en la tabla de servicios
       $(`.fila-material-consumo[data-id="${id}"]`).addClass('table-danger text-danger');
     }
   });
 
+  $('.alertaStockOrden').remove();
+
   if (errorStock) {
-    if ($('.alertaStockOrden').length === 0) {
-      $('#contenedorProductosOrden').before(`<div class="alert alert-danger p-2 mb-3 alertaStockOrden"><small><strong>¡Stock Insuficiente!</strong><ul class="mb-0 ps-3 listaErroresStockOrden"></ul></small></div>`);
-      $('#contenedorServiciosOrden').before(`<div class="alert alert-danger p-2 mb-3 alertaStockOrden"><small><strong>¡Stock Insuficiente!</strong><ul class="mb-0 ps-3 listaErroresStockOrden"></ul></small></div>`);
-    }
-    $('.listaErroresStockOrden').html(htmlErrores);
-  } else {
-    $('.alertaStockOrden').remove();
+    let htmlAlerta = `<div class="alert alert-danger p-2 mb-3 alertaStockOrden"><small><strong>¡Stock Insuficiente (No se puede registrar)!</strong><ul class="mb-0 ps-3 listaErroresStockOrden">${htmlErrores}</ul></small></div>`;
+    $('#contenedorProductosOrden').before(htmlAlerta);
+  }
+
+  if (htmlErroresNoBloqueantes !== '') {
+    let htmlAlertaAdv = `<div class="alert alert-danger p-2 mb-3 alertaStockOrden"><small><strong>Advertencia (Faltará stock al ejecutar servicios):</strong><ul class="mb-0 ps-3 listaErroresStockOrden">${htmlErroresNoBloqueantes}</ul></small></div>`;
+    $('#contenedorServiciosOrden').before(htmlAlertaAdv);
   }
 
   // Generamos el resumen visual de consumo
@@ -681,6 +679,8 @@ async function verDetalleOrden(idOrden) {
   else if (c.estado_num == 2) estado = '<span class="badge bg-warning text-dark">Procesada y sin Pago</span>';
   else if (c.estado_num == 3) estado = '<span class="badge bg-success"><i class="fi fi-rs-check-circle me-1"></i>Pagada y Despachada (Cancelada)</span>';
   else if (c.estado_num == 4) estado = '<span class="badge bg-info">Despachada y sin Pago</span>';
+  else if (c.estado_num == 12) estado = '<span class="badge bg-info">Ejecutada y sin Pago</span>';
+  else if (c.estado_num == 13) estado = '<span class="badge bg-success"><i class="fi fi-rs-check-circle me-1"></i>Pagada y Ejecutada</span>';
   else estado = `<span class="badge bg-secondary">${c.estado_dinamico || 'Activa'}</span>`;
 
   let prodHtml = '';
@@ -704,8 +704,12 @@ async function verDetalleOrden(idOrden) {
     servHtml = '<table class="table table-sm mb-0"><thead><tr><th>Servicio</th><th>Cant.</th><th>Precio</th><th>Mapfre</th><th>Subtotal</th></tr></thead><tbody>';
     data.servicios.forEach((s, idx) => {
       let precio = s.es_precio_mapfre == 1 ? s.precio_servicio_mapfre : s.precio_servicio;
-      let sub = s.cantidad_servicio * precio;
-      subServ += sub;
+      let sub = 0;
+      let isCancelado = s.status == 4;
+      if (!isCancelado) {
+        sub = s.cantidad_servicio * precio;
+        subServ += sub;
+      }
 
       // Vamos sumando lo que gastamos para el total al final
       if (s.materiales && s.materiales.length) {
@@ -759,10 +763,18 @@ async function verDetalleOrden(idOrden) {
             <i class="fi fi-rs-map-marker"></i> Mapa</button>` 
         : '';
 
-      servHtml += `<tr>
+      let statusBadge = '';
+      if (s.status == 1) statusBadge = '<span class="badge bg-info ms-2">Pendiente</span>';
+      else if (s.status == 2) statusBadge = '<span class="badge bg-success ms-2">Ejecutada</span>';
+      else if (s.status == 4) statusBadge = '<span class="badge bg-danger ms-2">Cancelada</span>';
+
+      let cssClassTachado = isCancelado ? 'text-decoration-line-through text-muted' : '';
+
+      servHtml += `<tr class="${cssClassTachado}">
         <td>
           ${s.materiales && s.materiales.length ? `<button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 me-1 btnToggleMat" data-idx="${idx}" title="Ver productos"><i class="fi fi-rs-plus-small"></i></button>` : ''}
           ${s.nombre_servicio}
+          ${statusBadge}
           ${mapButton}
         </td>
         <td>${s.cantidad_servicio}</td>
@@ -861,7 +873,7 @@ async function verDetalleOrden(idOrden) {
 
   let botonesHtml = '';
   // Si la Orden no está pagada por completo, dejamos que puedan meterle un pago
-  if (c.status == 1 || c.status == 3) {
+  if (c.status == 1 || c.status == 3 || c.status == 12) {
     let cantRestante = (c.restante !== null && c.restante !== undefined) ? parseFloat(c.restante) : totalConIva;
     if (cantRestante > 0.01) {
       botonesHtml += `<button type="button" class="btn btn-success btnAbrirPagoDesdeDetalle" data-id="${c.id_orden_entrega_presupuesto}"><i class="fi fi-rs-credit-card me-1"></i>Añadir Pago</button> `;
@@ -898,10 +910,11 @@ function resetFormOrden() {
   cachePresentaciones = null;
   cacheServicios = null;
   cacheRutas = null;
-  // Limpiar campo de cliente
-  $('#inputCedulaClienteOrden').val('').removeClass('is-valid is-invalid');
-  $('#feedbackClienteOrden').html('');
+  // Limpiar campo de cliente (ahora es readonly, lo vaciamos directamente)
+  $('#inputCedulaClienteOrden').val('');
   $('#nombreClienteOrden').val('');
+  // Deshabilitar botón guardar hasta que se seleccione un cliente
+  $('#btnGuardarOrden').prop('disabled', true);
   renderProductos();
   renderServicios();
   $('#chkDeliveryOrden').prop('checked', false);
@@ -996,7 +1009,7 @@ $(document).on('DOMContentLoaded', async function () {
         if (estadoNum == 5) return '<span class="badge bg-danger">Anulada</span>';
         if (estadoNum == 1) return '<span class="badge bg-success">Procesada y Pagada</span>';
         if (estadoNum == 2) return '<span class="badge bg-warning text-dark">Procesada y sin Pago</span>';
-        if (estadoNum == 3) return '<span class="badge bg-success"><i class="fi fi-rs-check-circle me-1"></i>Pagada y Despachada (Cancelada)</span>';
+        if (estadoNum == 3) return '<span class="badge bg-success">Pagada y Despachada (Cancelada)</span>';
         if (estadoNum == 4) return '<span class="badge bg-info">Despachada y sin Pago</span>';
         return `<span class="badge bg-secondary">${info.valor}</span>`;
       },
@@ -1020,21 +1033,31 @@ $(document).on('DOMContentLoaded', async function () {
 
 });
 
-// Abrir modal registrar — resetear y mostrar fecha
+// Abrir modal registrar — resetear, mostrar fecha e inicializar DT de clientes
 $('.modalRegistrar').on('show.bs.modal', function () {
   resetFormOrden();
+  // Inicializamos el DataTable de clientes la primera vez que se abre el modal
+  inicializarDtClientes();
 });
 
-// Validación en tiempo real de la cédula del cliente (con debounce 500ms)
-$(document).off('input', '#inputCedulaClienteOrden').on('input', '#inputCedulaClienteOrden', function () {
-  let cedula = $(this).val().trim();
-  clearTimeout(timerCedula);
-  // Limpiar estado mientras escribe
-  $(this).removeClass('is-valid is-invalid');
-  $('#feedbackClienteOrden').html('');
-  $('#nombreClienteOrden').val('');
-  if (!cedula) return;
-  timerCedula = setTimeout(() => validarCedulaCliente(cedula), 500);
+// Botón Buscar Cliente: abre el modal de selección
+$(document).off('click', '#btnBuscarClienteOrden').on('click', '#btnBuscarClienteOrden', function () {
+  // Refrescar el DT para que siempre muestre datos actualizados
+  if (dtClientesOrden) reiniciarDataTables(dtClientesOrden);
+  $('#modalSelClienteOrden').modal('show');
+});
+
+// Botón Elegir del modal de clientes
+$(document).off('click', '.btnElegirClienteOrden').on('click', '.btnElegirClienteOrden', function () {
+  let id = $(this).data('id');
+  let cliente = clientesSeleccionados[id];
+  if (!cliente) return;
+
+  $('#inputCedulaClienteOrden').val(cliente.rif_cedula_cliente);
+  $('#nombreClienteOrden').val(cliente.razon_social_cliente || cliente.CLIENTE || '');
+  $('#btnGuardarOrden').prop('disabled', false);
+
+  $('#modalSelClienteOrden').modal('hide');
 });
 
 // Agregar producto
@@ -1764,8 +1787,8 @@ $(document).off('submit', '#formOrden').on('submit', '#formOrden', async functio
   e.preventDefault();
 
   let cedula = $('#inputCedulaClienteOrden').val().trim();
-  if (!cedula || !$('#inputCedulaClienteOrden').hasClass('is-valid')) {
-    Swal.fire('Atención', 'Ingrese una cédula/RIF de cliente válido', 'warning');
+  if (!cedula) {
+    Swal.fire('Atención', 'Seleccione un cliente usando el botón "Buscar"', 'warning');
     return;
   }
   if (productosOrden.length === 0 && serviciosOrden.length === 0) {

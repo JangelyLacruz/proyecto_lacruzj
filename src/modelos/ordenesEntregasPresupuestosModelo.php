@@ -148,6 +148,10 @@ public function RegistrarPago(array $info) {
     $this->pagos   = $pagos;
     return $this->RegistrarPagoP();
 }
+public function ObtenerDetalleOrdenInterno(string $idOrden) {
+    $this->idOrden = $idOrden;
+    return $this->ObtenerDetalleOrdenP();
+}
 
   // PRIVADOS
 
@@ -160,7 +164,7 @@ private function ListarOrdenesP() {
         f.fecha_orden_entrega_presupuesto,
         f.status,
         (SELECT COUNT(*) FROM productos_ordenes_entregas_presupuestos pf WHERE pf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND pf.status = 1) AS cant_productos,
-        (SELECT COUNT(*) FROM servicios_ordenes_entregas_presupuestos sf WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status = 1) AS cant_servicios,
+        (SELECT COUNT(*) FROM servicios_ordenes_entregas_presupuestos sf WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status IN (1, 2)) AS cant_servicios,
         (SELECT COUNT(*) FROM deliveries d WHERE d.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND d.status = 1) AS tiene_delivery,
         ci.monto_cambio_iva,
         (SELECT COALESCE(SUM(pf.cantidad_producto * p.precio_producto), 0) 
@@ -171,7 +175,7 @@ private function ListarOrdenesP() {
         (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
          FROM servicios_ordenes_entregas_presupuestos sf 
          JOIN servicios s ON sf.id_servicio=s.id_servicio 
-         WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status = 1) AS sub_serv,
+         WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status IN (1, 2)) AS sub_serv,
         (SELECT COALESCE(SUM(
            r.precio_ruta * 
            IF(lat.coordenada_latitud LIKE '%|%',
@@ -186,7 +190,15 @@ private function ListarOrdenesP() {
          WHERE d.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND d.status = 1) AS sub_del,
         (SELECT COALESCE(SUM(
            CASE WHEN mo.nombre_moneda = 'BÓLIVAR' OR mo.nombre_moneda = 'BS' 
-                THEN dp.monto_pago / (SELECT MAX(valor_moneda) FROM monedas WHERE nombre_moneda IN ('DÓLAR', 'DOLAR')) 
+                THEN dp.monto_pago / COALESCE(
+                  (SELECT cm.valor_moneda 
+                   FROM cambios_monedas cm 
+                   JOIN monedas m2 ON cm.id_moneda = m2.id_moneda 
+                   WHERE m2.nombre_moneda IN ('DÓLAR', 'DOLAR') 
+                     AND cm.fecha_cambio <= pa.fecha_pago 
+                   ORDER BY cm.fecha_cambio DESC, cm.id_cambio_moneda DESC LIMIT 1),
+                  (SELECT MAX(valor_moneda) FROM monedas WHERE nombre_moneda IN ('DÓLAR', 'DOLAR'))
+                )
                 ELSE dp.monto_pago END
          ), 0) 
          FROM pagos pa 
@@ -225,6 +237,11 @@ private function ListarOrdenesP() {
         $fila['estado_num'] = 3;
         $pagado = $totalOrden; // Si está pagada por completo, el monto pagado ya es definitivo
         $restante = 0;
+      } elseif ($fila['status'] == 13) {
+        $fila['estado_dinamico'] = 'Pagada y Ejecutada';
+        $fila['estado_num'] = 13;
+        $pagado = $totalOrden; // Si está pagada por completo, el monto pagado ya es definitivo
+        $restante = 0;
       } else {
         $pagado = floatval($fila['total_pagado']);
         $restante = round($totalOrden - $pagado, 2);
@@ -234,6 +251,9 @@ private function ListarOrdenesP() {
           if ($fila['status'] == 3) {
             $fila['estado_dinamico'] = 'Pagada y Despachada';
             $fila['estado_num'] = 3;
+          } elseif ($fila['status'] == 12) {
+            $fila['estado_dinamico'] = 'Pagada y Ejecutada';
+            $fila['estado_num'] = 13;
           } else {
             $fila['estado_dinamico'] = 'Procesada y Pagada';
             $fila['estado_num'] = 1;
@@ -243,6 +263,9 @@ private function ListarOrdenesP() {
           if ($fila['status'] == 3) {
             $fila['estado_dinamico'] = 'Despachada y sin Pago';
             $fila['estado_num'] = 4;
+          } elseif ($fila['status'] == 12) {
+            $fila['estado_dinamico'] = 'Ejecutada y sin Pago';
+            $fila['estado_num'] = 12;
           } else {
             $fila['estado_dinamico'] = 'Procesada y sin Pago';
             $fila['estado_num'] = 2;
@@ -289,7 +312,15 @@ private function ObtenerDetalleOrdenP() {
              ci.monto_cambio_iva AS IVA,
              (SELECT COALESCE(SUM(
                 CASE WHEN mo.nombre_moneda = 'BÓLIVAR' OR mo.nombre_moneda = 'BS' 
-                     THEN dp.monto_pago / (SELECT MAX(valor_moneda) FROM monedas WHERE nombre_moneda IN ('DÓLAR', 'DOLAR')) 
+                     THEN dp.monto_pago / COALESCE(
+                       (SELECT cm.valor_moneda 
+                        FROM cambios_monedas cm 
+                        JOIN monedas m2 ON cm.id_moneda = m2.id_moneda 
+                        WHERE m2.nombre_moneda IN ('DÓLAR', 'DOLAR') 
+                          AND cm.fecha_cambio <= pa.fecha_pago 
+                        ORDER BY cm.fecha_cambio DESC, cm.id_cambio_moneda DESC LIMIT 1),
+                       (SELECT MAX(valor_moneda) FROM monedas WHERE nombre_moneda IN ('DÓLAR', 'DOLAR'))
+                     )
                      ELSE dp.monto_pago END
               ), 0) 
               FROM pagos pa 
@@ -324,7 +355,7 @@ private function ObtenerDetalleOrdenP() {
 
     // También los servicios prestados (datos pivote de la orden)
     $stmtServ = $this->conectar()->prepare("
-      SELECT sf.id_servicio_factura, sf.id_servicio, sf.cantidad_servicio,
+      SELECT sf.id_servicio_factura, sf.id_servicio, sf.cantidad_servicio, sf.status,
              sf.es_precio_mapfre, sf.precio_servicio_mapfre,
              sf.id_direccion,
              lat.coordenada_latitud, lon.coordenada_longitud
@@ -332,7 +363,7 @@ private function ObtenerDetalleOrdenP() {
       LEFT JOIN direcciones dir ON sf.id_direccion = dir.id_direccion
       LEFT JOIN latitudes_direcciones lat ON dir.id_latitud_direccion = lat.id_latitud_direccion
       LEFT JOIN longitudes_direcciones lon ON dir.id_longitud_direccion = lon.id_longitud_direccion
-      WHERE sf.id_orden_entrega_presupuesto = :id AND sf.status = 1
+      WHERE sf.id_orden_entrega_presupuesto = :id AND sf.status != 0
     ");
     $stmtServ->execute([':id' => $this->idOrden]);
     $serviciosPivote = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
@@ -404,8 +435,10 @@ private function ObtenerDetalleOrdenP() {
 
       $subServ = 0;
       foreach ($servicios as $s) {
-        $precio = $s['es_precio_mapfre'] == 1 ? $s['precio_servicio_mapfre'] : $s['precio_servicio'];
-        $subServ += ($s['cantidad_servicio'] * $precio);
+        if ($s['status'] == 1 || $s['status'] == 2) {
+          $precio = $s['es_precio_mapfre'] == 1 ? $s['precio_servicio_mapfre'] : $s['precio_servicio'];
+          $subServ += ($s['cantidad_servicio'] * $precio);
+        }
       }
       $subDel = 0;
       if ($delivery) {
@@ -433,6 +466,11 @@ private function ObtenerDetalleOrdenP() {
         $cabecera['estado_num'] = 3;
         $pagado = $totalOrden;
         $restante = 0;
+      } elseif ($cabecera['status'] == 13) {
+        $cabecera['estado_dinamico'] = 'Pagada y Ejecutada';
+        $cabecera['estado_num'] = 13;
+        $pagado = $totalOrden;
+        $restante = 0;
       } else {
         $pagado = floatval($cabecera['total_pagado']);
         $restante = round($totalOrden - $pagado, 2);
@@ -441,6 +479,9 @@ private function ObtenerDetalleOrdenP() {
           if ($cabecera['status'] == 3) {
             $cabecera['estado_dinamico'] = 'Pagada y Despachada';
             $cabecera['estado_num'] = 3;
+          } elseif ($cabecera['status'] == 12) {
+            $cabecera['estado_dinamico'] = 'Pagada y Ejecutada';
+            $cabecera['estado_num'] = 13;
           } else {
             $cabecera['estado_dinamico'] = 'Procesada y Pagada';
             $cabecera['estado_num'] = 1;
@@ -449,6 +490,9 @@ private function ObtenerDetalleOrdenP() {
           if ($cabecera['status'] == 3) {
             $cabecera['estado_dinamico'] = 'Despachada y sin Pago';
             $cabecera['estado_num'] = 4;
+          } elseif ($cabecera['status'] == 12) {
+            $cabecera['estado_dinamico'] = 'Ejecutada y sin Pago';
+            $cabecera['estado_num'] = 12;
           } else {
             $cabecera['estado_dinamico'] = 'Procesada y sin Pago';
             $cabecera['estado_num'] = 2;
@@ -689,40 +733,6 @@ private function RegistrarOrdenP() {
                     'status'                       => 1
                 ]
             ]);
-
-            // Descontar stock de los materiales que usa el servicio
-            $objServicios = new serviciosModelo();
-            $infoServ = $objServicios->seleccionarServicios([
-                'id_servicio' => $idServicio,
-                'isInterno' => true
-            ]);
-            $materialesProd = $infoServ['detallesExtra']['productos_servicio'] ?? [];
-
-            foreach ($materialesProd as $mp) {
-                $resStock = $objProductos->modificarStock($mp['id_producto'], -($mp['cantidad_producto'] * $cantidad), $cn);
-                if ($resStock !== true) {
-                    $objBitacora->registrarBitacora([
-                        'modulo'    => 'ordenesEntregasPresupuestos',
-                        'accion'    => 'registrar',
-                        'resultado' => 'Fallido',
-                        'viejo'     => [],
-                        'nuevo'     => [
-                            'rif'       => $this->rifCliente,
-                            'productos' => count($this->productos),
-                            'servicios' => count($this->servicios),
-                        ]
-                    ]);
-
-                    $this->rollback();
-
-                    return [
-                        'tipo'   => 'simple',
-                        'titulo' => 'Error al Registrar',
-                        'texto'  => 'No se pudo registrar la orden',
-                        'icono'  => 'error',
-                    ];
-                }
-            }
         }
 
         // Revisamos si además pidieron delivery
@@ -1027,11 +1037,12 @@ private function AnularOrdenP() {
             }
         }
 
-        // Hacemos lo mismo con los materiales que se usaron en los servicios
+        
+        // SOLO restauramos stock de las OS que fueron ejecutadas (status = 2) ya que son las únicas que descontaron
         $stmtServ = $cn->prepare("
             SELECT sf.id_servicio, sf.cantidad_servicio
             FROM servicios_ordenes_entregas_presupuestos sf
-            WHERE sf.id_orden_entrega_presupuesto = :id AND sf.status = 1
+            WHERE sf.id_orden_entrega_presupuesto = :id AND sf.status = 2
         ");
         $stmtServ->execute([':id' => $this->idOrden]);
         $servs = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
@@ -1069,6 +1080,19 @@ private function AnularOrdenP() {
                 }
             }
         }
+
+        // Cancelar todas las OS asociadas que estuvieran activas
+        $this->actualizarDatos2([
+            'tabla' => 'servicios_ordenes_entregas_presupuestos',
+            'datos' => ['status' => 4],
+            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden, 'status' => 1]
+        ]);
+        // Cancelar todas las OS asociadas que estuvieran ejecutadas
+        $this->actualizarDatos2([
+            'tabla' => 'servicios_ordenes_entregas_presupuestos',
+            'datos' => ['status' => 4],
+            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden, 'status' => 2]
+        ]);
 
         // Guardar en bitácora con viejo y nuevo
         $objBitacora->registrarBitacora([
