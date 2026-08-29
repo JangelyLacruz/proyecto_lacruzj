@@ -248,6 +248,17 @@ class reportesModelo extends conexion {
              FROM servicios_ordenes_entregas_presupuestos sf 
              WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status != 0) AS cant_servicios,
 
+            (SELECT GROUP_CONCAT(p.nombre_producto SEPARATOR ', ')
+             FROM productos_ordenes_entregas_presupuestos pf
+             INNER JOIN presentaciones_productos pr ON pf.id_presentacion_producto = pr.id_presentacion_producto
+             INNER JOIN productos p ON pr.id_producto = p.id_producto
+             WHERE pf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND pf.status != 0) AS nombres_productos,
+
+            (SELECT GROUP_CONCAT(s.nombre_servicio SEPARATOR ', ')
+             FROM servicios_ordenes_entregas_presupuestos sf
+             INNER JOIN servicios s ON sf.id_servicio = s.id_servicio
+             WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status != 0) AS nombres_servicios,
+
             COALESCE((
               SELECT SUM(dp.monto_pago * m.valor_moneda)
               FROM pagos p
@@ -296,6 +307,10 @@ class reportesModelo extends conexion {
       $montoTotalVentas += floatval($fila['total_venta']);
       $fila['fecha_orden_entrega_presupuesto'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_orden_entrega_presupuesto']);
       $fila['total_venta'] = number_format((float)$fila['total_venta'], 2, ',', '.') . ' Bs';
+  
+      $itemsVendidos = array_filter([$fila['nombres_productos'] ?? '', $fila['nombres_servicios'] ?? '']);
+      $fila['items'] = !empty($itemsVendidos) ? implode(', ', $itemsVendidos) : 'Sin ítems';
+    
     }
     unset($fila);
     $infoCeldas = array_values($infoCeldas);
@@ -303,6 +318,7 @@ class reportesModelo extends conexion {
        $infoCeldas[] = [
       'id_orden_entrega_presupuesto' => '',
       'rif_cedula_cliente'           => '',
+      'items'                        => '',
       'fecha_orden_entrega_presupuesto' => 'TOTAL DEL DÍA:',
       'total_venta'                  => number_format($montoTotalVentas, 2, ',', '.') . ' Bs'
     ];
@@ -322,10 +338,11 @@ class reportesModelo extends conexion {
         "Filtro Aplicado: {$textoFiltroTipo}"
       ],
       "configColumnas" => [
-        'id_orden_entrega_presupuesto' => ['NRO FACTURA', 40],
-        'rif_cedula_cliente' => ['CLIENTE', 40],
-        'fecha_orden_entrega_presupuesto' => ['FECHA', 50],
-        'total_venta' => ['MONTO', 50],
+        'id_orden_entrega_presupuesto' => ['NRO FACTURA', 45],
+        'rif_cedula_cliente' => ['CLIENTE', 35],
+        'items' => ['ITEMS', 35],
+        'fecha_orden_entrega_presupuesto' => ['FECHA', 45],
+        'total_venta' => ['MONTO', 40],
       ],
       "infoBD" => $infoCeldas,
     ]);
@@ -344,9 +361,14 @@ class reportesModelo extends conexion {
     $resProd = [];
 
     // CONSULTA MATERIAS PRIMAS 
-    if (in_array($tipoCompras, ['todos', 'materias_primas'])) {
+    if (in_array($tipoCompras, ['todos', 'materias_primas', 'especifico'])) {
         $whereMP = $whereFechas;
         $whereMP['mpc.status'] = 1;
+
+        if (!empty($this->filtros['id_materia'])) {
+            $whereMP['mpc.id_materia_prima'] = $this->filtros['id_materia'];
+        }
+
         $instruccionesMP = [
             'tabla' => 'compras as c',
             'campos' => '
@@ -363,15 +385,20 @@ class reportesModelo extends conexion {
                  'LEFT materias_primas as mp'          => 'mpc.id_materia_prima = mp.id_materia_prima',
                  'LEFT proveedores as prov'            => 'c.rif_proveedor = prov.rif_proveedor',
             ],
-            'WHERE' => $whereFechas,
+            'WHERE' => $whereMP,
             'GROUP BY' => 'c.id_compra, mpc.id_materia_prima, c.fecha_compra, prov.razon_social_proveedor, mp.nombre_materia_prima, mp.precio_materia_prima'
         ];
+
         $resMP = $this->seleccionarDatos2($instruccionesMP)->fetchAll() ?: [];
+        $resMP = array_filter($resMP, function($row) {
+            return !empty($row['id_compra']);
+        });
     }
 
     // CONSULTA PRODUCTOS / INSUMOS
     if (in_array($tipoCompras, ['todos', 'productos', 'insumos'])) {
         $whereProd = $whereFechas;
+        $whereProd['pc.status'] = 1;
 
         // APLICAR FILTRO DE CATEGORÍA SEGÚN EL TIPO SELECCIONADO
     if ($tipoCompras === 'productos') {
@@ -382,9 +409,8 @@ class reportesModelo extends conexion {
             ];
     } elseif ($tipoCompras === 'insumos') {
         // Solo insumos (categoría 3)
-        $whereProd ['prod.id_categoria_producto'] = 3;
+        $whereProd['prod.id_categoria_producto'] = 3;
     }
-        $whereProd['pc.status'] = 1;
         
         $instruccionesProd = [
             'tabla' => 'compras as c',
@@ -408,10 +434,14 @@ class reportesModelo extends conexion {
             'GROUP BY' => 'c.id_compra, pc.id_presentacion_producto, c.fecha_compra, prov.razon_social_proveedor, prod.nombre_producto, p.nombre_presentacion, prod.precio_producto'
         ];
     $resProd = $this->seleccionarDatos2($instruccionesProd)->fetchAll() ?: [];
+    $resProd = array_filter($resProd, function($row) {
+        return !empty($row['id_compra']);
+    });
 }
 
     switch ($tipoCompras) {
         case 'materias_primas':
+          case 'especifico':
             $textoFiltroTipo = 'Materias Primas';
             $infoCeldas = $resMP;
             break;
@@ -434,7 +464,8 @@ class reportesModelo extends conexion {
             break;
     }
 
-    if ($infoCeldas == [] || ($infoCeldas[0]['id_compra'] ?? null) == null) {
+    //if ($infoCeldas == [] || ($infoCeldas[0]['id_compra'] ?? null) == null) {
+    if (empty($infoCeldas)) {  
       return [
         'tipo' => 'simple',
         'titulo' => 'Sin registros existentes',
@@ -448,9 +479,16 @@ class reportesModelo extends conexion {
     foreach ($infoCeldas as &$fila) {
       $montoTotalCompras += floatval($fila['total_compra'] ?? 0);
       $precioUnitario = $fila['precio'] ?? 0;
+
+      $fechaRaw = $fila['fecha_compra'] ?? '';
+      if (empty($fechaRaw) || $fechaRaw === '0000-00-00 00:00:00') {
+          $fechaFormateada = 'Sin fecha';
+      } else {
+          $fechaFormateada = $this->FechaHora_Sel('fecha_hora_AM_PM', $fechaRaw);
+      }
       
       $fila['id_compra']              = (string) ($fila['id_compra'] ?? '');
-      $fila['fecha_compra']           = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_compra'] ?? '');
+      $fila['fecha_compra']           = $fechaFormateada;
       $fila['razon_social_proveedor'] = (string) ($fila['razon_social_proveedor'] ?? '');
       $fila['descripcion']            = (string) ($fila['descripcion'] ?? '');
       $fila['cantidad']               = (string) ($fila['cantidad'] ?? '0');
