@@ -3,7 +3,7 @@ import {
   enviarFormulario, eliminarRegistro, obtenerDatosRegistro,
   listarDataTable, cargarInputsActualizarQNR, validarEnTiempoReal
 } from '/proyecto-lacruz-j/src/assets/js/modulos/global.js';
-import { driverAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js"
+import { driverAyuda, mostrarAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js"
 
 //#endregion [ IMPORTACIONES ] FIN
 
@@ -23,52 +23,65 @@ async function inicializarModulo() {
     campoIdBtn: 'id_rol',
     botones: 'CRUD',
   });
+  
+  registrarTutorial();
+  
+  const driverPendiente = sessionStorage.getItem('driver_pendiente');
+  if (driverPendiente === 'roles') {
+    sessionStorage.removeItem('driver_pendiente');
+    setTimeout(() => {
+      mostrarAyuda();
+    }, 1000);
+  }
+}
+
+function registrarTutorial() {
   driverAyuda('roles', {
-    pasos:
-      [
-        {
-          element: 'button[data-bs-target=".modalRegistrar"]',
-          popover: {
-            title: 'Registrar Rol',
-            description: 'Haz clic aquí para agregar un nuevo rol al sistema. Los roles son asignados a los usuarios',
-            side: 'bottom',
-            align: 'start'
-          }
-        },
-        {
-          element: '.tabla-ajax',
-          popover: {
-            title: 'Lista de Roles',
-            description: 'Aquí puedes ver todos los roles registrados del sistema.',
-            side: 'top'
-          }
-        },
-        {
-          element: '.botonEditar',
-          popover: {
-            title: 'Editar Roles',
-            description: 'Modifica el nombre de cualquier rol haciendo clic en este botón.',
-            side: 'left'
-          }
-        },
-        {
-          element: '.botonEliminar',
-          popover: {
-            title: 'Eliminar Roles',
-            description: 'Elimina roles que ya no sean necesarios.',
-            side: 'left'
-          }
-        },
-        {
-          popover: {
-            title: '¡Ayuda completada!',
-            description: 'Ya conoces la gestión de roles. Da click en finaliar para acabar la ayuda.',
-            side: 'top'
-          }
+    pasos: [
+      {
+        element: 'button[data-bs-target=".modalRegistrar"]',
+        popover: {
+          title: 'Registrar Rol',
+          description: 'Haz clic aquí para agregar un nuevo rol al sistema. Los roles son asignados a los usuarios para controlar sus permisos.',
+          side: 'bottom',
+          align: 'start'
         }
-      ]
+      },
+      {
+        element: '.tabla-ajax',
+        popover: {
+          title: 'Lista de Roles',
+          description: 'Aquí puedes ver todos los roles registrados en el sistema.',
+          side: 'top'
+        }
+      },
+      {
+        element: '.botonEditar',
+        popover: {
+          title: 'Editar Rol',
+          description: 'Modifica el nombre de cualquier rol haciendo clic en este botón.',
+          side: 'left'
+        }
+      },
+      {
+        element: '.botonEliminar',
+        popover: {
+          title: 'Eliminar Rol',
+          description: 'Elimina roles que ya no sean necesarios en el sistema.',
+          side: 'left'
+        }
+      },
+      {
+        popover: {
+          title: '¡Ayuda completada!',
+          description: 'Ya conoces la gestión de roles. Da click en finalizar para acabar la ayuda.',
+          side: 'top'
+        }
+      }
+    ]
   });
 }
+
 function submitFormularioAjax(e) {
   e.preventDefault();
   enviarFormulario({
@@ -76,6 +89,7 @@ function submitFormularioAjax(e) {
     'modulo': 'roles'
   });
 }
+
 function clickBotonEliminar(e) {
   e.preventDefault();
   eliminarRegistro({
@@ -84,6 +98,7 @@ function clickBotonEliminar(e) {
     modulo: 'roles',
   });
 }
+
 async function clickBotonEditar(e) {
   e.preventDefault();
   await obtenerDatosRegistro({
@@ -93,6 +108,7 @@ async function clickBotonEditar(e) {
   });
   cargarInputsActualizarQNR.call($($(this).attr('data-bs-target')).find('form'));
 }
+
 function inputValidarTiempoReal() {
   validarEnTiempoReal(this, 'roles');
 }
@@ -100,7 +116,7 @@ function inputValidarTiempoReal() {
 
 //#region [DELEGACIÓN DE EVENTOS] COMIENZO
 $(document).on('DOMContentLoaded', async function (e) {
-  inicializarModulo.call(this);
+  await inicializarModulo.call(this);
 });
 
 //Evento para el envío de formularios
