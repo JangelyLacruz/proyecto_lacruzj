@@ -26,16 +26,16 @@ let tasaBolivar = 1;
 function parsearMonto(rawStr) {
   let s = (rawStr || '').trim();
   if (s === '' || s === '0') return 0;
-  
+
   if (s.includes(',')) {
     let clean = s.replace(/\./g, '').replace(',', '.');
     return parseFloat(clean) || 0;
   }
-  
+
   if (s.includes('.')) {
     return parseFloat(s) || 0;
   }
-  
+
   return parseFloat(s.replace(/\D/g, '')) / 100 || 0;
 }
 
@@ -91,10 +91,10 @@ function inicializarDtClientes() {
   dtClientesOrden = listarDataTable({
     selectorTabla: '#dtSelClienteOrden',
     encabezados: {
-      'rif_cedula_cliente'   : 'CÉDULA / RIF',
-      'razon_social_cliente' : 'NOMBRE / RAZÓN SOCIAL',
-      'telefono_cliente'     : 'TELÉFONO',
-      'correo_cliente'       : 'CORREO',
+      'rif_cedula_cliente': 'CÉDULA / RIF',
+      'razon_social_cliente': 'NOMBRE / RAZÓN SOCIAL',
+      'telefono_cliente': 'TELÉFONO',
+      'correo_cliente': 'CORREO',
     },
     informacionPe: {
       modulo: 'clientes',
@@ -313,14 +313,14 @@ function calcularTotales() {
   // Contamos cuántos productos sueltos pusimos en la Orden (agrupados por id_producto real)
   productosOrden.forEach(p => {
     let id = p.id_producto;
-    if (!consumoPorProducto[id]) consumoPorProducto[id] = { 
-      nombre: p.nombre_general || p.nombre, 
-      cantidad_volumen: 0, 
+    if (!consumoPorProducto[id]) consumoPorProducto[id] = {
+      nombre: p.nombre_general || p.nombre,
+      cantidad_volumen: 0,
       stock: p.stock,
-      unidad: p.unidad 
+      unidad: p.unidad
     };
     if (!consumoBloqueante[id]) consumoBloqueante[id] = 0;
-    
+
     let vol = (p.cantidad * p.capacidad);
     consumoPorProducto[id].cantidad_volumen += vol;
     consumoBloqueante[id] += vol;
@@ -331,11 +331,11 @@ function calcularTotales() {
     if (s.materiales) {
       s.materiales.forEach(m => {
         let id = m.id_producto;
-        if (!consumoPorProducto[id]) consumoPorProducto[id] = { 
-          nombre: m.nombre_general || m.nombre, 
-          cantidad_volumen: 0, 
+        if (!consumoPorProducto[id]) consumoPorProducto[id] = {
+          nombre: m.nombre_general || m.nombre,
+          cantidad_volumen: 0,
           stock: m.stock,
-          unidad: m.unidad || 'Unidades' 
+          unidad: m.unidad || 'Unidades'
         };
         // Para servicios, la cantidad ya viene en volumen (cantidad_requerida)
         consumoPorProducto[id].cantidad_volumen += (m.cantidad_requerida * s.cantidad);
@@ -354,10 +354,10 @@ function calcularTotales() {
   Object.keys(consumoPorProducto).forEach(id => {
     let cons = consumoPorProducto[id];
     let esBloqueante = consumoBloqueante[id] && consumoBloqueante[id] > cons.stock;
-    
+
     if (cons.cantidad_volumen > cons.stock) {
       let mensajeError = `<li>${cons.nombre}: Stock ${cons.stock} ${cons.unidad}, Requiere ${cons.cantidad_volumen % 1 === 0 ? cons.cantidad_volumen : cons.cantidad_volumen.toFixed(2)} ${cons.unidad}</li>`;
-      
+
       if (esBloqueante) {
         errorStock = true;
         htmlErrores += mensajeError;
@@ -397,7 +397,7 @@ function calcularTotales() {
       <span class="${classTexto}">Se consumirán: ${cons.cantidad_volumen % 1 === 0 ? cons.cantidad_volumen : cons.cantidad_volumen.toFixed(2)} ${cons.unidad}</span>
     </div>`;
   });
-  
+
   if (htmlResumen !== '') {
     $('#listaResumenVolumen').html(htmlResumen);
     $('#resumenVolumenOrden').removeClass('d-none');
@@ -461,8 +461,8 @@ function renderServicios() {
         : '';
 
       let fechaHtml = `<input type="date" class="form-control form-control-sm fechaServOrden mt-1" data-index="${i}" value="${s.fecha_ejecucion || ''}" title="Fecha de Ejecución" required>`;
-      let btnUbicacionHtml = s.id_ruta ? 
-        `<button type="button" class="btn btn-sm btn-success btnUbicacionServOrden mt-1 w-50" data-index="${i}" title="Ubicación guardada"><i class="fi fi-rs-marker me-1"></i>Ubicación OK</button>` : 
+      let btnUbicacionHtml = s.id_ruta ?
+        `<button type="button" class="btn btn-sm btn-success btnUbicacionServOrden mt-1 w-50" data-index="${i}" title="Ubicación guardada"><i class="fi fi-rs-marker me-1"></i>Ubicación OK</button>` :
         `<button type="button" class="btn btn-sm btn-outline-danger btnUbicacionServOrden mt-1 w-50" data-index="${i}" title="Falta Ubicación"><i class="fi fi-rs-marker me-1"></i>Ubicación</button>`;
 
       // El toggle Mapfre siempre está habilitado para que el usuario pueda activarlo
@@ -532,7 +532,7 @@ async function abrirSelectorProductos() {
     let capacidad = parseFloat(p.cantidad_pmp || 1);
     let unidad = p.nombre_unidad_medida || 'Unidades';
     let presentacion = p.nombre_presentacion || '';
-    
+
     // El stock mostrado es en volumen, calculamos para cuántas presentaciones alcanza
     let stockPresentaciones = Math.floor(stock / capacidad);
 
@@ -757,10 +757,10 @@ async function verDetalleOrden(idOrden) {
         ? `<span class="badge bg-success">Sí — $${parseFloat(s.precio_servicio_mapfre).toFixed(2)}</span>`
         : '<span class="badge bg-danger">No</span>';
 
-      let mapButton = (s.coordenada_latitud && s.coordenada_longitud) 
+      let mapButton = (s.coordenada_latitud && s.coordenada_longitud)
         ? `<button type="button" class="btn btn-sm btn-info text-white btnVerMapaServicioDetalle ms-2 py-0 px-2" 
             data-lat="${s.coordenada_latitud}" data-lng="${s.coordenada_longitud}" data-nombre="${s.nombre_servicio}" title="Ver ubicación de ejecución">
-            <i class="fi fi-rs-map-marker"></i> Mapa</button>` 
+            <i class="fi fi-rs-map-marker"></i> Mapa</button>`
         : '';
 
       let statusBadge = '';
@@ -1341,7 +1341,7 @@ async function validarCedulaRepartidorOrden(cedula) {
   if (!resultado || resultado.icono === 'error' || Array.isArray(resultado)) {
     input.removeClass('is-valid').addClass('is-invalid').css({ 'border-color': '#dc3545', 'background-color': '#fffafa' });
     icon.html('<i class="fi fi-rs-cross-circle text-danger"></i>').addClass('border-danger');
-    
+
     feedback.html(`
       <div class="text-danger mb-1 fw-medium">Repartidor no encontrado</div>
       <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 shadow-sm" id="btnAbrirRegistroRepartidorOrden">
@@ -1351,7 +1351,7 @@ async function validarCedulaRepartidorOrden(cedula) {
   } else {
     input.removeClass('is-invalid').addClass('is-valid').css({ 'border-color': '#198754', 'background-color': '#f8fff9' });
     icon.html('<i class="fi fi-rs-check-circle text-success"></i>').removeClass('border-danger').addClass('border-success');
-    
+
     hiddenInput.val(resultado.cedula_repartidor);
     feedback.html(`<span class="text-success fw-medium"><i class="fi fi-rs-user-check me-1"></i>${resultado.nombre_repartidor} ${resultado.apellido_repartidor}</span>`);
   }
@@ -1581,7 +1581,7 @@ $(document).off('click', '.btnUbicacionServOrden').on('click', '.btnUbicacionSer
   $('#latServicioOrden').val(s.latitud || '');
   $('#lngServicioOrden').val(s.longitud || '');
   $('#idRutaServicioOrden').val(s.id_ruta || '');
-  
+
   $('#modalUbicacionServicioOrden').modal('show');
 });
 
@@ -1691,7 +1691,7 @@ $('#btnConfirmarUbicacionServicio').click(function () {
     Swal.fire('Atención', 'La ubicación seleccionada está fuera de cobertura. Intente con una más cercana.', 'warning');
     return;
   }
-  
+
   let s = serviciosOrden[indiceServicioEditando];
   s.latitud = $('#latServicioOrden').val();
   s.longitud = $('#lngServicioOrden').val();
@@ -1727,7 +1727,7 @@ $(document).off('click', '.btnVerMapaServicioDetalle').on('click', '.btnVerMapaS
 
   // Escondemos momentáneamente el modal de detalles
   $('#modalDetallesOrden').modal('hide');
-  
+
   $('#modalMapaDetalleServicio').off('shown.bs.modal').on('shown.bs.modal', function () {
     if (!mapaDetalleServicio) {
       mapaDetalleServicio = L.map('contenedorMapaDetalleServicio').setView([lat, lng], 15);
@@ -2071,15 +2071,14 @@ async function abrirModalPagos(idOrden) {
       let f = files[i];
       let ext = f.name.split('.').pop().toLowerCase();
       if (!['jpg', 'jpeg', 'png'].includes(ext)) {
-         Swal.fire('Atención', 'El archivo ' + f.name + ' no tiene un formato válido (solo JPG y PNG)', 'warning');
-         return;
+        Swal.fire('Atención', 'El archivo ' + f.name + ' no tiene un formato válido (solo JPG y PNG)', 'warning');
+        return;
       }
       fd.append('comprobantes[]', f);
     }
 
-    let O = window.location.origin + "/proyecto-lacruz-j/";
-    let csrfToken = $('meta[name="TOKEN_CSRF"]').attr('content');
-    
+    let O = window.location.origin + new URL(import.meta.url).pathname.substring(0, new URL(import.meta.url).pathname.indexOf('/src/assets/')) + '/';
+
     let misHeaders = new Headers(encabezadosPeticiones);
 
     $('#spinnerCarga').removeClass('d-none');
@@ -2090,7 +2089,7 @@ async function abrirModalPagos(idOrden) {
         body: fd
       });
       let resp = await req.json();
-      
+
       if (resp.icono === 'success') {
         m.hide();
         reiniciarDataTables();
@@ -2098,7 +2097,7 @@ async function abrirModalPagos(idOrden) {
       } else {
         Swal.fire(resp.titulo, resp.texto, resp.icono);
       }
-    } catch(e) {
+    } catch (e) {
       console.error(e);
       Swal.fire('Error', 'Ocurrió un error al enviar los datos', 'error');
     } finally {
