@@ -125,6 +125,10 @@ const maxRegexUrl = '255';
 const regexReferencia = '^\d{4,6}$';
 const minRegexReferencia = '4';
 const maxRegexReferencia = '6';
+
+const regexNumControlFactura = '^[A-Z0-9\-]{0,10}$';
+const minRegexNumControlFactura = '0';
+const maxRegexNumControlFactura = '10';
 // #endregion [ EXPRESIONES REGULARES - ATOMOS ]
 
 // #region [ MOLÉCULAS - VALIDACIONES ]
@@ -236,5 +240,11 @@ define('molFotoInd', [
   'maximoMb' => 5,
   'minItems' => 1,
   'maxItems' => 1
+]);
+define('molNumControlFactura', [
+  'tipo' => 'string',
+  "minL" => minRegexNumControlFactura,
+  "maxL" => maxRegexNumControlFactura,
+  "regex" => regexNumControlFactura
 ]);
 // #endregion [ MOLÉCULAS - VALIDACIONES ]

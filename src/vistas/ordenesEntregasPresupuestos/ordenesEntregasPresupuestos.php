@@ -5,8 +5,8 @@
 use src\config\inc\componentesModelo;
 $componente = new componentesModelo();
 $instruccionesLista = [
-  'encabezado'    => 'Gestionar Órdenes de Entregas y Presupuestos',
-  'tituloBtnReg'  => 'Nueva Orden',
+  'encabezado'    => 'Gestionar Órdenes de Entregas',
+  'tituloBtnReg'  => 'Agregar órdenes de entrega',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>
@@ -90,38 +90,53 @@ echo $componente->listaDataTable($instruccionesLista);
           </div>
 
           <!-- Pestañas para movernos entre productos, servicios y delivery -->
-          <ul class="nav nav-tabs" id="tabsOrden" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" data-bs-toggle="tab"
-                data-bs-target="#tabProductosOrden" type="button">
-                <i class="fi fi-rs-box me-1"></i>
-                Productos
-                <span class="badge bg-primary ms-1"
-                  style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
-                  id="badgeProdOrden">0</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" data-bs-toggle="tab"
-                data-bs-target="#tabServiciosOrden" type="button">
-                <i class="fi fi-tr-room-service"></i>
-                Servicios
-                <span class="badge bg-success ms-1"
-                  style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
-                  id="badgeServOrden">0</span>
-              </button>
-            </li>
-            <li class="nav-item" role="presentation" id="liTabDeliveryOrden">
-              <button class="nav-link" data-bs-toggle="tab"
-                data-bs-target="#tabDeliveryOrden" type="button" id="btnTabDeliveryOrden">
-                <i class="fi fi-rs-truck-side me-1"></i>
-                Delivery
-                <span class="badge bg-secondary ms-1"
-                  style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
-                  id="badgeDelOrden">No</span>
-              </button>
-            </li>
-          </ul>
+          <div class="d-flex align-items-end justify-content-between gap-3 flex-wrap">
+            <ul class="nav nav-tabs flex-grow-1" id="tabsOrden" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-toggle="tab"
+                  data-bs-target="#tabProductosOrden" type="button">
+                  <i class="fi fi-rs-box me-1"></i>
+                  Productos
+                  <span class="badge bg-primary ms-1"
+                    style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+                    id="badgeProdOrden">0</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-toggle="tab"
+                  data-bs-target="#tabServiciosOrden" type="button">
+                  <i class="fi fi-tr-room-service"></i>
+                  Servicios
+                  <span class="badge bg-success ms-1"
+                    style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+                    id="badgeServOrden">0</span>
+                </button>
+              </li>
+              <li class="nav-item" role="presentation" id="liTabDeliveryOrden">
+                <button class="nav-link" data-bs-toggle="tab"
+                  data-bs-target="#tabDeliveryOrden" type="button" id="btnTabDeliveryOrden">
+                  <i class="fi fi-rs-truck-side me-1"></i>
+                  Delivery
+                  <span class="badge bg-secondary ms-1"
+                    style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+                    id="badgeDelOrden">No</span>
+                </button>
+              </li>
+            </ul>
+
+            <!-- Switch de Presupuesto: se oculta al procesar un presupuesto existente -->
+            <div id="contenedorPresupuestoCheck" class="pb-1">
+              <div class="d-flex align-items-center gap-2 px-3 py-2 rounded"
+                style="background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(168,85,247,.12)); border: 1px solid rgba(124,58,237,.3);">
+                <input class="form-check-input mt-0" type="checkbox" id="chkPresupuestoOrden"
+                  style="cursor: pointer; border-color: #7c3aed; accent-color: #7c3aed;">
+                <label class="form-check-label fw-semibold small mb-0" for="chkPresupuestoOrden"
+                  style="color: #7c3aed; cursor: pointer; white-space: nowrap;">
+                  <i class="fi fi-rs-document me-1"></i>Presupuesto
+                </label>
+              </div>
+            </div>
+          </div>
 
           <div class="tab-content mt-3 border rounded p-3">
 
@@ -250,7 +265,11 @@ echo $componente->listaDataTable($instruccionesLista);
                       <span class="input-group-text bg-white text-muted border-end-0" id="iconRepartidorOrden">
                         <i class="fi fi-rs-motorcycle"></i>
                       </span>
-                      <input type="text" class="form-control text-uppercase border-start-0 ps-0" id="inputCedulaRepartidorOrden" placeholder="Ej: V12345678" maxlength="15" style="box-shadow: none;">
+                      <select class="input-group-text bg-white border-start-0 border-end-0 px-2" id="selectCodigoRepartidorOrden" style="cursor:pointer; font-weight:600;">
+                        <option value="V">V</option>
+                        <option value="E">E</option>
+                      </select>
+                      <input type="text" class="form-control border-start-0 ps-0" id="inputCedulaRepartidorOrden" placeholder="Ej: 12345678" maxlength="10" style="box-shadow: none;">
                     </div>
                     <div id="feedbackRepartidorOrden" class="text-center" style="min-height: 20px; font-size: 0.85em;"></div>
                     <input type="hidden" id="selectRepartidorOrden" value="">
@@ -547,16 +566,33 @@ echo $componente->listaDataTable($instruccionesLista);
           <div class="row g-2">
             <div class="col-md-6 mb-3">
               <label class="form-label fw-bold text-muted small mb-1"><i class="fi fi-rs-user me-1"></i>NOMBRE</label>
-              <input type="text" class="form-control text-uppercase shadow-sm" id="inputNombreRepartidorReg" name="nombre_repartidor" required placeholder="Ej: Juan">
+              <input type="text" class="form-control shadow-sm" id="inputNombreRepartidorReg" name="nombre_repartidor" required placeholder="Ej: Juan">
             </div>
             <div class="col-md-6 mb-3">
               <label class="form-label fw-bold text-muted small mb-1"><i class="fi fi-rs-user me-1"></i>APELLIDO</label>
-              <input type="text" class="form-control text-uppercase shadow-sm" id="inputApellidoRepartidorReg" name="apellido_repartidor" required placeholder="Ej: Pérez">
+              <input type="text" class="form-control shadow-sm" id="inputApellidoRepartidorReg" name="apellido_repartidor" required placeholder="Ej: Pérez">
             </div>
           </div>
           <div class="mb-1">
-            <label class="form-label fw-bold text-muted small mb-1"><i class="fi fi-rs-smartphone me-1"></i>TELÉFONO <span class="fw-normal">(Ej: 04141234567)</span></label>
-            <input type="text" class="form-control shadow-sm" id="inputTelefonoRepartidorReg" name="telefono_repartidor" maxlength="11" required placeholder="11 dígitos">
+            <label class="form-label fw-bold text-muted small mb-1"><i class="fi fi-rs-smartphone me-1"></i>TELÉFONO</label>
+            <div class="input-group">
+              <select
+                class="input-group-text selectPrefijoTelefonoRep"
+                id="selectPrefijoTelefonoRepartidorReg"
+                name="prefijo_telefono_repartidor_display">
+                <option value="0416">0416</option>
+                <option value="0426">0426</option>
+                <option value="0424">0424</option>
+                <option value="0414">0414</option>
+                <option value="0412">0412</option>
+                <option value="0422">0422</option>
+                <option value="0212">0212</option>
+                <option value="0251">0251</option>
+                <option value="0241">0241</option>
+                <option value="0257">0257</option>
+              </select>
+              <input type="text" class="form-control shadow-sm" id="inputTelefonoRepartidorReg" name="telefono_repartidor" maxlength="7" required placeholder="7 dígitos">
+            </div>
           </div>
           <div id="feedbackTelefonoRepartidorReg" class="text-center small" style="min-height: 20px;"></div>
         </form>

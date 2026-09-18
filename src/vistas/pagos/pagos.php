@@ -5,7 +5,7 @@ use src\config\inc\componentesModelo;
 $componente = new componentesModelo();
 $instruccionesLista = [
   'encabezado'    => 'Gestionar Pagos',
-  'tituloBtnReg'  => 'Registrar Pago',
+  'tituloBtnReg'  => 'Agregar Pagos',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>
@@ -20,7 +20,7 @@ echo $componente->listaDataTable($instruccionesLista);
       <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
         <h5 class="modal-title d-flex align-items-center gap-2">
           <i class="fi fi-rs-money"></i>
-          <span class="tituloModal">Registrar Pago</span>
+          <span class="tituloModal">Agregar Pago</span>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -94,7 +94,7 @@ echo $componente->listaDataTable($instruccionesLista);
 
           <div class="d-flex justify-content-end mt-4">
             <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn text-white btnEnviarFormulario" style="background: linear-gradient(135deg, #4e54c8, #8f94fb">Guardar Pago</button>
+            <button type="button" class="btn text-white btnEnviarFormulario" style="background: linear-gradient(135deg, #4e54c8, #8f94fb)">Guardar Pago</button>
           </div>
 
         </form>

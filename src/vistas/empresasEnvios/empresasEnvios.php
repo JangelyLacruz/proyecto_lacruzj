@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Gestionar Empresas de Envíos',
-  'tituloBtnReg' => 'Registrar Empresa',
+  'tituloBtnReg' => 'Agregar empresas de envíos',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>

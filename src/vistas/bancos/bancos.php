@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Gestión de Bancos',
-  'tituloBtnReg' => 'Registrar Nuevo Banco',
+  'tituloBtnReg' => 'Agregar Bancos',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>

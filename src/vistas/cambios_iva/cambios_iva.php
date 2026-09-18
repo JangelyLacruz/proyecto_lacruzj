@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Gestionar IVA',
-  'tituloBtnReg' => 'Actualizar valor del IVA',
+  'tituloBtnReg' => 'Actualizar Cambios del IVA',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>

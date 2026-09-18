@@ -44,9 +44,15 @@ if (
     case 'anular':
       $resultado = $objeto->AnularOrden($_POST);
       break;
+    case 'procesarPresupuesto':
+      $resultado = $objeto->procesarPresupuesto($_POST);
+      break;
+    case 'imprimirPlanilla':
+      $resultado = $objeto->impresionPlanillaOEP($_POST);
+      break;
   }
   
-  $objeto->DECORE($resultado);
+ $objeto->DECORE($resultado);
   exit();
 
 } elseif ($_SERVER["REQUEST_METHOD"] === "GET") {

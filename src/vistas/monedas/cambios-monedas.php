@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Gestionar Cambio de Divisas',
-  'tituloBtnReg' => 'Actualizar Cambio',
+  'tituloBtnReg' => 'Actualizar Cambio de divisas',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>

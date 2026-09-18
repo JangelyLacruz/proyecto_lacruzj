@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Gestionar Producciones',
-  'tituloBtnReg' => 'Registrar Producción',
+  'tituloBtnReg' => 'Agregar Orden de Producción',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>
@@ -20,7 +20,7 @@ echo $componente->listaDataTable($instruccionesLista);
     <div class="modal-content border-0 shadow">
       <div class="modal-header text-white" style="background: linear-gradient(135deg, #667eea, #764ba2);">
         <h5 class="modal-title" id="modalRegistrarLabel">
-          <i class="fas fa-industry me-2"></i> Registrar Producción
+          <i class="fas fa-industry me-2"></i> Agregar Orden de Producción
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -63,7 +63,7 @@ echo $componente->listaDataTable($instruccionesLista);
             <i class="fas fa-times me-2"></i> Cancelar
           </button>
           <button type="submit" class="btn btn-primary px-4" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
-            <i class="fas fa-save me-2"></i> Registrar Producción
+            <i class="fas fa-save me-2"></i> Guardar Producción
           </button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-<!-- Modal Ver Detalles de Compra (Solo Lectura) -->
+<!-- Modal Ver Detalles de Recepción (Solo Lectura) -->
 <div class="modal fade" id="modalVerCompra" tabindex="-1" aria-labelledby="modalVerCompraLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content border-0 shadow-lg">
@@ -6,7 +6,7 @@
             <!-- Header con mismo estilo que registro -->
             <div class="modal-header" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
                 <h5 class="modal-title text-white fw-bold" id="modalVerCompraLabel">
-                    <i class="fas fa-eye me-2"></i> Ver Detalles de Compra
+                    <i class="fas fa-eye me-2"></i> Ver Detalles de Recepción
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                     aria-label="Close"></button>
@@ -20,7 +20,7 @@
                     <div class="d-flex align-items-center">
                         <i class="fas fa-info-circle me-2 text-primary" style="font-size: 1.2rem;"></i>
                         <span class="fw-bold text-dark text-uppercase" style="letter-spacing: 0.5px;">ID de
-                            Compra</span>
+                            Recepción</span>
                     </div>
                     <div style="flex-grow: 1; max-width: 300px; min-width: 200px;">
                         <div class="form-control fw-bold text-primary"

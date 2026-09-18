@@ -24,16 +24,56 @@ function escaparHtml(texto) {
 // Sanitiza la respuesta del bot permitiendo solo etiquetas HTML seguras.
 // Esto permite que Gemini use <b>, <br>, <ul>, <li> pero bloquea <script>.
 function sanitizarRespuestaBot(texto) {
-    // Primero escapamos todo para neutralizar cualquier código inyectado
-    let seguro = escaparHtml(texto);
-    // Luego restauramos solo las etiquetas permitidas de la lista blanca
-    // NOTA: Como la barra "/" es escapada a "&#x2F;", debemos usar "&#x2F;" en los reemplazos
+    if (!texto) return '';
+
+    let lineas = texto.split('\n');
+    let lineasProcesadas = [];
+    let enLista = false;
+
+    for (let i = 0; i < lineas.length; i++) {
+        let linea = lineas[i].trim();
+
+        // Convertir negritas markdown **texto**
+        linea = linea.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+
+        // Detectar si es un elemento de lista que empieza con * o -
+        let matchLista = linea.match(/^[*-]\s+(.+)$/);
+        if (matchLista) {
+            if (!enLista) {
+                lineasProcesadas.push('<ul class="ps-3 my-2" style="list-style-type: disc;">');
+                enLista = true;
+            }
+            lineasProcesadas.push('<li class="mb-1">' + matchLista[1] + '</li>');
+        } else {
+            if (enLista) {
+                lineasProcesadas.push('</ul>');
+                enLista = false;
+            }
+            if (linea === '') {
+                lineasProcesadas.push('<br>');
+            } else {
+                lineasProcesadas.push('<div>' + linea + '</div>');
+            }
+        }
+    }
+    if (enLista) {
+        lineasProcesadas.push('</ul>');
+    }
+
+    let procesado = lineasProcesadas.join('');
+
+    // Escapar etiquetas peligrosas pero preservar las permitidas
+    let seguro = escaparHtml(procesado);
     seguro = seguro
         .replace(/&lt;b&gt;/g, '<b>').replace(/&lt;&#x2F;b&gt;/g, '</b>')
         .replace(/&lt;br&gt;/g, '<br>')
-        .replace(/&lt;ul&gt;/g, '<ul>').replace(/&lt;&#x2F;ul&gt;/g, '</ul>')
-        .replace(/&lt;li&gt;/g, '<li>').replace(/&lt;&#x2F;li&gt;/g, '</li>')
+        .replace(/&lt;ul class=&quot;ps-3 my-2&quot; style=&quot;list-style-type: disc;&quot;&gt;/g, '<ul class="ps-3 my-2" style="list-style-type: disc;">')
+        .replace(/&lt;ul&gt;/g, '<ul class="ps-3 my-2" style="list-style-type: disc;">').replace(/&lt;&#x2F;ul&gt;/g, '</ul>')
+        .replace(/&lt;li class=&quot;mb-1&quot;&gt;/g, '<li class="mb-1">')
+        .replace(/&lt;li&gt;/g, '<li class="mb-1">').replace(/&lt;&#x2F;li&gt;/g, '</li>')
+        .replace(/&lt;div&gt;/g, '<div class="mb-1">').replace(/&lt;&#x2F;div&gt;/g, '</div>')
         .replace(/&lt;strong&gt;/g, '<strong>').replace(/&lt;&#x2F;strong&gt;/g, '</strong>');
+
     return seguro;
 }
 

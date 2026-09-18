@@ -69,9 +69,10 @@ class chatbotModelo extends conexion {
     } catch (\Throwable $e) {
       error_log('Error crítico en chatbotModelo: ' . $e->getMessage());
       return [
-        'status'      => 'error',
+        'status'       => 'error',
         'codigo_error' => 'ERR_INTERNO_SERVIDOR',
-        'mensaje'     => 'Disculpa, ha ocurrido un error interno en el servidor.'
+        'mensaje'      => 'Disculpa, ha ocurrido un error interno en el servidor.',
+        'detalle'      => $e->getMessage()
       ];
     }
   }
@@ -178,6 +179,8 @@ class chatbotModelo extends conexion {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $datosPost);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $respuestaMicroservicio = curl_exec($ch);
     $httpCode               = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -212,28 +215,33 @@ class chatbotModelo extends conexion {
     return $datosPython;
   }
   private function obtenerHistorialP($cedula) {
-    $instrucciones = [
-      'campos' => 'prompt, respuesta_bot, fecha_prompt',
-      'tabla'  => 'proyecto_lacruz_seguridad.prompts_usuarios',
-      'BD'     => 'seguridad',
-      'WHERE'  => [
-        'cedula_usuario' => $cedula,
-        'status'         => 1
-      ]
-    ];
-
-    $resultado      = $this->seleccionarDatos2($instrucciones);
     $historialMixto = [];
 
-    // Memoria a largo plazo (presupuestos guardados)
-    if ($resultado && $resultado->rowCount() > 0) {
-      foreach ($resultado->fetchAll(PDO::FETCH_ASSOC) as $fila) {
-        $historialMixto[] = [
-          'texto'    => '[PRESUPUESTO GUARDADO PREVIAMENTE] ' . $fila['prompt'],
-          'respuesta' => $fila['respuesta_bot'],
-          'fecha'    => $fila['fecha_prompt']
-        ];
+    try {
+      $instrucciones = [
+        'campos' => 'prompt, respuesta_bot, fecha_prompt',
+        'tabla'  => 'prompts_usuarios',
+        'BD'     => 'seguridad',
+        'WHERE'  => [
+          'cedula_usuario' => $cedula,
+          'status'         => 1
+        ]
+      ];
+
+      $resultado = $this->seleccionarDatos2($instrucciones);
+
+      // Memoria a largo plazo (presupuestos guardados)
+      if ($resultado && $resultado->rowCount() > 0) {
+        foreach ($resultado->fetchAll(PDO::FETCH_ASSOC) as $fila) {
+          $historialMixto[] = [
+            'texto'    => '[PRESUPUESTO GUARDADO PREVIAMENTE] ' . $fila['prompt'],
+            'respuesta' => $fila['respuesta_bot'],
+            'fecha'    => $fila['fecha_prompt']
+          ];
+        }
       }
+    } catch (\Throwable $e) {
+      error_log('Aviso: No se pudo consultar prompts_usuarios: ' . $e->getMessage());
     }
 
     // Memoria a corto plazo (sesión temporal actual)
@@ -248,17 +256,25 @@ class chatbotModelo extends conexion {
   private function obtenerCatalogoP() {
     $catalogo = ['productos' => [], 'servicios' => []];
 
-    $objProductos           = new productosModelo();
-    $catalogo['productos']  = $objProductos->obtenerParaChatbot();
+    try {
+      $objProductos          = new productosModelo();
+      $catalogo['productos'] = $objProductos->obtenerParaChatbot();
+    } catch (\Throwable $e) {
+      error_log('Aviso productos chatbot: ' . $e->getMessage());
+    }
 
-    $objServicios           = new serviciosModelo();
-    $catalogo['servicios']  = $objServicios->obtenerParaChatbot();
+    try {
+      $objServicios          = new serviciosModelo();
+      $catalogo['servicios'] = $objServicios->obtenerParaChatbot();
+    } catch (\Throwable $e) {
+      error_log('Aviso servicios chatbot: ' . $e->getMessage());
+    }
 
     return $catalogo;
   }
   private function guardarInteraccionP($cedula, $mensaje, $respuesta) {
     $instrucciones = [
-      'tabla' => 'proyecto_lacruz_seguridad.prompts_usuarios',
+      'tabla' => 'prompts_usuarios',
       'BD'    => 'seguridad',
       'datos' => [
         'cedula_usuario' => $cedula,

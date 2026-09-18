@@ -9,7 +9,7 @@ use src\config\inc\componentesModelo;
 $componente = new componentesModelo();
 $instruccionesLista = [
   'encabezado'   => 'Gestionar Servicios',
-  'tituloBtnReg' => 'Registrar Servicio',
+  'tituloBtnReg' => 'Agregar Servicios',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>
@@ -20,7 +20,7 @@ echo $componente->listaDataTable($instruccionesLista);
   <div class="modal-dialog modal-xl">
     <div class="modal-content border-0">
       <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
-        <h5 class="modal-title"><i class="fi fi-rs-broom me-2"></i> Registrar Servicio</h5>
+        <h5 class="modal-title"><i class="fi fi-rs-broom me-2"></i> Agregar Nuevo Servicio</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <form class="formularioAjax validar" method="POST" action="" novalidate enctype="multipart/form-data">

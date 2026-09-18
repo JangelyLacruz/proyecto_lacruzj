@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Gestionar Clientes',
-  'tituloBtnReg' => 'Registrar Cliente',
+  'tituloBtnReg' => 'Agregar Clientes',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>
@@ -21,7 +21,7 @@ echo $componente->listaDataTable($instruccionesLista);
     <div class="modal-content border-0">
       <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
         <h5 class="modal-title" id="registrarUsuarioModalLabel">
-          <i class="fas fa-user-plus me-2"></i> Registro de Nuevo Cliente
+          <i class="fas fa-user-plus me-2"></i> Agregar nuevo Cliente
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -62,6 +62,18 @@ echo $componente->listaDataTable($instruccionesLista);
             <div class="col-md-6 mb-3">
               <label for="razon_social_cliente" class="form-label">Razón Social</label>
               <input type="text" class="form-control noRepetir" name="razon_social_cliente" pattern="<?php echo regexDescripcion ?>" minlength="<?php echo minRegexDescripcion ?>" maxlength="<?php echo maxRegexDescripcion ?>" required>
+            </div>
+            <!-- Campo numero_control_factura, solo si selecciona 'J') -->
+            <div class="col-md-6 mb-3 contenedorNumControl" style="display: none;">
+              <label for="numero_control_factura" class="form-label">Nº Control Factura</label>
+              <input 
+                type="text" 
+                class="form-control inputNumControl" 
+                name="numero_control_factura" 
+                               
+                maxlength="<?php echo maxRegexNumControlFactura ?>"
+                style="text-transform: uppercase;"
+                disabled>
             </div>
             <div class="col-md-6 mb-3">
               <label for="prefijo_telefono_cliente" class="form-label">Teléfono</label>
@@ -140,6 +152,18 @@ echo $componente->listaDataTable($instruccionesLista);
               <label for="razon_social_cliente" class="form-label">Razón Social</label>
               <input type="text" class="form-control formularioActualizar noRepetir" name="razon_social_cliente" pattern="<?php echo regexDescripcion ?>" minlength="<?php echo minRegexDescripcion ?>" maxlength="<?php echo maxRegexDescripcion ?>" required>
             </div>
+             <!-- Campo numero_control_factura ) -->
+            <div class="col-md-6 mb-3 contenedorNumControl" style="display: none;">
+              <label for="numero_control_factura" class="form-label">Nº Control Factura</label>
+              <input 
+                type="text" 
+                class="form-control formularioActualizar inputNumControl" 
+                name="numero_control_factura" 
+                
+                maxlength="<?php echo maxRegexNumControlFactura ?>"
+                style="text-transform: uppercase;"
+                disabled>
+            </div>
             <div class="col-md-6 mb-3">
               <label for="prefijo_telefono_cliente" class="form-label">Teléfono</label>
               <div class="input-group">
@@ -174,7 +198,7 @@ echo $componente->listaDataTable($instruccionesLista);
                   maxlengthC="<?php echo maxRegexTelefono ?>">
               </div>
             </div>
-            <div class="col-md-12 mb-3">
+            <div class="col-md-6 mb-3">
               <label for="correo_cliente" class="form-label">Correo Electrónico</label>
               <input type="email" class="form-control formularioActualizar noRepetir" name="correo_cliente" pattern="<?php echo regexCorreo ?>" minlength="<?php echo minRegexCorreo ?>" maxlength="<?php echo maxRegexCorreo ?>">
             </div>

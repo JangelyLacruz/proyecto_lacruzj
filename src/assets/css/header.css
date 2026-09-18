@@ -921,6 +921,7 @@ body.sidebar-closed .sidebar {
   left: 0;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
   background-color: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -946,9 +947,16 @@ body.sidebar-closed .sidebar {
     left: -280px !important;
     width: 280px !important;
     height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
+    box-sizing: border-box !important;
     background: #ffffff !important;
     z-index: 1050 !important;
     overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1) !important;
     border-right: 1px solid #e9ecef !important;
@@ -960,6 +968,10 @@ body.sidebar-closed .sidebar {
     left: 0 !important;
     transform: none !important;
     box-shadow: 4px 0 30px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .sidebar .sidebar-menu {
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 3.5rem) !important;
   }
 
   .main-content {
@@ -989,11 +1001,20 @@ body.sidebar-closed .sidebar {
   .sidebar {
     left: -260px !important;
     width: 260px !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+    padding-bottom: env(safe-area-inset-bottom, 20px) !important;
   }
 
   .sidebar.show,
   .sidebar.active {
     left: 0 !important;
+  }
+
+  .sidebar .sidebar-menu {
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 4rem) !important;
   }
 }
 
@@ -1770,7 +1791,8 @@ i {
     box-shadow: none;
   }
 
-  .sidebar.show {
+  .sidebar.show,
+  .sidebar.active {
     transform: translateX(0) !important;
     box-shadow: 10px 0 15px rgba(0, 0, 0, 0.2) !important;
     z-index: 1050 !important;
@@ -1782,10 +1804,11 @@ i {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background-color: rgba(30, 30, 40, 0.5);
     backdrop-filter: blur(5px);
     -webkit-backdrop-filter: blur(5px);
-    z-index: 999;
+    z-index: 1040;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;

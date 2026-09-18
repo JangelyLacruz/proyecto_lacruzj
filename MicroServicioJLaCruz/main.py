@@ -5,14 +5,16 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from app.controllers.chat_controller import router as chat_router
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(dotenv_path=BASE_DIR / ".env")
 
 # Leer el origen permitido del .env — sin valores quemados en el código
-ORIGEN_PHP = os.getenv("URL_ORIGEN_PHP")
+ORIGEN_PHP = os.getenv("URL_ORIGEN_PHP", "https://jlacruzca.com")
 if not ORIGEN_PHP:
-    raise RuntimeError("URL_ORIGEN_PHP no está configurada en el archivo .env")
+    ORIGEN_PHP = "https://jlacruzca.com"
 
 # Rate Limiter: máximo 20 peticiones por minuto por IP del cliente
 limitador = Limiter(key_func=get_remote_address)

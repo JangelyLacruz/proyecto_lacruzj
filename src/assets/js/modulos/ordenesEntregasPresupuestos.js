@@ -19,6 +19,8 @@ let clientesSeleccionados = {}; // caché de clientes disponibles para selecció
 let mapaDelivery = null;
 let marcadorDelivery = null;
 let tasaBolivar = 1;
+let _modalRegistrarDesdePresupuesto = false;
+let _idPresupuestoAProcesar = null; // ID del presupuesto que se está convirtiendo a orden real
 //#endregion [VARIABLES GLOBALES] FIN
 
 //#region [HELPERS DE MONTO] COMIENZO
@@ -414,7 +416,21 @@ function calcularTotales() {
   $('#totalGeneralOrden').val(total.toFixed(2));
   $('#badgeProdOrden').text(productosOrden.length);
   $('#badgeServOrden').text(serviciosOrden.length);
-  $('#btnGuardarOrden').prop('disabled', total <= 0 || errorStock || serviciosIncompletos);
+  let esPresupuesto = $('#chkPresupuestoOrden').is(':checked');
+  // Si el contenedor del check está oculto, es porque venimos del modo "Procesar Presupuesto"
+  let esModoProcesamientoPresupuesto = $('#contenedorPresupuestoCheck').hasClass('d-none');
+  // Los servicios incompletos (sin fecha o sin ubicación) SIEMPRE bloquean, incluso en presupuesto
+  // Solo el errorStock se omite en modo presupuesto (el stock se descuenta cuando se procese)
+  let permitirGuardar = esPresupuesto || esModoProcesamientoPresupuesto;
+  $('#btnGuardarOrden').prop('disabled', total <= 0 || serviciosIncompletos || (!permitirGuardar && errorStock));
+  // Cambiar texto del botón según modo
+  if (esPresupuesto) {
+    $('#btnGuardarOrden').html('<i class="fi fi-rs-document me-1"></i>Guardar como Presupuesto').css('background', 'linear-gradient(135deg, #7c3aed, #a855f7)');
+  } else if (esModoProcesamientoPresupuesto) {
+    $('#btnGuardarOrden').html('<i class="fi fi-rs-recycle me-1"></i>Procesar y Guardar').css('background', 'linear-gradient(135deg, #7c3aed, #a855f7)');
+  } else {
+    $('#btnGuardarOrden').html('<i class="fi fi-rs-credit-card me-1"></i>Ir a Pagos / Guardar').css('background', 'linear-gradient(135deg, #4e54c8, #8f94fb)');
+  }
 }
 function renderProductos() {
   let cont = $('#contenedorProductosOrden');
@@ -460,6 +476,7 @@ function renderServicios() {
         ? `<button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 me-1 btnToggleMatOrden" data-idx="${i}" title="Ver productos a descontar"><i class="fi fi-rs-plus-small"></i></button>`
         : '';
 
+      // La fecha siempre es obligatoria (presupuesto o no), ya que es parte esencial de la cotización
       let fechaHtml = `<input type="date" class="form-control form-control-sm fechaServOrden mt-1" data-index="${i}" value="${s.fecha_ejecucion || ''}" title="Fecha de Ejecución" required>`;
       let btnUbicacionHtml = s.id_ruta ?
         `<button type="button" class="btn btn-sm btn-success btnUbicacionServOrden mt-1 w-50" data-index="${i}" title="Ubicación guardada"><i class="fi fi-rs-marker me-1"></i>Ubicación OK</button>` :
@@ -594,7 +611,7 @@ async function abrirSelectorProductos() {
       language: {
         search: 'Buscar:',
         zeroRecords: 'No se encontraron productos',
-        paginate: { previous: '‹', next: '›' }
+        paginate: { previous: '<', next: '>' }
       },
       columnDefs: [
         { orderable: false, targets: 3 }
@@ -681,6 +698,7 @@ async function verDetalleOrden(idOrden) {
   else if (c.estado_num == 4) estado = '<span class="badge bg-info">Despachada y sin Pago</span>';
   else if (c.estado_num == 12) estado = '<span class="badge bg-info">Ejecutada y sin Pago</span>';
   else if (c.estado_num == 13) estado = '<span class="badge bg-success"><i class="fi fi-rs-check-circle me-1"></i>Pagada y Ejecutada</span>';
+  else if (c.estado_num == 20) estado = '<span class="badge" style="background: linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fi fi-rs-document me-1"></i>Presupuesto</span>';
   else estado = `<span class="badge bg-secondary">${c.estado_dinamico || 'Activa'}</span>`;
 
   let prodHtml = '';
@@ -872,6 +890,13 @@ async function verDetalleOrden(idOrden) {
   else $('#btnAnularOrdenModal').show();
 
   let botonesHtml = '';
+  // Botón Procesar Presupuesto desde detalle
+  if (c.status == 20) {
+    botonesHtml += `<button type="button" class="btn text-white me-1 btnProcesarPresupuestoDetalle" 
+      data-id="${c.id_orden_entrega_presupuesto}"
+      style="background: linear-gradient(135deg,#7c3aed,#a855f7);">
+      <i class="fi fi-rs-recycle me-1"></i>Procesar Presupuesto</button> `;
+  }
   // Si la Orden no está pagada por completo, dejamos que puedan meterle un pago
   if (c.status == 1 || c.status == 3 || c.status == 12) {
     let cantRestante = (c.restante !== null && c.restante !== undefined) ? parseFloat(c.restante) : totalConIva;
@@ -879,8 +904,8 @@ async function verDetalleOrden(idOrden) {
       botonesHtml += `<button type="button" class="btn btn-success btnAbrirPagoDesdeDetalle" data-id="${c.id_orden_entrega_presupuesto}"><i class="fi fi-rs-credit-card me-1"></i>Añadir Pago</button> `;
     }
   }
-  // Obviamente, solo mostramos "Despachar" si lleva delivery y todavía no ha salido
-  if (data.delivery && c.estado_num != 3 && c.estado_num != 4 && c.estado_num != 5) {
+  // Solo mostramos "Despachar" si lleva delivery, no es presupuesto y todavía no ha salido
+  if (data.delivery && c.estado_num != 3 && c.estado_num != 4 && c.estado_num != 5 && c.estado_num != 20) {
     botonesHtml += `<button type="button" class="btn btn-info text-white btnDespacharOrden" data-id="${c.id_orden_entrega_presupuesto}"><i class="fi fi-rs-truck-side me-1"></i>Despachar</button> `;
   }
   $('#botonesExtraDetalle').html(botonesHtml);
@@ -914,7 +939,12 @@ function resetFormOrden() {
   $('#inputCedulaClienteOrden').val('');
   $('#nombreClienteOrden').val('');
   // Deshabilitar botón guardar hasta que se seleccione un cliente
-  $('#btnGuardarOrden').prop('disabled', true);
+  $('#btnGuardarOrden').prop('disabled', true)
+    .html('<i class="fi fi-rs-credit-card me-1"></i>Ir a Pagos / Guardar')
+    .css('background', 'linear-gradient(135deg, #4e54c8, #8f94fb)');
+  // Restaurar el checkbox de presupuesto
+  $('#chkPresupuestoOrden').prop('checked', false);
+  $('#contenedorPresupuestoCheck').removeClass('d-none');
   renderProductos();
   renderServicios();
   $('#chkDeliveryOrden').prop('checked', false);
@@ -929,6 +959,8 @@ function resetFormOrden() {
   calcularTotales();
   // Mostrar fecha actual
   mostrarFechaActual();
+  // Limpiar el ID de presupuesto en proceso al resetear
+  _idPresupuestoAProcesar = null;
 }
 //#endregion [FUNCIONES DEL MODULO] FIN
 
@@ -1011,6 +1043,7 @@ $(document).on('DOMContentLoaded', async function () {
         if (estadoNum == 2) return '<span class="badge bg-warning text-dark">Procesada y sin Pago</span>';
         if (estadoNum == 3) return '<span class="badge bg-success">Pagada y Despachada (Cancelada)</span>';
         if (estadoNum == 4) return '<span class="badge bg-info">Despachada y sin Pago</span>';
+        if (estadoNum == 20) return '<span class="badge" style="background: linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fi fi-rs-document me-1"></i>Presupuesto</span>';
         return `<span class="badge bg-secondary">${info.valor}</span>`;
       },
       tiene_delivery: (info) => {
@@ -1023,6 +1056,10 @@ $(document).on('DOMContentLoaded', async function () {
       let id = info.fila.id_orden_entrega_presupuesto;
       let btns = '<ul class="list-inline mb-0">';
       btns += `<li class="list-inline-item"><a href="#" value="${id}" class="botonVerOrden avtar avtar-xs btn-link-info"><i class="fi fi-rs-eye fs-3 iconoCentrado"></i></a></li>`;
+      btns += `<li class="list-inline-item"><a href="#" value="${id}" class="botonImprimirPlanilla avtar avtar-xs btn-link-secondary" title="Imprimir Planilla"><i class="fi fi-rs-print fs-3 iconoCentrado"></i></a></li>`;
+      if (info.fila.estado_num == 20) {
+        btns += `<li class="list-inline-item"><a href="#" value="${id}" class="botonProcesarPresupuesto avtar avtar-xs" style="color:#7c3aed;"><i class="fi fi-rs-recycle fs-3 iconoCentrado" title="Procesar Presupuesto"></i></a></li>`;
+      }
       if (info.fila.status == 1) {
         btns += `<li class="list-inline-item"><a href="#" value="${id}" class="botonAnularOrden avtar avtar-xs btn-link-danger"><i class="fi fi-rs-ban fs-3 iconoCentrado"></i></a></li>`;
       }
@@ -1034,7 +1071,14 @@ $(document).on('DOMContentLoaded', async function () {
 });
 
 // Abrir modal registrar — resetear, mostrar fecha e inicializar DT de clientes
+// Si viene desde un "Procesar Presupuesto", la bandera _modalRegistrarDesdePresupuesto evita el reset
 $('.modalRegistrar').on('show.bs.modal', function () {
+  if (_modalRegistrarDesdePresupuesto) {
+    // Solo inicializamos el DT de clientes; los datos ya fueron cargados por cargarPresupuestoEnModal
+    _modalRegistrarDesdePresupuesto = false;
+    inicializarDtClientes();
+    return;
+  }
   resetFormOrden();
   // Inicializamos el DataTable de clientes la primera vez que se abre el modal
   inicializarDtClientes();
@@ -1224,6 +1268,11 @@ $(document).off('click', '.quitarServOrden').on('click', '.quitarServOrden', fun
   renderServicios();
 });
 
+// Toggle del switch Presupuesto — recalcula totales para actualizar botón y texto
+$(document).off('change', '#chkPresupuestoOrden').on('change', '#chkPresupuestoOrden', function () {
+  calcularTotales();
+});
+
 // Toggle delivery
 $(document).off('change', '#chkDeliveryOrden').on('change', '#chkDeliveryOrden', async function () {
   if ($(this).is(':checked')) {
@@ -1294,6 +1343,147 @@ $(document).off('click', '.botonAnularOrden').on('click', '.botonAnularOrden', a
   }
 });
 
+// Procesar Presupuesto (abrir modal de registro precargado)
+$(document).off('click', '.botonProcesarPresupuesto').on('click', '.botonProcesarPresupuesto', async function (e) {
+  e.preventDefault();
+  let id = $(this).attr('value');
+
+  let confirmResult = await Swal.fire({
+    title: '¿Procesar Presupuesto?',
+    html: `¿Estás seguro de procesar el presupuesto <strong>${id}</strong>?<br>
+           <small class="text-muted">Se abrirá el formulario con los datos del presupuesto para que puedas verificar el stock y guardarlo como orden real.</small>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#7c3aed',
+    confirmButtonText: '<i class="fi fi-rs-recycle me-1"></i>Sí, procesar',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (confirmResult.isConfirmed) {
+    await cargarPresupuestoEnModal(id);
+  }
+});
+
+// Carga los datos de un presupuesto en el modal de registro para procesarlo como orden real
+async function cargarPresupuestoEnModal(idOrden) {
+  Swal.fire({ title: 'Cargando presupuesto...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  let [data, presentaciones] = await Promise.all([
+    pedirDatosAjax({
+      modulo: 'ordenesEntregasPresupuestos', noGuardarLocal: true,
+      datosPe: { accion: 'obtenerDetalle', id_orden_entrega_presupuesto: idOrden }
+    }),
+    cargarPresentaciones()
+  ]);
+
+  Swal.close();
+
+  if (!data || !data.cabecera) {
+    Swal.fire('Error', 'No se pudo cargar el presupuesto', 'error');
+    return;
+  }
+
+  let c = data.cabecera;
+
+  // Reiniciar el formulario limpio
+  resetFormOrden();
+
+  // Prellenar cliente
+  $('#inputCedulaClienteOrden').val(c.rif_cedula_cliente);
+  $('#nombreClienteOrden').val(c.CLIENTE || '');
+
+  // Reconstruir productosOrden desde el caché de presentaciones
+  productosOrden = [];
+  if (data.productos && data.productos.length) {
+    data.productos.forEach(p => {
+      let pres = presentaciones.find(pp => String(pp.id_presentacion_producto) === String(p.id_presentacion_producto));
+      if (pres) {
+        let nombreCompleto = pres.nombre_producto || '';
+        if (pres.nombre_presentacion) nombreCompleto += ` (${pres.nombre_presentacion})`;
+        productosOrden.push({
+          id_presentacion_producto: p.id_presentacion_producto,
+          id_producto: pres.id_producto,
+          nombre: nombreCompleto,
+          nombre_general: pres.nombre_producto || '',
+          precio: parseFloat(p.precio_producto),
+          cantidad: parseInt(p.cantidad_producto),
+          stock: parseFloat(pres.stock_producto ?? 0),
+          capacidad: parseFloat(pres.cantidad_pmp || 1),
+          unidad: pres.nombre_unidad_medida || 'Unidades',
+          presentacion: pres.nombre_presentacion || ''
+        });
+      }
+    });
+  }
+
+  // Reconstruir serviciosOrden
+  serviciosOrden = [];
+  if (data.servicios && data.servicios.length) {
+    data.servicios.forEach(s => {
+      if (s.status == 4) return; // skip cancelados
+      let materiales = [];
+      if (s.materiales && s.materiales.length) {
+        s.materiales.forEach(m => {
+          let presM = presentaciones.find(pp => String(pp.id_producto) === String(m.id_producto));
+          materiales.push({
+            id_producto: m.id_producto,
+            nombre: m.nombre_producto || '',
+            nombre_general: m.nombre_producto || '',
+            unidad: m.nombre_unidad_medida || '',
+            cantidad_requerida: parseFloat(m.cantidad_producto),
+            stock: presM ? parseFloat(presM.stock_producto ?? 0) : 0
+          });
+        });
+      }
+      serviciosOrden.push({
+        id_servicio: s.id_servicio,
+        nombre: s.nombre_servicio || '',
+        precio: parseFloat(s.precio_servicio || 0),
+        cantidad: parseInt(s.cantidad_servicio || 1),
+        es_mapfre: s.es_precio_mapfre == 1,
+        precio_mapfre: parseFloat(s.precio_servicio_mapfre || 0),
+        materiales: materiales,
+        fecha_ejecucion: s.fecha_ejecucion ? s.fecha_ejecucion.substring(0, 10) : '',
+        latitud: s.coordenada_latitud || '',
+        longitud: s.coordenada_longitud || '',
+        id_ruta: s.id_ruta || '',
+        direccion_texto: ''
+      });
+    });
+  }
+
+  // Ocultar el switch de Presupuesto (no tendría sentido al procesar uno existente)
+  $('#chkPresupuestoOrden').prop('checked', false);
+
+  // Habilitar el botón guardar (ya tenemos cliente)
+  $('#btnGuardarOrden').prop('disabled', false);
+
+  // Renderizar todo
+  renderProductos();
+  renderServicios();
+
+  // Ocultar el checkbox de Presupuesto DESPUÉS de renderizar (para que calcularTotales no lo muestre de nuevo)
+  $('#contenedorPresupuestoCheck').addClass('d-none');
+
+  // Notificar si tenía delivery para que el usuario lo reconfigure
+  if (data.delivery) {
+    Swal.fire({
+      toast: true,
+      position: 'top-end',
+      icon: 'info',
+      title: 'Este presupuesto tenía Delivery. Actívalo y configura la ubicación si lo necesitas.',
+      showConfirmButton: false,
+      timer: 5000
+    });
+  }
+
+  // Abrir el modal de registro (con la bandera activa para no resetear el form)
+  _idPresupuestoAProcesar = idOrden; // Guardamos el ID para que el submit llame a procesarPresupuesto
+  _modalRegistrarDesdePresupuesto = true;
+  let modal = bootstrap.Modal.getOrCreateInstance(document.querySelector('.modalRegistrar'));
+  modal.show();
+}
+
 // Anular desde modal detalle
 $(document).off('click', '#btnAnularOrdenModal').on('click', '#btnAnularOrdenModal', async function () {
   let id = $(this).data('id');
@@ -1314,6 +1504,25 @@ $(document).off('click', '#btnAnularOrdenModal').on('click', '#btnAnularOrdenMod
     alertasAjax(resp);
     reiniciarDataTables();
     $('.modalDetallesOrden').modal('hide');
+  }
+});
+
+// Procesar Presupuesto desde el modal de detalle
+$(document).off('click', '.btnProcesarPresupuestoDetalle').on('click', '.btnProcesarPresupuestoDetalle', async function () {
+  let id = $(this).data('id');
+  let confirmResult = await Swal.fire({
+    title: '¿Procesar Presupuesto?',
+    html: `¿Estás seguro de procesar el presupuesto <strong>${id}</strong>?<br>
+           <small class="text-muted">Se abrirá el formulario con los datos del presupuesto para verificar el stock y guardarlo como orden real.</small>`,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#7c3aed',
+    confirmButtonText: '<i class="fi fi-rs-recycle me-1"></i>Sí, procesar',
+    cancelButtonText: 'Cancelar'
+  });
+  if (confirmResult.isConfirmed) {
+    $('.modalDetallesOrden').modal('hide');
+    setTimeout(() => cargarPresupuestoEnModal(id), 400);
   }
 });
 
@@ -1360,20 +1569,13 @@ async function validarCedulaRepartidorOrden(cedula) {
 let timerRepartidor = null;
 
 $(document).off('input', '#inputCedulaRepartidorOrden').on('input', '#inputCedulaRepartidorOrden', function () {
-  // Formatear cédula: primera letra V, E, J, G, P seguida de números
-  let val = $(this).val().toUpperCase().replace(/[^VEJGP0-9]/g, '');
-  if (val.length > 0) {
-    if (/^[0-9]/.test(val)) {
-      val = 'V' + val; // Si empieza por número, asume V por defecto
-    } else if (val.length > 1) {
-      let letra = val.charAt(0);
-      let numeros = val.substring(1).replace(/[^0-9]/g, '');
-      val = letra + numeros;
-    }
-  }
+  // Solo se aceptan dígitos; la letra viene del select
+  let val = $(this).val().replace(/\D/g, '');
   $(this).val(val);
 
-  let cedula = val.trim();
+  let letra = $('#selectCodigoRepartidorOrden').val() || 'V';
+  let cedula = letra + val;
+
   clearTimeout(timerRepartidor);
 
   $('#feedbackRepartidorOrden').html('');
@@ -1381,9 +1583,25 @@ $(document).off('input', '#inputCedulaRepartidorOrden').on('input', '#inputCedul
   $('#iconRepartidorOrden').html('<i class="fi fi-rs-motorcycle text-muted"></i>').removeClass('border-danger border-success');
   $(this).removeClass('is-valid is-invalid').css({ 'border-color': '', 'background-color': '' });
 
-  // Solo buscamos si tiene al menos una letra y algunos números (ej: V1234)
-  if (cedula.length < 5) return;
+  // Solo buscamos si tiene al menos 4 dígitos
+  if (val.length < 4) return;
 
+  timerRepartidor = setTimeout(() => {
+    validarCedulaRepartidorOrden(cedula);
+  }, 500);
+});
+
+// También disparar búsqueda al cambiar el select de prefijo de cédula
+$(document).off('change', '#selectCodigoRepartidorOrden').on('change', '#selectCodigoRepartidorOrden', function () {
+  let val = $('#inputCedulaRepartidorOrden').val().trim();
+  if (val.length < 4) return;
+  let letra = $(this).val() || 'V';
+  let cedula = letra + val;
+  clearTimeout(timerRepartidor);
+  $('#feedbackRepartidorOrden').html('');
+  $('#selectRepartidorOrden').val('');
+  $('#iconRepartidorOrden').html('<i class="fi fi-rs-motorcycle text-muted"></i>').removeClass('border-danger border-success');
+  $('#inputCedulaRepartidorOrden').removeClass('is-valid is-invalid').css({ 'border-color': '', 'background-color': '' });
   timerRepartidor = setTimeout(() => {
     validarCedulaRepartidorOrden(cedula);
   }, 500);
@@ -1391,7 +1609,9 @@ $(document).off('input', '#inputCedulaRepartidorOrden').on('input', '#inputCedul
 
 // Modal para registrar repartidor
 $(document).off('click', '#btnAbrirRegistroRepartidorOrden').on('click', '#btnAbrirRegistroRepartidorOrden', function () {
-  let cedulaActual = $('#inputCedulaRepartidorOrden').val().trim();
+  // Cedula completa = prefijo del select + valor del input
+  let letraCed = $('#selectCodigoRepartidorOrden').val() || 'V';
+  let cedulaActual = letraCed + $('#inputCedulaRepartidorOrden').val().trim();
 
   // Reseteamos el formulario
   let form = document.getElementById('formRegistroRepartidorOrden');
@@ -1404,8 +1624,10 @@ $(document).off('click', '#btnAbrirRegistroRepartidorOrden').on('click', '#btnAb
   $('#feedbackTelefonoRepartidorReg').html('');
   $('#btnGuardarRepartidorOrden').prop('disabled', true);
 
-  // Seteamos la cédula actual
+  // Seteamos la cédula en el campo oculto del modal de registro
   $('#modalRegistroRepartidorOrden input[name="cedula_repartidor"]').val(cedulaActual);
+  // Seteamos también el código en el hidden
+  $('#modalRegistroRepartidorOrden input[name="codigo_rif_cedula_repartidor"]').val(letraCed);
 
   // Oscurecemos el modal de Orden para que resalte este
   $('.modalRegistrar').addClass('fact-modal-dimmed');
@@ -1463,9 +1685,9 @@ function validarTelefonoRepartidor() {
   el.removeClass('is-valid is-invalid');
   fb.html('');
 
-  if (val.length !== 11) {
+  if (val.length !== 7) {
     el.addClass('is-invalid');
-    fb.html(`<small class="text-danger"><i class="fi fi-rs-cross-circle me-1"></i>Debe tener 11 dígitos (${val.length}/11)</small>`);
+    fb.html(`<small class="text-danger"><i class="fi fi-rs-cross-circle me-1"></i>Debe tener 7 dígitos (${val.length}/7)</small>`);
     validarCamposRegistroRepartidor();
     return;
   }
@@ -1524,11 +1746,11 @@ $(document).off('click', '#btnGuardarRepartidorOrden').on('click', '#btnGuardarR
   }
 
   // El backend espera prefijo_telefono_repartidor (4 dígitos) y telefono_repartidor (7 dígitos) separados
-  let telefonoCompleto = (datosObj.telefono_repartidor || '').replace(/\D/g, '');
-  if (telefonoCompleto.length === 11) {
-    datosObj.prefijo_telefono_repartidor = telefonoCompleto.substring(0, 4);
-    datosObj.telefono_repartidor = telefonoCompleto.substring(4);
-  }
+  // El prefijo viene del select y el cuerpo del input
+  let prefijo = $('#selectPrefijoTelefonoRepartidorReg').val() || '';
+  let cuerpoTel = (datosObj.telefono_repartidor || '').replace(/\D/g, '');
+  datosObj.prefijo_telefono_repartidor = prefijo;
+  datosObj.telefono_repartidor = cuerpoTel;
 
   let res = await pedirDatosAjax({
     modulo: 'repartidores',
@@ -1544,9 +1766,16 @@ $(document).off('click', '#btnGuardarRepartidorOrden').on('click', '#btnGuardarR
       icon: "success",
       confirmButtonText: "Continuar"
     }).then(() => {
-      // Colocar la cédula en el input y validar automáticamente
-      $('#inputCedulaRepartidorOrden').val(cedulaRegistrada);
-      validarCedulaRepartidorOrden(cedulaRegistrada);
+      // Separar letra y dígitos para restaurar en el input de búsqueda
+      let matchCed = cedulaRegistrada.match(/^([A-Za-z])(\d+)$/);
+      if (matchCed) {
+        $('#selectCodigoRepartidorOrden').val(matchCed[1].toUpperCase());
+        $('#inputCedulaRepartidorOrden').val(matchCed[2]);
+        validarCedulaRepartidorOrden(cedulaRegistrada);
+      } else {
+        $('#inputCedulaRepartidorOrden').val(cedulaRegistrada);
+        validarCedulaRepartidorOrden(cedulaRegistrada);
+      }
     });
   } else {
     btn.prop('disabled', false).html('Guardar');
@@ -1757,6 +1986,30 @@ $(document).off('click', '#btnGuardarOrden').on('click', '#btnGuardarOrden', fun
     return;
   }
 
+  // Si es presupuesto, enviamos directo sin pasar por el modal de estados
+  if ($('#chkPresupuestoOrden').is(':checked')) {
+    $('#estadoSeleccionadoOrden').val(1); // valor de relleno, no se usa en backend para presupuesto
+    $('#formOrden').trigger('submit');
+    return;
+  }
+
+  // Si venimos de "Procesar Presupuesto" (contenedor oculto), también enviamos directo
+  // porque el backend lo guardará como orden real (es_presupuesto=0)
+  if ($('#contenedorPresupuestoCheck').hasClass('d-none')) {
+    $('#estadoSeleccionadoOrden').val(1);
+    // Mostrar modal de estados igual que una orden normal para elegir cómo registrarla
+    if ($('#chkDeliveryOrden').is(':checked')) {
+      $('.btn-estado-orden[data-estado="3"]').show();
+      $('.btn-estado-orden[data-estado="4"]').show();
+    } else {
+      $('.btn-estado-orden[data-estado="3"]').hide();
+      $('.btn-estado-orden[data-estado="4"]').hide();
+    }
+    $('.modalRegistrar').addClass('fact-modal-dimmed');
+    $('#modalEstadosOrden').modal('show');
+    return;
+  }
+
   if ($('#chkDeliveryOrden').is(':checked')) {
     $('.btn-estado-orden[data-estado="3"]').show();
     $('.btn-estado-orden[data-estado="4"]').show();
@@ -1796,23 +2049,27 @@ $(document).off('submit', '#formOrden').on('submit', '#formOrden', async functio
     return;
   }
 
+  let esPresupuesto = $('#chkPresupuestoOrden').is(':checked');
 
-  // Validar que si el delivery está activado, tenga una ubicación seleccionada
-  if ($('#chkDeliveryOrden').is(':checked') && !$('#idRutaDeliveryOrden').val()) {
-    Swal.fire('Atención', 'Seleccione una ubicación en el mapa para asignar la ruta del Delivery.', 'warning');
-    return;
-  }
-
-  // Validar que todos los servicios tengan su ubicación y fecha
+  // Siempre validamos fecha y ubicación de servicios, tanto para OEP normal como para Presupuesto
+  // El presupuesto es una cotización real: necesita fecha y lugar planeados
   if (serviciosOrden.length > 0) {
     let servSinUbicacion = serviciosOrden.find(s => !s.id_ruta);
     let servSinFecha = serviciosOrden.find(s => !s.fecha_ejecucion);
     if (servSinUbicacion) {
-      Swal.fire('Atención', `El servicio "${servSinUbicacion.nombre}" no tiene ubicación asignada. Haga clic en "Fija ubicación".`, 'warning');
+      Swal.fire('Atención', `El servicio "${servSinUbicacion.nombre}" no tiene ubicación asignada. Haga clic en "Ubicación".`, 'warning');
       return;
     }
     if (servSinFecha) {
       Swal.fire('Atención', `El servicio "${servSinFecha.nombre}" no tiene fecha de ejecución.`, 'warning');
+      return;
+    }
+  }
+
+  // Validación de delivery (solo para OEP real, en presupuesto no aplica)
+  if (!esPresupuesto) {
+    if ($('#chkDeliveryOrden').is(':checked') && !$('#idRutaDeliveryOrden').val()) {
+      Swal.fire('Atención', 'Seleccione una ubicación en el mapa para asignar la ruta del Delivery.', 'warning');
       return;
     }
   }
@@ -1830,12 +2087,58 @@ $(document).off('submit', '#formOrden').on('submit', '#formOrden', async functio
 
   $('#btnGuardarOrden').html(`<i class="fi fi-rs-loading spinner-border spinner-border-sm me-1"></i>Guardando...`).prop('disabled', true);
 
+  // === PROCESAR PRESUPUESTO EXISTENTE ===
+  // Si venimos del flujo "Procesar Presupuesto", llamamos a la acción específica
+  // en lugar de registrar, para que el presupuesto mantenga el mismo Nº de Orden.
+  if (_idPresupuestoAProcesar !== null) {
+    let idPresupuesto = _idPresupuestoAProcesar;
+    let estadoSel = $('#estadoSeleccionadoOrden').val();
+
+    let resp = await pedirDatosAjax({
+      modulo: 'ordenesEntregasPresupuestos', noGuardarLocal: true,
+      datosPe: {
+        accion: 'procesarPresupuesto',
+        id_orden_entrega_presupuesto: idPresupuesto,
+        estadoSeleccionado: estadoSel,
+        productos: JSON.stringify(productosOrden),
+        servicios: JSON.stringify(serviciosOrden),
+        delivery: JSON.stringify(deliveryInfo),
+        rif_cedula_cliente: $('#inputCedulaClienteOrden').val().trim()
+      }
+    });
+
+    $('#btnGuardarOrden').html(`<i class="fi fi-rs-credit-card me-1"></i>Ir a Pagos / Guardar`).prop('disabled', false);
+
+    if (resp && resp.icono === 'success') {
+      _idPresupuestoAProcesar = null;
+      $('.modalRegistrar').modal('hide');
+      resetFormOrden();
+      reiniciarDataTables();
+      // Abrir modal de pagos si el estado requiere pago inmediato (1 = procesada y pagada, 3 = pagada y despachada)
+      if (estadoSel == 1 || estadoSel == 3) {
+        abrirModalPagos(resp.id_orden_entrega_presupuesto);
+      } else {
+        Swal.fire({
+          title: resp.titulo,
+          html: `La orden <strong>${resp.id_orden_entrega_presupuesto}</strong> fue procesada exitosamente.`,
+          icon: resp.icono,
+          confirmButtonColor: '#7c3aed'
+        });
+      }
+    } else {
+      alertasAjax(resp);
+    }
+    return;
+  }
+  // === FIN PROCESAR PRESUPUESTO ===
+
   // Agregar inputs hidden con las matrices
-  $(this).find('input[name="productos"], input[name="servicios"], input[name="delivery"], input[name="estadoSeleccionado"]').remove();
+  $(this).find('input[name="productos"], input[name="servicios"], input[name="delivery"], input[name="estadoSeleccionado"], input[name="es_presupuesto"]').remove();
   $('<input>', { type: 'hidden', name: 'productos', value: JSON.stringify(productosOrden) }).appendTo(this);
   $('<input>', { type: 'hidden', name: 'servicios', value: JSON.stringify(serviciosOrden) }).appendTo(this);
   $('<input>', { type: 'hidden', name: 'delivery', value: JSON.stringify(deliveryInfo) }).appendTo(this);
   $('<input>', { type: 'hidden', name: 'estadoSeleccionado', value: $('#estadoSeleccionadoOrden').val() }).appendTo(this);
+  $('<input>', { type: 'hidden', name: 'es_presupuesto', value: esPresupuesto ? '1' : '0' }).appendTo(this);
 
   let resp = await enviarFormulario({ formulario: this, modulo: 'ordenesEntregasPresupuestos' });
 
@@ -1846,9 +2149,19 @@ $(document).off('submit', '#formOrden').on('submit', '#formOrden', async functio
     resetFormOrden();
     reiniciarDataTables();
 
-    let estado = $('#estadoSeleccionadoOrden').val();
-    if (estado == 1 || estado == 3) {
-      abrirModalPagos(resp.id_orden_entrega_presupuesto);
+    // Solo abrimos el modal de pagos si NO es un presupuesto
+    if (!esPresupuesto) {
+      let estado = $('#estadoSeleccionadoOrden').val();
+      if (estado == 1 || estado == 3) {
+        abrirModalPagos(resp.id_orden_entrega_presupuesto);
+      }
+    } else {
+      Swal.fire({
+        title: 'Presupuesto Guardado',
+        html: `El presupuesto <strong>${resp.id_orden_entrega_presupuesto}</strong> ha sido guardado. Puedes procesarlo desde la lista cuando el cliente confirme.`,
+        icon: 'success',
+        confirmButtonColor: '#7c3aed'
+      });
     }
   }
 });
@@ -2151,3 +2464,50 @@ $(document).off('input blur', '#modalPagosOrden input, #modalPagosOrden select')
 $(document).on('input blur', '#modalPagosOrden input, #modalPagosOrden select', function () {
   validarEnTiempoReal(this, 'ordenesEntregasPresupuestos');
 })
+
+// Evento para imprimir por POST (maneja tanto JSON de error como PDF exitoso)
+$('body').on('click', '.botonImprimirPlanilla', function (e) {
+  e.preventDefault();
+  let id = $(this).attr('value');
+  let formData = new FormData();
+  formData.append('accion', 'imprimirPlanilla');
+  formData.append('id_orden_entrega_presupuesto', id);
+
+  fetch('?modulo=ordenesEntregasPresupuestos', {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-TOKEN-CSRF': $('meta[name="TOKEN_CSRF"]').attr("content")
+    }
+  })
+  .then(async response => {
+    // Clonamos la respuesta para poder leerla dos veces si es necesario
+    const clonada = response.clone();
+    try {
+      // Intentamos parsear como JSON primero (errores de permiso, validaciones, etc.)
+      const res = await response.json();
+      if (res && res.tipo) {
+        if (typeof alertas === "function") {
+          alertas(res);
+        } else {
+          Swal.fire({
+            icon: res.icono || 'error',
+            title: res.titulo || 'Error',
+            text: res.texto || 'Ocurrió un error inesperado'
+          });
+        }
+        return;
+      }
+    } catch (e) {
+      // No es JSON válido, entonces es un PDF
+    }
+    // Si llegamos aquí, la respuesta es el PDF binario
+    let blob = await clonada.blob();
+    let url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  })
+  .catch(error => {
+    console.error("Error al imprimir:", error);
+  });
+});

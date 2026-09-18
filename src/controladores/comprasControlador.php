@@ -28,6 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["accion"]) && isset($_S
     case 'actualizar':
       $resultado = $objeto->actualizarCompra($_POST);
       break;
+    case 'recepcionar':
+      $resultado = $objeto->cambiarEstadoRecepcion($_POST);
+      break;
+    case 'imprimir':
+      $resultado = $objeto->imprimirOrdenCompra($_POST);
+      break;
     case 'eliminar':
       $resultado = $objeto->eliminarCompra($_POST);
       break;

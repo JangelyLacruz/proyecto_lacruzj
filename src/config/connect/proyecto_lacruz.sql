@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-08-2026 a las 01:55:22
+-- Tiempo de generación: 18-09-2026 a las 01:39:51
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,8 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `proyecto_lacruz`
 --
-CREATE DATABASE IF NOT EXISTS `proyecto_lacruz` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `proyecto_lacruz`;
 
 DELIMITER $$
 --
@@ -391,8 +389,11 @@ INSERT INTO `clientes` (`rif_cedula_cliente`, `razon_social_cliente`, `telefono_
 ('J001241345', 'Compañía Anónima Nacional Teléfonos de Venezuela (CANTV)', '02125007373', '', 'Final Av. Libertador Edificio CANTV Caracas Venezuela ', 1),
 ('J001673920', 'Hospitalar C.A.', '04241941573', 'contigo@hospitalarve.com', 'Vda. Francisco de Miranda Edif. Centro Seguros La Paz Piso 7 Local 0-71, 0-73, 0-75, S-71 Urb. Boleita Caracas ( Petare) Miranda Zona Postal 1070', 1),
 ('J070003448', 'Cervecería Regional C.A', '04129628546', 'andrea.linares@cerveceriaregional.com', 'Av. 17 Los Haticos Local N 112-13 Maracaibo Edo. Zulia', 1),
+('J116545646', 'dadasdasda', '04261231231', 'carloshurtado30e15@gmail.com', 'adasdadasdasdadasdasd', 0),
 ('J310729425', 'Condominio Centro Comercial Profesional Rosancar', '04128479199', 'rosancarbarquisimeto@gmail.com', 'Calle 20 Esq. Carrera 31 C.C Rosancar Nivel 30-97 Local PB Sector Centro Barquisimeto Edo. Lara', 1),
-('J314964291', 'Mbzoluciones C.A', '', 'mbzolucioles@gmail.com', 'Calle 26 entre Carreras 16 y 17 Edif. Torre Ejecutiva piso 4 oficina 45 Barquisimeto Edo Lara', 1),
+('J31317343', 'Carlos Hurtado', '04164532184', 'carloshurtado30e15@gmail.com', 'Valles de uribana, tamaca', 0),
+('J314964291', 'Mbzoluciones C.A', '04222547862', 'mbzolucioles@gmail.com', 'Calle 26 entre Carreras 16 y 17 Edif. Torre Ejecutiva piso 4 oficina 45 Barquisimeto Edo Lara', 0),
+('J54686423', 'asdadasdasdasd', '04243453453', 'carlosdsd30e15@gmail.com', 'dfsdfsfsdfsdff', 0),
 ('V12345666', 'Anderson Freitez', '04169484640', 'andersonfreitez61@gmail.com', 'SANARE', 0),
 ('V123456669', 'Anderson Freitez', '04169484678', 'andersonfreitekz6@gmail.com', 'SANARE', 0),
 ('V12345668', 'Anderson Freitez', '04169484648', 'andersonfreit9z6@gmail.com', 'SANARE', 0),
@@ -476,6 +477,30 @@ INSERT INTO `comprobantes_pagos` (`id_comprobante_pago`, `id_pago`, `path_compro
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `control_ordenes_entregas_presupuestos`
+--
+
+CREATE TABLE `control_ordenes_entregas_presupuestos` (
+  `rif_cliente` varchar(20) NOT NULL,
+  `numero_control_factura` varchar(11) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `control_ordenes_entregas_presupuestos`
+--
+
+INSERT INTO `control_ordenes_entregas_presupuestos` (`rif_cliente`, `numero_control_factura`, `status`) VALUES
+('J001241345', 'GTC5834467', 1),
+('J001673920', 'DFG3453454', 1),
+('J070003448', 'zfd3458644', 1),
+('J310729425', '2312ASDAD5', 1),
+('J31317343', 'ZCT2345563', 1),
+('J314964291', '5676SFS234', 1);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `deliveries`
 --
 
@@ -500,7 +525,8 @@ INSERT INTO `deliveries` (`id_delivery`, `id_orden_entrega_presupuesto`, `id_dir
 ('DELI-26183-00002-07', 'FACT-26183-00002-26', 161, 'V12344567', 1),
 ('DELI-26190-00001-38', 'FACT-26190-00001-44', 162, 'V12344567', 1),
 ('DELI-26221-00001-04', 'FACT-26221-00001-60', 163, 'V12344567', 1),
-('DELI-26227-00001-53', 'FACT-26227-00001-55', 164, 'V30485654', 1);
+('DELI-26227-00001-53', 'FACT-26227-00001-55', 164, 'V30485654', 1),
+('DELI-26259-00001-98', 'OEP-26258-00002-85', 166, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -530,7 +556,9 @@ INSERT INTO `detalles_pagos` (`id_detalle_pago`, `id_pago`, `id_metodo_pago`, `i
 (269, 'PAG-26183-00002-83', 3, 1, 337.00, 1),
 (270, 'PAG-26190-00001-58', 3, 1, 320.16, 1),
 (271, 'PAG-26221-00001-44', 3, 1, 304.00, 1),
-(272, 'PAG-26227-00001-57', 3, 1, 113.00, 1);
+(272, 'PAG-26227-00001-57', 3, 1, 113.00, 1),
+(273, 'PAG-26258-00001-00', 6, 1, 1.16, 1),
+(274, 'PAG-26259-00001-57', 6, 1, 29.00, 1);
 
 -- --------------------------------------------------------
 
@@ -606,7 +634,9 @@ INSERT INTO `direcciones` (`id_direccion`, `id_latitud_direccion`, `id_longitud_
 (161, 190, 185, 11, 1),
 (162, 191, 186, 11, 1),
 (163, 192, 187, 11, 1),
-(164, 193, 188, 11, 1);
+(164, 193, 188, 11, 1),
+(165, 194, 189, 9, 1),
+(166, 195, 190, 11, 1);
 
 -- --------------------------------------------------------
 
@@ -725,7 +755,9 @@ INSERT INTO `latitudes_direcciones` (`id_latitud_direccion`, `coordenada_latitud
 (190, '9.8598981990669', 1),
 (191, '9.8597769944842', 1),
 (192, '9.93103', 1),
-(193, '9.8618556465183', 1);
+(193, '9.8618556465183', 1),
+(194, '10.065163756959667', 1),
+(195, '10.209999999999987', 1);
 
 -- --------------------------------------------------------
 
@@ -797,7 +829,9 @@ INSERT INTO `longitudes_direcciones` (`id_longitud_direccion`, `coordenada_longi
 (185, '-69.611971249216', 1),
 (186, '-69.611963692348', 1),
 (187, '-69.621948', 1),
-(188, '-69.612069311619', 1);
+(188, '-69.612069311619', 1),
+(189, '-69.32130575180055', 1),
+(190, '-69.3', 1);
 
 -- --------------------------------------------------------
 
@@ -1080,7 +1114,10 @@ INSERT INTO `ordenes_entregas_presupuestos` (`id_orden_entrega_presupuesto`, `ce
 ('FACT-26183-00002-26', 'V30485688', 257, 'V30485688', '2026-07-03 06:55:02', 8),
 ('FACT-26190-00001-44', 'V30485684', 258, 'V30485684', '2026-07-10 00:47:24', 7),
 ('FACT-26221-00001-60', 'V30485684', 258, 'V30485684', '2026-08-10 17:44:30', 8),
-('FACT-26227-00001-55', 'V30485684', 258, 'V30485631', '2026-08-16 19:00:02', 8);
+('FACT-26227-00001-55', 'V30485684', 258, 'V30485631', '2026-08-16 19:00:02', 8),
+('OEP-26258-00001-71', 'V30485684', 258, 'J310729425', '2026-09-16 23:16:37', 10),
+('OEP-26258-00002-85', 'V30485684', 258, 'J314964291', '2026-09-16 23:24:24', 10),
+('OEP-26259-00001-32', 'V30485684', 258, 'J310729425', '2026-09-17 10:08:40', 2);
 
 -- --------------------------------------------------------
 
@@ -1108,7 +1145,9 @@ INSERT INTO `pagos` (`id_pago`, `id_orden_entrega_presupuesto`, `fecha_pago`, `s
 ('PAG-26183-00002-83', 'FACT-26183-00002-26', '2026-07-03 00:00:00', 1),
 ('PAG-26190-00001-58', 'FACT-26190-00001-44', '2026-07-10 00:00:00', 1),
 ('PAG-26221-00001-44', 'FACT-26221-00001-60', '2026-08-10 00:00:00', 1),
-('PAG-26227-00001-57', 'FACT-26227-00001-55', '2026-08-16 00:00:00', 1);
+('PAG-26227-00001-57', 'FACT-26227-00001-55', '2026-08-16 00:00:00', 1),
+('PAG-26258-00001-00', 'OEP-26258-00001-71', '2026-09-16 23:17:04', 1),
+('PAG-26259-00001-57', 'OEP-26258-00002-85', '2026-09-17 11:38:05', 1);
 
 -- --------------------------------------------------------
 
@@ -1409,7 +1448,7 @@ INSERT INTO `productos` (`id_producto`, `id_unidad_medida`, `id_categoria_produc
 ('PROD-26150-00001-39', 2, 1, 'CLORO', 1.00, 600.00, 20.00, 0),
 ('PROD-26183-00001-56', 2, 1, 'CLORO2', 1.00, 100.00, 10.00, 0),
 ('PROD-26222-00001-83', 2, 1, 'CLORO2', 1.00, 100.00, 5.00, 0),
-('PROD-26222-00002-19', 2, 1, 'CLORO', 1.00, 99.00, 5.00, 1),
+('PROD-26222-00002-19', 2, 1, 'CLORO', 1.00, 83.00, 5.00, 1),
 ('PROD-26222-00003-10', 2, 1, 'CLORO2', 1.00, 1.00, 5.00, 0),
 ('PROD-26222-00004-43', 2, 1, 'CLOROf', 1.00, 1.00, 5.00, 0),
 ('PROD-26222-00005-98', 2, 2, 'CLOROm', 1.00, 1.00, 5.00, 0),
@@ -1474,7 +1513,11 @@ CREATE TABLE `productos_ordenes_entregas_presupuestos` (
 INSERT INTO `productos_ordenes_entregas_presupuestos` (`id_producto_factura`, `id_orden_entrega_presupuesto`, `id_presentacion_producto`, `cantidad_producto`, `status`) VALUES
 (327, 'FACT-26190-00001-44', 'PRPR-26183-00015-86', 1.00, 1),
 (328, 'FACT-26221-00001-60', 'PRPR-26183-00015-86', 1.00, 1),
-(329, 'FACT-26227-00001-55', 'PRPR-26222-00007-32', 1.00, 1);
+(329, 'FACT-26227-00001-55', 'PRPR-26222-00007-32', 1.00, 1),
+(330, 'OEP-26258-00001-71', 'PRPR-26222-00012-62', 1.00, 1),
+(331, 'OEP-26258-00002-85', 'PRPR-26222-00010-25', 1.00, 0),
+(332, 'OEP-26259-00001-32', 'PRPR-26222-00011-11', 1.00, 1),
+(333, 'OEP-26258-00002-85', 'PRPR-26222-00010-25', 1.00, 1);
 
 -- --------------------------------------------------------
 
@@ -1723,6 +1766,13 @@ CREATE TABLE `servicios_ordenes_entregas_presupuestos` (
   `precio_servicio_mapfre` decimal(20,2) DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `servicios_ordenes_entregas_presupuestos`
+--
+
+INSERT INTO `servicios_ordenes_entregas_presupuestos` (`id_servicio_factura`, `id_orden_entrega_presupuesto`, `id_servicio`, `id_direccion`, `cantidad_servicio`, `fecha_ejecucion`, `es_precio_mapfre`, `precio_servicio_mapfre`, `status`) VALUES
+(2, 'OEP-26258-00002-85', 'SERV-26125-00001-08', 165, 1.00, '2026-10-03 00:00:00', 0, 0.00, 1);
 
 -- --------------------------------------------------------
 
@@ -2001,6 +2051,12 @@ ALTER TABLE `compras`
 ALTER TABLE `comprobantes_pagos`
   ADD PRIMARY KEY (`id_comprobante_pago`),
   ADD KEY `id_pago_comprobantes_pagos_fk` (`id_pago`);
+
+--
+-- Indices de la tabla `control_ordenes_entregas_presupuestos`
+--
+ALTER TABLE `control_ordenes_entregas_presupuestos`
+  ADD PRIMARY KEY (`rif_cliente`);
 
 --
 -- Indices de la tabla `deliveries`
@@ -2326,13 +2382,13 @@ ALTER TABLE `comprobantes_pagos`
 -- AUTO_INCREMENT de la tabla `detalles_pagos`
 --
 ALTER TABLE `detalles_pagos`
-  MODIFY `id_detalle_pago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=273;
+  MODIFY `id_detalle_pago` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=275;
 
 --
 -- AUTO_INCREMENT de la tabla `direcciones`
 --
 ALTER TABLE `direcciones`
-  MODIFY `id_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=165;
+  MODIFY `id_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=167;
 
 --
 -- AUTO_INCREMENT de la tabla `empresas_envios`
@@ -2344,13 +2400,13 @@ ALTER TABLE `empresas_envios`
 -- AUTO_INCREMENT de la tabla `latitudes_direcciones`
 --
 ALTER TABLE `latitudes_direcciones`
-  MODIFY `id_latitud_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=194;
+  MODIFY `id_latitud_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=196;
 
 --
 -- AUTO_INCREMENT de la tabla `longitudes_direcciones`
 --
 ALTER TABLE `longitudes_direcciones`
-  MODIFY `id_longitud_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=189;
+  MODIFY `id_longitud_direccion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=191;
 
 --
 -- AUTO_INCREMENT de la tabla `materias_primas_compras`
@@ -2434,7 +2490,7 @@ ALTER TABLE `productos_compras`
 -- AUTO_INCREMENT de la tabla `productos_ordenes_entregas_presupuestos`
 --
 ALTER TABLE `productos_ordenes_entregas_presupuestos`
-  MODIFY `id_producto_factura` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=330;
+  MODIFY `id_producto_factura` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=334;
 
 --
 -- AUTO_INCREMENT de la tabla `productos_producciones`
@@ -2464,7 +2520,7 @@ ALTER TABLE `rutas`
 -- AUTO_INCREMENT de la tabla `servicios_ordenes_entregas_presupuestos`
 --
 ALTER TABLE `servicios_ordenes_entregas_presupuestos`
-  MODIFY `id_servicio_factura` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_servicio_factura` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `sucursales_empresas_envios`
@@ -2506,6 +2562,12 @@ ALTER TABLE `compras`
 --
 ALTER TABLE `comprobantes_pagos`
   ADD CONSTRAINT `id_pago_comprobantes_pagos_fk` FOREIGN KEY (`id_pago`) REFERENCES `pagos` (`id_pago`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `control_ordenes_entregas_presupuestos`
+--
+ALTER TABLE `control_ordenes_entregas_presupuestos`
+  ADD CONSTRAINT `control_ordenes_entregas_presupuestos_ibfk_1` FOREIGN KEY (`rif_cliente`) REFERENCES `clientes` (`rif_cedula_cliente`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `deliveries`

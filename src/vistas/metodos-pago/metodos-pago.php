@@ -10,7 +10,7 @@ $componente = new componentesModelo();
 <?php
 $instruccionesLista = [
   'encabezado' => 'Configuración de Métodos de Pago',
-  'tituloBtnReg' => 'Nuevo Método de Pago',
+  'tituloBtnReg' => 'Agregar Métodos de Pago',
 ];
 echo $componente->listaDataTable($instruccionesLista);
 ?>

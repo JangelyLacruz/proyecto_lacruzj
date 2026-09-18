@@ -8,7 +8,7 @@
 <?php 
     $instruccionesLista=[
         'encabezado'=>'Gestionar Unidades Medidas',
-        'tituloBtnReg'=>'Registrar Unidades de Medida',
+        'tituloBtnReg'=>'Agregar Unidades de Medida',
     ];
     echo $componente->listaDataTable($instruccionesLista);
 ?>
@@ -19,7 +19,7 @@
         <div class="modal-content border-0">
             <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
                 <h5 class="modal-title" id="registrarUsuarioModalLabel">
-                    <i class="fas fa-user-plus me-2"></i> Registro de Nueva Unidad de Medida
+                    <i class="fas fa-user-plus me-2"></i> Agregar Nueva Unidad de Medida
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>

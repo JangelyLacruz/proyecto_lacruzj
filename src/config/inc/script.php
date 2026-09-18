@@ -19,10 +19,13 @@
 <?php
 $directorioJs = '/proyecto-lacruz-j/src/assets/js/modulos/';
 if ($_SESSION['vistaActual'] == 'login') {
-  $archivoModulo = $directorioJs . 'usuarios.js';
+  $nombreModulo = 'usuarios.js';
 } else {
-  $archivoModulo = $directorioJs . $_SESSION['vistaActual'] . '.js';
+  $nombreModulo = $_SESSION['vistaActual'] . '.js';
 }
+$rutaFisicaJs = dirname(__DIR__, 2) . '/assets/js/modulos/' . $nombreModulo;
+$versionJs = file_exists($rutaFisicaJs) ? '?v=' . filemtime($rutaFisicaJs) : '';
+$archivoModulo = $directorioJs . $nombreModulo . $versionJs;
 ?>
 <script type="module" nonce="<?php echo $_SESSION['nonce']; ?>" src="<?php echo $archivoModulo ?>"></script>
 <?php if ($_SESSION['vistaActual'] == 'reportes'): ?>
