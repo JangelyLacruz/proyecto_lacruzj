@@ -7,34 +7,45 @@ use PDO;
 use Exception;
 
 class exportarBDModelo extends conexion {
-  private array $bases = [
-    'proyecto_lacruz',
-    'proyecto_lacruz_seguridad'
-  ];
-  public function exportar(): string {
+  private string $bases = '';
+  public function exportar(string $BD) {
+
+    $this->bases = $BD;
+    if (!isset($_SESSION['cedula'])) {
+      http_response_code(403);
+      header('Content-Type: application/json');
+      echo json_encode(['icono' => 'error', 'titulo' => 'Acceso denegado']);
+      exit;
+    }
+    $rol = strtolower($_SESSION['rol'] ?? '');
+
+    if ($rol != 1) {
+      http_response_code(403);
+      header('Content-Type: application/json');
+      echo json_encode([
+        'icono'  => 'error',
+        'titulo' => 'Acceso denegado',
+        'texto'  => 'No tienes permisos para exportar la base de datos.'
+      ]);
+      exit;
+    }
     $timestamp = date('Y-m-d_H-i-s');
     $fileName = "backup_lacruz_{$timestamp}.sql";
     $filePath = __DIR__ . '/exports/' . $fileName;
-
     if (!is_dir(dirname($filePath))) {
       mkdir(dirname($filePath), 0755, true);
     }
-
     $dump = "-- ============================================\n";
     $dump .= "-- Backup: proyecto_lacruz + proyecto_lacruz_seguridad\n";
     $dump .= "-- Fecha: " . date('Y-m-d H:i:s') . "\n";
     $dump .= "-- ============================================\n\n";
     $dump .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
 
-    foreach ($this->bases as $base) {
-      $bd = ($base === 'proyecto_lacruz_seguridad') ? 'seguridad' : null;
-      $pdo = $this->conectar($bd);
-      $dump .= $this->volcarBase($pdo, $base);
-    }
-
-    $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
-
+    $bd = ($this->bases === 'proyecto_lacruz_seguridad') ? 'seguridad' : null;
+    $pdo = $this->conectar($bd);
+    $dump .= $this->volcarBase($pdo, $this->bases);
     file_put_contents($filePath, $dump);
+    $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
     return $filePath;
   }

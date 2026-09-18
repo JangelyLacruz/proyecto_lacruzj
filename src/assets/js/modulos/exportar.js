@@ -1,4 +1,4 @@
-import { rutaAbsoluta, alertasAjax } from './global.js';
+import { rutaAbsoluta, alertasAjax, pedirDatosAjax } from './global.js';
 export function initExportarDB() {
   // Abrir modal
   $(document).off('click', '#btnExportarBD');
@@ -32,11 +32,24 @@ export function initExportarDB() {
 
     // Exportar cada base seleccionada
     for (const base of basesSeleccionadas) {
-      const nombre = base === 'proyecto_lacruz_seguridad' ? 'BD Seguridad' : 'BD Principal';
-
+      const nombre = base === 'proyecto_lacruz_seguridad' ? 'proyecto_lacruz_seguridad' : 'proyecto_lacruz';
       try {
-        window.open(rutaAbsoluta + 'exportar?bd=' + base, '_blank');
-        await new Promise(resolve => setTimeout(resolve, 500));
+        let r = await pedirDatosAjax({
+          'modulo': 'exportar',
+          'datosPe': {
+            'accion': 'exportar',
+            'BD': nombre
+          }
+        })
+        setTimeout(() => { }, 1500)
+        const enlace = document.createElement('a');
+        enlace.href = r;
+        console.log(r.split())
+        let nombreArchivo = r.split()[r.split().length - 1]
+        enlace.download = nombreArchivo;
+        document.body.appendChild(enlace);
+        enlace.click();
+        document.body.removeChild(enlace);
       } catch (error) {
         console.error('Error al exportar ' + nombre + ':', error);
       }
