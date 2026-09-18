@@ -752,7 +752,6 @@ trait traitModelo {
     }
 
     // Formato
-    
     if (isset($esquema['regex']) && $valor != "" && !preg_match("~" . $esquema['regex'] . "~", $valor)) {
       return $fAlerta($esquema, 'regex', $direccion, $valor, $contexto);
     }
@@ -769,7 +768,6 @@ trait traitModelo {
 
     //Para verificar la existencia de un registro para su actualización [normalmente solo el ID del registro]
     if (isset($esquema['debeExistirBD']) && !empty($valor)) {
-
       if (!isset($this->cacheVal[$esquema['tablaBD']])) {
         $this->cacheVal[$esquema['tablaBD']] = $this->objetoBD->seleccionarDatos2([
           'campos' => '*',

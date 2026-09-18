@@ -120,6 +120,8 @@ class pdfModel extends FPDF {
     if ($this->dataNotaEntrega) {
       // Cuadro exterior superior (Opcional, para delimitar la zona superior si se desea)
       // $this->Rect(10, 10, 190, 30);
+      
+      /*
       $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo2.png', 10, 10, 28, 20);
 
       // Datos de la Empresa (Izquierda)
@@ -139,11 +141,13 @@ class pdfModel extends FPDF {
       //Direccion y Rif
       $this->SetFont('Arial', 'B', 8);
       $this->SetXY(155, 10);
-      $this->cell2(40, 4, 'Vda 21 Calle 6 Nro C-52', 0, 1, 'C');
+      $this->cell2(40, 4, 'Carrera 2 Entre Calle 6 y 7', 0, 1, 'C');
       $this->SetX(155);
-      $this->cell2(40, 4, 'Barrio José Gregorio Hernández', 0, 1, 'C');
+      $this->cell2(40, 4, 'Local Casa N914', 0, 1, 'C');
       $this->SetX(155);
-      $this->cell2(40, 4, 'Barquisimeto, Estado Lara', 0, 1, 'C');
+      $this->cell2(40, 4, 'Nor. Local 3 Sector La mata', 0, 1, 'C');
+      $this->SetX(155);
+      $this->cell2(40, 4, 'Cabudare, Estado Lara', 0, 1, 'C');
       $this->SetX(155);
       $this->cell2(40, 4, 'Zona Postal 3001', 0, 1, 'C');
       $this->SetX(155);
@@ -151,6 +155,7 @@ class pdfModel extends FPDF {
       $this->SetTextColor(10, 24, 82);
       $this->cell2(40, 4, 'RIF.: J-412192701', 0, 1, 'C');
       $this->SetTextColor(0);
+      */
 
       $this->SetXY(10, 40);
       $this->SetFont('Arial', 'B', 8);
@@ -446,7 +451,7 @@ class pdfModel extends FPDF {
     $this->SetMargins(10, 10, 10);
     $this->AddPage();
 
-    $this->Rect(10, 57, 195, 198);
+    $this->Rect(10, 57, 195, 178);
     $this->SetFont('Arial', '', 8);
 
     $itemPedido = $this->dataNotaEntrega ?: [];
@@ -509,27 +514,25 @@ class pdfModel extends FPDF {
     $hora = $fechaCompleta[1] . ' ' . $fechaCompleta[2];
     $fecha = implode('/', $fechaArray) . ' HORA: ' . $hora;
 
-    $this->SetXY(10, 240);
+    $this->SetXY(10, 220);
     $this->SetFont('Arial', 'B', 7);
     $this->cell2(80, 5, '   ORDEN PEDIDO NÚMERO ' . $this->dataNotaEntrega['id_orden_entrega_presupuesto'], 0, 1);
     $this->cell2(80, 4, '   MONTO EQUIVALENTE EN DÓLARES ' . $this->dataNotaEntrega['calculos']['total_IVA'] . '$', 0, 1);
     $this->cell2(80, 4, '   TASA REFERENCIAL BCV AL ' . $fecha . '     ' . $this->dataNotaEntrega['calculos']['dolar']['valor_fecha_moneda'] . ' Bs', 0, 1);
 
-    $this->SetXY(110, 240);
-    $this->SetFont('Arial', '', 8);
-
+    $this->SetXY(110, 220);
     $this->SetFont('Arial', 'B', 7.5);
     $this->cell2(50, 5, 'MONTO TOTAL BASE DISPONIBLE', 1, 0);
     $this->SetFont('Arial', '', 7.5);
     $this->cell2(45, 5, $fnBolivares($this->dataNotaEntrega['calculos']['total']) . ' Bs', 1, 1, 'R');
 
-    $this->SetX(110);
+    $this->SetX(110);//
     $this->SetFont('Arial', 'B', 7.5);
     $this->cell2(50, 5, 'MONTO TOTAL IVA A PAGAR ' . $this->dataNotaEntrega['calculos']['porcentaje_IVA'] . '%', 1, 0);
     $this->SetFont('Arial', '', 7.5);
     $this->cell2(45, 5, $fnBolivares($this->dataNotaEntrega['calculos']['monto_IVA']) . ' Bs', 1, 1, 'R');
-
-    $this->SetX(110);
+        //
+    $this->SetX(110);//
     $this->SetFont('Arial', 'B', 7.5);
     $this->cell2(50, 5, 'MONTO TOTAL A PAGAR:', 1, 0);
     $this->SetFont('Arial', '', 7.5);

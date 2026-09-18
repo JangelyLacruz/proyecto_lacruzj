@@ -392,7 +392,11 @@ class mensajesWSModelo extends conexion {
           ]);
         }
       };
-      if (count($instruccion['cuerpo']) > 1) {
+
+      if(isset($instruccion['cuerpo']['accion'])){
+        $resultado = $registrarBD($instruccion['cuerpo'], $instruccion['receptor']);
+        if ($resultado != false) return $resultado;
+      }elseif (count($instruccion['cuerpo']) > 1) {
         foreach ($instruccion['cuerpo'] as $cuerpoInd) {
           $resultado = $registrarBD($cuerpoInd, $instruccion['receptor']);
           if ($resultado != false) return $resultado;

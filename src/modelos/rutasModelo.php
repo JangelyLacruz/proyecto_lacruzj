@@ -215,7 +215,7 @@ class rutasModelo extends conexion {
     if ($rb) return $rb;
 
     $objNot = new mensajesWSModelo();
-    $resultado = $objNot->enviarMensajesWS([
+    $r = $objNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -231,7 +231,14 @@ class rutasModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($resultado['error'])) return $resultado;
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return   [
@@ -284,7 +291,7 @@ class rutasModelo extends conexion {
     if ($rb) return $rb;
 
     $objNot = new mensajesWSModelo();
-    $resultado = $objNot->enviarMensajesWS([
+    $r = $objNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -300,7 +307,14 @@ class rutasModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($resultado['error'])) return $resultado;
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return  [
@@ -340,7 +354,7 @@ class rutasModelo extends conexion {
     if ($rb) return $rb;
 
     $objNot = new mensajesWSModelo();
-    $resultado = $objNot->enviarMensajesWS([
+    $r = $objNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -356,7 +370,14 @@ class rutasModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($resultado['error'])) return $resultado;
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [

@@ -168,7 +168,7 @@ class preguntasSeguridadModelo extends conexion {
     ]);
 
     $objetoNot = new mensajesWSModelo();
-    $objetoNot->enviarMensajesWS([
+    $resultado= $objetoNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -178,6 +178,14 @@ class preguntasSeguridadModelo extends conexion {
       ],
       'noCommit' => true
     ]);
+    if (isset($resultado['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [
@@ -239,7 +247,7 @@ class preguntasSeguridadModelo extends conexion {
     ]);
 
     $objetoNot = new mensajesWSModelo();
-    $objetoNot->enviarMensajesWS([
+    $resultado= $objetoNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -249,6 +257,14 @@ class preguntasSeguridadModelo extends conexion {
       ],
       'noCommit' => true
     ]);
+    if (isset($resultado['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [
@@ -302,7 +318,7 @@ class preguntasSeguridadModelo extends conexion {
     ]);
 
     $objetoNot = new mensajesWSModelo();
-    $objetoNot->enviarMensajesWS([
+    $resultado= $objetoNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -312,6 +328,14 @@ class preguntasSeguridadModelo extends conexion {
       ],
       'noCommit' => true
     ]);
+    if (isset($resultado['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [

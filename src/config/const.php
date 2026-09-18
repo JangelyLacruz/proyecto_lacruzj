@@ -62,7 +62,7 @@ const regexNombrePer = '^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ]{3,30}$';
 const minRegexNombrePer = '3';
 const maxRegexNombrePer = '50';
 
-const regexDescripcion = '^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ0-9\\$\\(\\)\\,\\.\\/\\!¡\\?%:=#<>\\s\\n\\r\\-\\_]{3,255}$';
+const regexDescripcion = '^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ0-9\\$\\(\\)\\,\\.\\/\\!¡\\?¿%:=#<>\\s\\n\\r\\-\\_]{3,255}$';
 const minRegexDescripcion = '3';
 const maxRegexDescripcion = '255';
 

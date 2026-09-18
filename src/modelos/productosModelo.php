@@ -490,7 +490,7 @@ class productosModelo extends conexion {
     //Presentaciones
     foreach ($this->presentaciones as $pre) {
       //Imagen
-      $nombreImagen= false;
+      $nombreImagen = false;
       if (isset($pre['foto_presentacion']) && $pre['foto_presentacion'] != '') {
         $arrayImg[] = $nombreImagen = $this->Imagenes_Reg(
           'presentaciones_productos',
@@ -555,28 +555,6 @@ class productosModelo extends conexion {
       }
     }
 
-    $objetoNot = new mensajesWSModelo();
-    $objetoNot->enviarMensajesWS([
-      "receptor" => [
-        'tipo' => 'permisos',
-        'permisos' => ['productos' => ['ver']]
-      ],
-      'cuerpo' => [
-        ['accion' => "borrarDataModuloSS", 'modulo' => 'productos'],
-        ['accion' => "actDT", 'modulo' => 'productos'],
-        [
-          'accion' => 'alertar',
-          'alerta' => [
-            'tipo' => 'simple',
-            'titulo' => 'Productos',
-            'texto' => "Se ha registrado un nuevo producto",
-            'icono' => 'info',
-            'notifier' => true,
-          ]
-        ]
-      ],
-      'noCommit' => true
-    ]);
 
     $rb = $objBitacora->registrarBitacora([
       'modulo' => 'productos',
@@ -588,22 +566,48 @@ class productosModelo extends conexion {
 
     $objNot = new mensajesWSModelo();
     $resultado = $objNot->enviarMensajesWS([
-      "receptor" => [
-        'tipo' => 'todos',
-      ],
-      'cuerpo' => [
-        [
-          'accion' => "borrarDataModuloSS",
-          'modulo' => 'productos'
+      [
+        "receptor" => [
+          'tipo' => 'permisos',
+          'permisos' => ['productos' => ['ver']]
         ],
-        [
-          'accion' => "actDT",
-          'modulo' => 'productos'
-        ],
+        'cuerpo' => [
+          'accion' => 'alertar',
+          'alerta' => [
+            'tipo' => 'simple',
+            'titulo' => 'Productos',
+            'texto' => "Se ha registrado un nuevo producto",
+            'icono' => 'info',
+            'notifier' => true,
+          ]
+        ], 
+        'noCommit' => true
       ],
-      'noCommit' => true
+      [
+        "receptor" => [
+          'tipo' => 'todos',
+        ],
+        'cuerpo' => [
+          [
+            'accion' => "borrarDataModuloSS",
+            'modulo' => 'productos'
+          ],
+          [
+            'accion' => "actDT",
+            'modulo' => 'productos'
+          ],
+        ],
+        'noCommit' => true
+      ]
     ]);
-    if (isset($resultado['error'])) return $resultado;
+    if (isset($r['error'])) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [
@@ -978,7 +982,14 @@ class productosModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($r['error'])) return $r;
+    if (isset($resultado['error'])) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return $resultado;

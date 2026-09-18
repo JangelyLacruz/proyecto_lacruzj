@@ -270,12 +270,11 @@ function renderizarDashboard() {
   let dashboard = $('#metricasDashboard');
   if (dashboard.length == 0) {
     $(dashboardHTML).insertBefore($('.tabla-ajax').closest('.card'));
-  } else {
+  } else { 
     dashboard.find('.totalProdDashboard').text(total)
     dashboard.find('.valorTotalInventario').text(`${formateoCampos(valorDivisas, 'dineroDolar')}`)
     dashboard.find('.nroProdStockCriticos').text(criticos)
   }
-
 }
 function habilitarDeshabilitarPresentacion(cambio = null) {
   let card = $(this);

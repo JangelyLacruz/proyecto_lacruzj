@@ -527,7 +527,7 @@ class usuariosModelo extends conexion {
     }
 
     $objNot = new mensajesWSModelo();
-    $objNot->enviarMensajesWS([
+    $r= $objNot->enviarMensajesWS([
       "receptor" => ['tipo' => 'todos'],
       'cuerpo' => [
         [
@@ -541,6 +541,14 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     if (isset($_SESSION['cedula'])) {
       $rb = $objBitacora->registrarBitacora([
@@ -641,7 +649,14 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])) return $r['error'];
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [
@@ -763,7 +778,14 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])) return $r['error'];
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return $resultado;
@@ -802,7 +824,14 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])) return $r['error'];
+    if (isset($r['error'])){
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return $resultado;

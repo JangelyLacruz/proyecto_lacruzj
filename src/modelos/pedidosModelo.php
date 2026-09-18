@@ -310,7 +310,6 @@ class pedidosModelo extends conexion {
         unset($objUsuario);
       }
 
-
       // Las divisas de esa fecha
       $objMonedas = new monedasModelo();
       $monedas = $objMonedas->seleccionarMonedas([
@@ -401,7 +400,7 @@ class pedidosModelo extends conexion {
         'tipoConsulta' => 'productosFactura',
         'id_factura' => $this->idPedido,
       ]);
-      unset($objProductos); 
+      unset($objProductos);
 
       $totalProductos = 0;
       $totalDescuento = 0;
@@ -450,7 +449,7 @@ class pedidosModelo extends conexion {
         'tipoConsulta' => 'indexadosPorId',
       ]);
       unset($objMetodosPagos);
-      
+
       $objBancos = new bancosModelo();
       $bancos = $objBancos->seleccionarBancos([
         'tipoConsulta' => 'indexadosPorId'
@@ -1023,7 +1022,14 @@ class pedidosModelo extends conexion {
       'noCommit' => true
     ]);
     unset($objNot);
-    if (isset($resultado['error']) && !isset($_COOKIE['TEMP']) && !isset($_ENV['MODO_TESTEO'])) return $resultado['error'];
+    if (isset($resultado['error']) && !isset($_COOKIE['TEMP']) && !isset($_ENV['MODO_TESTEO'])) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $rb = $objBitacora->registrarBitacora([
       'modulo' => 'pedidos',
@@ -1122,7 +1128,7 @@ class pedidosModelo extends conexion {
     if ($rb) return $rb;
 
     $objNot = new mensajesWSModelo();
-    $resultado = $objNot->enviarMensajesWS([
+    $r = $objNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -1138,7 +1144,14 @@ class pedidosModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($resultado['error'])) return $resultado;
+    if (isset($r['error'])) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [
@@ -1201,7 +1214,7 @@ class pedidosModelo extends conexion {
     if ($rb) return $rb;
 
     $objNot = new mensajesWSModelo();
-    $resultado = $objNot->enviarMensajesWS([
+    $r = $objNot->enviarMensajesWS([
       "receptor" => [
         'tipo' => 'todos',
       ],
@@ -1217,7 +1230,14 @@ class pedidosModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($resultado['error'])) return $resultado;
+    if (isset($r['error'])) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Error de socket',
+        'texto' => 'Error al comunicar el cambio al resto de los usuarios del sistema',
+        'icono' => 'error'
+      ];
+    }
 
     $this->commit();
     return [
@@ -1230,20 +1250,21 @@ class pedidosModelo extends conexion {
   private function imprimirPedidosP() {
     $datosPedido = $this->listarPedidos(['id_pedido' => $this->idPedido]);
     if (isset($datosPedido['icono'])) return $datosPedido;
-    $objReportes = new pdfModel([
-      'datosNotaEntrega' => $datosPedido,
-      'header' => false,
-      'footer' => false,
-    ]);
 
     $objBitacora = new bitacoraModelo();
     $rb = $objBitacora->registrarBitacora([
       'modulo' => 'pedidos',
       'accion' => 'Imprimir pedido (' . $this->idPedido . ')',
       'resultado' => 'Éxito',
+      'commit' => true,
     ]);
     if ($rb) return $rb;
 
+    $objReportes = new pdfModel([
+      'datosNotaEntrega' => $datosPedido,
+      'header' => false,
+      'footer' => false,
+    ]);
     return $objReportes->notaEntrega();
   }
 }

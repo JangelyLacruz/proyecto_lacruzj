@@ -71,7 +71,7 @@ class frontController extends conexion {
     $this->transformarCuerpoAPost();
     $accion = $_POST['accion'] ?? $_POST['reporte'] ?? '';
 
-    
+
     if (isset($_GET["views"]) && $_GET["views"] != "") {
       $this->url = explode("/", $_GET['views']);
       $_SESSION['vistaActual'] = $this->url[0];
@@ -115,8 +115,8 @@ class frontController extends conexion {
       $urlActual = explode("/", ($_GET['views'] ?? ''));
       $url1 = $urlActual[0] ?? "";
       $url2 = $urlActual[1] ?? "";
-      $_SESSION['url1']=$urlActual[0] ?? "";
-      $_SESSION['url2']=$urlActual[1] ?? "";
+      $_SESSION['url1'] = $urlActual[0] ?? "";
+      $_SESSION['url2'] = $urlActual[1] ?? "";
       require_once $this->archivo;
     } else {
       $this->redireccionarUsuario();
