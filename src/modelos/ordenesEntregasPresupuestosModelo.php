@@ -9,9 +9,9 @@ use src\modelos\mensajesWSModelo;
 use src\modelos\clientesModelo;
 use src\modelos\productosModelo;
 use src\modelos\rutasModelo;
-use src\modelos\serviciosModelo; 
-use src\modelos\repartidoresModelo; 
-use src\modelos\pagosModelo; 
+use src\modelos\serviciosModelo;
+use src\modelos\repartidoresModelo;
+use src\modelos\pagosModelo;
 use src\modelos\pdfModel;
 use PDO;
 use Exception;
@@ -30,8 +30,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
   private int $estadoSeleccionado = 1;
 
   // PUBLICOS
-
-public function validarOrdenes(string $permiso, array &$info = [], array $requerido = []) {
+  public function validarOrdenes(string $permiso, array &$info = [], array $requerido = []) {
     $objAcceso = new accesosModelo();
     $v = $objAcceso->validarPermisos('ordenesEntregasPresupuestos', $permiso);
     if ($v) return $v;
@@ -68,27 +67,27 @@ public function validarOrdenes(string $permiso, array &$info = [], array $requer
     if ($v) return $v;
 
     return false;
-}
-public function ListarOrdenes(array $info = []) {
+  }
+  public function ListarOrdenes(array $info = []) {
     $v = $this->validarOrdenes('listar', $info);
     if ($v) return $v;
     return $this->ListarOrdenesP();
-}
-public function ObtenerOrden(array $info) {
+  }
+  public function ObtenerOrden(array $info) {
     $v = $this->validarOrdenes('listar', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     return $this->ObtenerOrdenP();
-}
-public function ObtenerDetalleOrden(array $info) {
+  }
+  public function ObtenerDetalleOrden(array $info) {
     $v = $this->validarOrdenes('listar', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     return $this->ObtenerDetalleOrdenP();
-}
-public function RegistrarOrden(array $info) {
+  }
+  public function RegistrarOrden(array $info) {
     $v = $this->validarOrdenes('registrar', $info, ['rif_cedula_cliente']);
     if ($v) return $v;
 
@@ -110,7 +109,7 @@ public function RegistrarOrden(array $info) {
     $this->servicios     = $servs;
     $this->delivery      = $deli;
     $this->cedulaUsuario = $_SESSION['cedula'] ?? '';
-    $this->fechaOrden  = $this->FechaHora_Sel('fecha_hora_BD');
+    $this->fechaOrden  = $this->fechaHoraSel('fecha_hora_BD');
 
     $esPresupuesto = intval($info['es_presupuesto'] ?? 0) === 1;
     if ($esPresupuesto) {
@@ -125,27 +124,27 @@ public function RegistrarOrden(array $info) {
     }
 
     return $this->RegistrarOrdenP();
-}
-public function DespacharOrden(array $info) {
+  }
+  public function DespacharOrden(array $info) {
     $v = $this->validarOrdenes('despachar orden', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     return $this->DespacharOrdenP();
-}
-public function AnularOrden(array $info) {
+  }
+  public function AnularOrden(array $info) {
     $v = $this->validarOrdenes('anular', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     return $this->AnularOrdenP();
-}
-public function ListarMetodosPago(array $info = []) {
+  }
+  public function ListarMetodosPago(array $info = []) {
     $v = $this->validarOrdenes('listar', $info);
     if ($v) return $v;
     return $this->ListarMetodosPagoP();
-}
-public function RegistrarPago(array $info) {
+  }
+  public function RegistrarPago(array $info) {
     $v = $this->validarOrdenes('agregar pago', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
@@ -154,12 +153,12 @@ public function RegistrarPago(array $info) {
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     $this->pagos   = $pagos;
     return $this->RegistrarPagoP();
-}
-public function ObtenerDetalleOrdenInterno(string $idOrden) {
+  }
+  public function ObtenerDetalleOrdenInterno(string $idOrden) {
     $this->idOrden = $idOrden;
     return $this->ObtenerDetalleOrdenP();
-}
-public function procesarPresupuesto(array $info) {
+  }
+  public function procesarPresupuesto(array $info) {
     $v = $this->validarOrdenes('registrar', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
@@ -181,19 +180,17 @@ public function procesarPresupuesto(array $info) {
     $this->delivery   = $deli;
 
     return $this->procesarPresupuestoP();
-}
-
-public function impresionPlanillaOEP(array $info) {
+  }
+  public function impresionPlanillaOEP(array $info) {
     $v = $this->validarOrdenes('imprimir', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     return $this->impresionPlanillaOEPP();
-}
+  }
 
   // PRIVADOS
-
-private function ListarOrdenesP() {
+  private function ListarOrdenesP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => "
         f.id_orden_entrega_presupuesto,
@@ -319,8 +316,8 @@ private function ListarOrdenesP() {
       $fila['total_pagado'] = $pagado;
     }
     return $filas;
-}
-private function ObtenerOrdenP() {
+  }
+  private function ObtenerOrdenP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => "
         f.id_orden_entrega_presupuesto, f.rif_cedula_cliente,
@@ -345,8 +342,8 @@ private function ObtenerOrdenP() {
     }
 
     return $resultado->fetch(PDO::FETCH_ASSOC);
-}
-private function ObtenerDetalleOrdenP() {
+  }
+  private function ObtenerDetalleOrdenP() {
     // Primero buscamos los datos principales de la orden
     $stmtCab = $this->conectar()->prepare("
       SELECT f.id_orden_entrega_presupuesto, f.fecha_orden_entrega_presupuesto, f.status,
@@ -564,595 +561,593 @@ private function ObtenerDetalleOrdenP() {
       'servicios' => $servicios,
       'delivery'  => $delivery ?: null,
     ];
-}
-private function RegistrarOrdenP() {
+  }
+  private function RegistrarOrdenP() {
     $objBitacora  = new bitacoraModelo();
     $cn = $this->conectar();
 
     try {
-        // Buscamos IVA
-        $this->idCambioIva = $this->obtenerIVAActualP();
+      // Buscamos IVA
+      $this->idCambioIva = $this->obtenerIVAActualP();
 
-        // Generar Codigo OEP
-        $this->idOrden = $this->generarCodSeg([
-            'tablaBD' => 'ordenes_entregas_presupuestos',
-            'prefijo' => 'OEP',
-            'campoID' => 'id_orden_entrega_presupuesto',
+      // Generar Codigo OEP
+      $this->idOrden = $this->generarCodSeg([
+        'tablaBD' => 'ordenes_entregas_presupuestos',
+        'prefijo' => 'OEP',
+        'campoID' => 'id_orden_entrega_presupuesto',
+      ]);
+
+      // Datos del cliente
+      $objClientes = new clientesModelo;
+      $infoCliente = $objClientes->seleccionarClientes(['rif_cedula_cliente' => $this->rifCliente]);
+      $nombreCliente = is_array($infoCliente) ? ($infoCliente['razon_social_cliente'] ?? $this->rifCliente) : $this->rifCliente;
+
+      // Guardamos los datos principales
+      $idFact = $this->guardarDatos2([
+        'tabla' => 'ordenes_entregas_presupuestos',
+        'datos' => [
+          'id_orden_entrega_presupuesto' => $this->idOrden,
+          'cedula_usuario'    => $this->cedulaUsuario,
+          'id_cambio_iva'     => $this->idCambioIva,
+          'rif_cedula_cliente' => $this->rifCliente,
+          'fecha_orden_entrega_presupuesto' => $this->fechaOrden,
+          'status'            => $this->status,
+        ],
+        'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
+      ]);
+
+      // Validamos si no se crea la orden
+      if (!$idFact) {
+        $objBitacora->registrarBitacora([
+          'modulo'    => 'ordenesEntregasPresupuestos',
+          'accion'    => 'registrar',
+          'resultado' => 'Fallido',
+          'viejo'     => [],
+          'nuevo'     => [
+            'rif'       => $this->rifCliente,
+            'productos' => count($this->productos),
+            'servicios' => count($this->servicios),
+          ]
         ]);
 
-        // Datos del cliente
-        $objClientes = new clientesModelo;
-        $infoCliente = $objClientes->seleccionarClientes(['rif_cedula_cliente' => $this->rifCliente]);
-        $nombreCliente = is_array($infoCliente) ? ($infoCliente['razon_social_cliente'] ?? $this->rifCliente) : $this->rifCliente;
+        $this->rollback();
 
-        // Guardamos los datos principales
-        $idFact = $this->guardarDatos2([
-            'tabla' => 'ordenes_entregas_presupuestos',
-            'datos' => [
-                'id_orden_entrega_presupuesto' => $this->idOrden,
-                'cedula_usuario'    => $this->cedulaUsuario,
-                'id_cambio_iva'     => $this->idCambioIva,
-                'rif_cedula_cliente' => $this->rifCliente,
-                'fecha_orden_entrega_presupuesto' => $this->fechaOrden,
-                'status'            => $this->status,
-            ],
-            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Error al Registrar',
+          'texto'  => 'No se pudo registrar la orden',
+          'icono'  => 'error',
+        ];
+      }
+
+      // Instanciamos el modelo de productos para modificar el stock
+      $objProductos = new productosModelo();
+
+      //Guardamos uno por uno los productos y descontamos stock
+      foreach ($this->productos as $p) {
+        $idPresentacion = $p['id_presentacion_producto'] ?? '';
+        $cantidad       = (float)($p['cantidad'] ?? 0);
+
+        if (empty($idPresentacion) || $cantidad <= 0) continue;
+
+        // Consultamos stock de la presentación
+        $resultadoStock = $this->seleccionarDatos2([
+          'campos'     => 'p.stock_producto, pp.id_producto, pre.cantidad_pmp',
+          'tabla'      => 'presentaciones_productos AS pp',
+          'datosJoins' => [
+            'productos p' => 'pp.id_producto = p.id_producto',
+            'presentaciones pre' => 'pp.id_presentacion = pre.id_presentacion'
+          ],
+          'WHERE'      => [
+            'pp.id_presentacion_producto' => $idPresentacion,
+            'pp.status'                   => 1
+          ]
+        ]);
+        $datosProd = $resultadoStock->fetch(PDO::FETCH_ASSOC);
+
+        // Validamos por si no encontramos una presentación
+        if (!$datosProd) {
+          $objBitacora->registrarBitacora([
+            'modulo'    => 'ordenesEntregasPresupuestos',
+            'accion'    => 'registrar',
+            'resultado' => 'Fallido',
+            'viejo'     => [],
+            'nuevo'     => [
+              'rif'       => $this->rifCliente,
+              'productos' => count($this->productos),
+              'servicios' => count($this->servicios),
+            ]
+          ]);
+
+          $this->rollback();
+
+          return [
+            'tipo'   => 'simple',
+            'titulo' => 'Error al Registrar',
+            'texto'  => 'No se pudo registrar la orden',
+            'icono'  => 'error',
+          ];
+        }
+
+        $capacidad = (float)($datosProd['cantidad_pmp'] ?? 1);
+        $volumenRequerido = $cantidad * $capacidad;
+
+        // Validar stock SOLO si no es presupuesto
+        if ($this->status !== 20 && $datosProd['stock_producto'] < $volumenRequerido) {
+          $objBitacora->registrarBitacora([
+            'modulo'    => 'ordenesEntregasPresupuestos',
+            'accion'    => 'registrar',
+            'resultado' => 'Fallido',
+            'viejo'     => [],
+            'nuevo'     => [
+              'rif'       => $this->rifCliente,
+              'productos' => count($this->productos),
+              'servicios' => count($this->servicios),
+            ]
+          ]);
+
+          $this->rollback();
+
+          return [
+            'tipo'   => 'simple',
+            'titulo' => 'Stock insuficiente',
+            'texto'  => 'No hay suficiente stock para completar la orden',
+            'icono'  => 'error',
+          ];
+        }
+
+        // Insertar en productos_ordenes_entregas_presupuestos (siempre, incluso para presupuesto)
+        $this->guardarDatos2([
+          'tabla' => 'productos_ordenes_entregas_presupuestos',
+          'datos' => [
+            'id_orden_entrega_presupuesto' => $this->idOrden,
+            'id_presentacion_producto' => $idPresentacion,
+            'cantidad_producto'        => $cantidad,
+            'status'                   => 1
+          ]
         ]);
 
-        // Validamos si no se crea la orden
-        if (!$idFact) {
+        // Descontar stock SOLO si no es presupuesto
+        if ($this->status !== 20) {
+          $resStock = $objProductos->modificarStock($datosProd['id_producto'], -$volumenRequerido, $cn);
+          if ($resStock !== true) {
             $objBitacora->registrarBitacora([
-                'modulo'    => 'ordenesEntregasPresupuestos',
-                'accion'    => 'registrar',
-                'resultado' => 'Fallido',
-                'viejo'     => [],
-                'nuevo'     => [
-                    'rif'       => $this->rifCliente,
-                    'productos' => count($this->productos),
-                    'servicios' => count($this->servicios),
-                ]
+              'modulo'    => 'ordenesEntregasPresupuestos',
+              'accion'    => 'registrar',
+              'resultado' => 'Fallido',
+              'viejo'     => [],
+              'nuevo'     => [
+                'rif'       => $this->rifCliente,
+                'productos' => count($this->productos),
+                'servicios' => count($this->servicios),
+              ]
             ]);
 
             $this->rollback();
 
             return [
-                'tipo'   => 'simple',
-                'titulo' => 'Error al Registrar',
-                'texto'  => 'No se pudo registrar la orden',
-                'icono'  => 'error',
+              'tipo'   => 'simple',
+              'titulo' => 'Error al Registrar',
+              'texto'  => 'No se pudo registrar la orden',
+              'icono'  => 'error',
             ];
+          }
         }
+      }
 
-        // Instanciamos el modelo de productos para modificar el stock
-        $objProductos = new productosModelo();
+      // Guardamos los servicios
+      foreach ($this->servicios as $s) {
+        $idServicio    = $s['id_servicio']         ?? '';
+        $cantidad      = (float)($s['cantidad']    ?? 1);
+        $esMapfre      = (int)($s['es_mapfre']     ?? 0);
+        $precioMapfre  = (float)($s['precio_mapfre'] ?? 0);
 
-        //Guardamos uno por uno los productos y descontamos stock
-        foreach ($this->productos as $p) {
-            $idPresentacion = $p['id_presentacion_producto'] ?? '';
-            $cantidad       = (float)($p['cantidad'] ?? 0);
+        // Datos de ubicación y fecha del servicio
+        $fechaEjecucion = $s['fecha_ejecucion'] ?? date('Y-m-d H:i:s');
+        $latitud        = $s['latitud'] ?? '';
+        $longitud       = $s['longitud'] ?? '';
+        $idRuta         = (int)($s['id_ruta'] ?? 0);
 
-            if (empty($idPresentacion) || $cantidad <= 0) continue;
+        if (empty($idServicio)) continue;
 
-            // Consultamos stock de la presentación
-            $resultadoStock = $this->seleccionarDatos2([
-                'campos'     => 'p.stock_producto, pp.id_producto, pre.cantidad_pmp',
-                'tabla'      => 'presentaciones_productos AS pp',
-                'datosJoins' => [
-                    'productos p' => 'pp.id_producto = p.id_producto',
-                    'presentaciones pre' => 'pp.id_presentacion = pre.id_presentacion'
-                ],
-                'WHERE'      => [
-                    'pp.id_presentacion_producto' => $idPresentacion,
-                    'pp.status'                   => 1
-                ]
-            ]);
-            $datosProd = $resultadoStock->fetch(PDO::FETCH_ASSOC);
+        // Si el servicio tiene coordenadas y ruta asignadas, creamos la dirección
+        $idDireccion = null;
+        if ($idRuta > 0 && $latitud !== '' && $longitud !== '') {
+          $idLat = $this->guardarDatos2(['tabla' => 'latitudes_direcciones', 'datos' => ['coordenada_latitud' => $latitud, 'status' => 1]]);
+          $idLng = $this->guardarDatos2(['tabla' => 'longitudes_direcciones', 'datos' => ['coordenada_longitud' => $longitud, 'status' => 1]]);
 
-            // Validamos por si no encontramos una presentación
-            if (!$datosProd) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'ordenesEntregasPresupuestos',
-                    'accion'    => 'registrar',
-                    'resultado' => 'Fallido',
-                    'viejo'     => [],
-                    'nuevo'     => [
-                        'rif'       => $this->rifCliente,
-                        'productos' => count($this->productos),
-                        'servicios' => count($this->servicios),
-                    ]
-                ]);
-
-                $this->rollback();
-
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Error al Registrar',
-                    'texto'  => 'No se pudo registrar la orden',
-                    'icono'  => 'error',
-                ];
-            }
-
-            $capacidad = (float)($datosProd['cantidad_pmp'] ?? 1);
-            $volumenRequerido = $cantidad * $capacidad;
-
-            // Validar stock SOLO si no es presupuesto
-            if ($this->status !== 20 && $datosProd['stock_producto'] < $volumenRequerido) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'ordenesEntregasPresupuestos',
-                    'accion'    => 'registrar',
-                    'resultado' => 'Fallido',
-                    'viejo'     => [],
-                    'nuevo'     => [
-                        'rif'       => $this->rifCliente,
-                        'productos' => count($this->productos),
-                        'servicios' => count($this->servicios),
-                    ]
-                ]);
-
-                $this->rollback();
-
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Stock insuficiente',
-                    'texto'  => 'No hay suficiente stock para completar la orden',
-                    'icono'  => 'error',
-                ];
-            }
-
-            // Insertar en productos_ordenes_entregas_presupuestos (siempre, incluso para presupuesto)
-            $this->guardarDatos2([
-                'tabla' => 'productos_ordenes_entregas_presupuestos',
-                'datos' => [
-                    'id_orden_entrega_presupuesto' => $this->idOrden,
-                    'id_presentacion_producto' => $idPresentacion,
-                    'cantidad_producto'        => $cantidad,
-                    'status'                   => 1
-                ]
-            ]);
-
-            // Descontar stock SOLO si no es presupuesto
-            if ($this->status !== 20) {
-                $resStock = $objProductos->modificarStock($datosProd['id_producto'], -$volumenRequerido, $cn);
-                if ($resStock !== true) {
-                    $objBitacora->registrarBitacora([
-                        'modulo'    => 'ordenesEntregasPresupuestos',
-                        'accion'    => 'registrar',
-                        'resultado' => 'Fallido',
-                        'viejo'     => [],
-                        'nuevo'     => [
-                            'rif'       => $this->rifCliente,
-                            'productos' => count($this->productos),
-                            'servicios' => count($this->servicios),
-                        ]
-                    ]);
-
-                    $this->rollback();
-
-                    return [
-                        'tipo'   => 'simple',
-                        'titulo' => 'Error al Registrar',
-                        'texto'  => 'No se pudo registrar la orden',
-                        'icono'  => 'error',
-                    ];
-                }
-            }
-        }
-
-        // Guardamos los servicios
-        foreach ($this->servicios as $s) {
-            $idServicio    = $s['id_servicio']         ?? '';
-            $cantidad      = (float)($s['cantidad']    ?? 1);
-            $esMapfre      = (int)($s['es_mapfre']     ?? 0);
-            $precioMapfre  = (float)($s['precio_mapfre'] ?? 0);
-
-            // Datos de ubicación y fecha del servicio
-            $fechaEjecucion = $s['fecha_ejecucion'] ?? date('Y-m-d H:i:s');
-            $latitud        = $s['latitud'] ?? '';
-            $longitud       = $s['longitud'] ?? '';
-            $idRuta         = (int)($s['id_ruta'] ?? 0);
-
-            if (empty($idServicio)) continue;
-
-            // Si el servicio tiene coordenadas y ruta asignadas, creamos la dirección
-            $idDireccion = null;
-            if ($idRuta > 0 && $latitud !== '' && $longitud !== '') {
-                $idLat = $this->guardarDatos2(['tabla' => 'latitudes_direcciones', 'datos' => ['coordenada_latitud' => $latitud, 'status' => 1]]);
-                $idLng = $this->guardarDatos2(['tabla' => 'longitudes_direcciones', 'datos' => ['coordenada_longitud' => $longitud, 'status' => 1]]);
-
-                $idDireccion = $this->guardarDatos2([
-                    'tabla' => 'direcciones',
-                    'datos' => [
-                        'id_latitud_direccion' => $idLat,
-                        'id_longitud_direccion' => $idLng,
-                        'id_ruta' => $idRuta,
-                        'status' => 1
-                    ]
-                ]);
-            }
-
-            // Insertar en servicios_ordenes_entregas_presupuestos
-            $this->guardarDatos2([
-                'tabla' => 'servicios_ordenes_entregas_presupuestos',
-                'datos' => [
-                    'id_orden_entrega_presupuesto' => $this->idOrden,
-                    'id_servicio'                  => $idServicio,
-                    'id_direccion'                 => $idDireccion,
-                    'fecha_ejecucion'              => $fechaEjecucion,
-                    'cantidad_servicio'            => $cantidad,
-                    'es_precio_mapfre'             => $esMapfre,
-                    'precio_servicio_mapfre'       => $esMapfre ? $precioMapfre : 0,
-                    'status'                       => 1
-                ]
-            ]);
-        }
-
-        // Revisamos si además pidieron delivery
-        if (!empty($this->delivery) && !empty($this->delivery['id_ruta'])) {
-            $idRuta = (int)($this->delivery['id_ruta'] ?? 0);
-            $latitud = $this->delivery['latitud'] ?? '';
-            $longitud = $this->delivery['longitud'] ?? '';
-
-            if ($idRuta > 0 && $latitud !== '' && $longitud !== '') {
-                $idLatitud = $this->guardarDatos2([
-                    'tabla' => 'latitudes_direcciones',
-                    'datos' => ['coordenada_latitud' => $latitud, 'status' => 1]
-                ]);
-
-                $idLongitud = $this->guardarDatos2([
-                    'tabla' => 'longitudes_direcciones',
-                    'datos' => ['coordenada_longitud' => $longitud, 'status' => 1]
-                ]);
-
-                $idDireccion = $this->guardarDatos2([
-                    'tabla' => 'direcciones',
-                    'datos' => [
-                        'id_latitud_direccion'  => $idLatitud,
-                        'id_longitud_direccion' => $idLongitud,
-                        'id_ruta'               => $idRuta,
-                        'status'                => 1
-                    ]
-                ]);
-
-                $idDelivery = $this->generarCodSeg([
-                    'tablaBD' => 'deliveries',
-                    'prefijo' => 'DLVR',
-                    'campoID' => 'id_delivery',
-                ]);
-
-                $cedulaRepartidor = $this->delivery['cedula_repartidor'] ?? null;
-
-                $this->guardarDatos2([
-                    'tabla' => 'deliveries',
-                    'datos' => [
-                        'id_delivery'                  => $idDelivery,
-                        'id_orden_entrega_presupuesto' => $this->idOrden,
-                        'id_direccion'      => $idDireccion,
-                        'cedula_repartidor' => $cedulaRepartidor,
-                        'status'            => 1
-                    ]
-                ]);
-            }
-        }
-
-        // Registro en bitácora con datos nuevos
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'ordenesEntregasPresupuestos',
-            'accion'    => 'registrar',
-            'resultado' => 'Éxito',
-            'viejo'     => [],
-            'nuevo'     => [
-                'id_orden' => $this->idOrden,
-                'cliente'  => $nombreCliente,
-                'rif'      => $this->rifCliente,
-                'productos' => count($this->productos),
-                'servicios' => count($this->servicios),
+          $idDireccion = $this->guardarDatos2([
+            'tabla' => 'direcciones',
+            'datos' => [
+              'id_latitud_direccion' => $idLat,
+              'id_longitud_direccion' => $idLng,
+              'id_ruta' => $idRuta,
+              'status' => 1
             ]
-        ]);
+          ]);
+        }
 
-        $this->commit();
-
-        $objetoNot = new mensajesWSModelo();
-        $objetoNot->enviarMensajesWS([
-            "receptor" => [
-                'tipo' => 'rol',
-                'rol' => 'ADMINISTRADOR'
-            ],
-            'cuerpo' => [
-                ['accion' => "borrarDataModuloSS", 'modulo' => 'ordenesEntregasPresupuestos'],
-                ['accion' => "actDT", 'modulo' => 'ordenesEntregasPresupuestos'],
-                [
-                    'accion' => 'alertar',
-                    'alerta' => [
-                        'tipo' => 'simple',
-                        'titulo' => 'Nueva Orden',
-                        'texto' => "Se ha registrado la orden {$this->idOrden} para el cliente {$nombreCliente}",
-                        'icono' => 'info',
-                        'notifier' => true,
-                        'tiempo' => 3000
-                    ]
-                ],
-            ],
-            'noCommit' => true
-        ]);
-
-        return [
-            'tipo'   => 'limpiar',
-            'titulo' => 'Orden Registrada',
-            'texto'  => "Orden {$this->idOrden} registrada correctamente.",
-            'icono'  => 'success',
+        // Insertar en servicios_ordenes_entregas_presupuestos
+        $this->guardarDatos2([
+          'tabla' => 'servicios_ordenes_entregas_presupuestos',
+          'datos' => [
             'id_orden_entrega_presupuesto' => $this->idOrden,
-        ];
-
-    } catch (Exception) {
-        
-        $this->rollback();
-
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'ordenesEntregasPresupuestos',
-            'accion'    => 'registrar',
-            'resultado' => 'Fallido',
-            'viejo'     => [],
-            'nuevo'     => [
-                'rif'       => $this->rifCliente,
-                'productos' => count($this->productos),
-                'servicios' => count($this->servicios),
-            ]
+            'id_servicio'                  => $idServicio,
+            'id_direccion'                 => $idDireccion,
+            'fecha_ejecucion'              => $fechaEjecucion,
+            'cantidad_servicio'            => $cantidad,
+            'es_precio_mapfre'             => $esMapfre,
+            'precio_servicio_mapfre'       => $esMapfre ? $precioMapfre : 0,
+            'status'                       => 1
+          ]
         ]);
+      }
 
-        return [
-            'tipo'   => 'simple',
-            'titulo' => 'Error al Registrar',
-            'texto'  => 'No se pudo registrar la orden',
-            'icono'  => 'error',
-        ];
+      // Revisamos si además pidieron delivery
+      if (!empty($this->delivery) && !empty($this->delivery['id_ruta'])) {
+        $idRuta = (int)($this->delivery['id_ruta'] ?? 0);
+        $latitud = $this->delivery['latitud'] ?? '';
+        $longitud = $this->delivery['longitud'] ?? '';
+
+        if ($idRuta > 0 && $latitud !== '' && $longitud !== '') {
+          $idLatitud = $this->guardarDatos2([
+            'tabla' => 'latitudes_direcciones',
+            'datos' => ['coordenada_latitud' => $latitud, 'status' => 1]
+          ]);
+
+          $idLongitud = $this->guardarDatos2([
+            'tabla' => 'longitudes_direcciones',
+            'datos' => ['coordenada_longitud' => $longitud, 'status' => 1]
+          ]);
+
+          $idDireccion = $this->guardarDatos2([
+            'tabla' => 'direcciones',
+            'datos' => [
+              'id_latitud_direccion'  => $idLatitud,
+              'id_longitud_direccion' => $idLongitud,
+              'id_ruta'               => $idRuta,
+              'status'                => 1
+            ]
+          ]);
+
+          $idDelivery = $this->generarCodSeg([
+            'tablaBD' => 'deliveries',
+            'prefijo' => 'DLVR',
+            'campoID' => 'id_delivery',
+          ]);
+
+          $cedulaRepartidor = $this->delivery['cedula_repartidor'] ?? null;
+
+          $this->guardarDatos2([
+            'tabla' => 'deliveries',
+            'datos' => [
+              'id_delivery'                  => $idDelivery,
+              'id_orden_entrega_presupuesto' => $this->idOrden,
+              'id_direccion'      => $idDireccion,
+              'cedula_repartidor' => $cedulaRepartidor,
+              'status'            => 1
+            ]
+          ]);
+        }
+      }
+
+      // Registro en bitácora con datos nuevos
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'ordenesEntregasPresupuestos',
+        'accion'    => 'registrar',
+        'resultado' => 'Éxito',
+        'viejo'     => [],
+        'nuevo'     => [
+          'id_orden' => $this->idOrden,
+          'cliente'  => $nombreCliente,
+          'rif'      => $this->rifCliente,
+          'productos' => count($this->productos),
+          'servicios' => count($this->servicios),
+        ]
+      ]);
+
+      $this->commit();
+
+      $objetoNot = new mensajesWSModelo();
+      $objetoNot->enviarMensajesWS([
+        "receptor" => [
+          'tipo' => 'rol',
+          'rol' => 'ADMINISTRADOR'
+        ],
+        'cuerpo' => [
+          ['accion' => "borrarDataModuloSS", 'modulo' => 'ordenesEntregasPresupuestos'],
+          ['accion' => "actDT", 'modulo' => 'ordenesEntregasPresupuestos'],
+          [
+            'accion' => 'alertar',
+            'alerta' => [
+              'tipo' => 'simple',
+              'titulo' => 'Nueva Orden',
+              'texto' => "Se ha registrado la orden {$this->idOrden} para el cliente {$nombreCliente}",
+              'icono' => 'info',
+              'notifier' => true,
+              'tiempo' => 3000
+            ]
+          ],
+        ],
+        'noCommit' => true
+      ]);
+
+      return [
+        'tipo'   => 'limpiar',
+        'titulo' => 'Orden Registrada',
+        'texto'  => "Orden {$this->idOrden} registrada correctamente.",
+        'icono'  => 'success',
+        'id_orden_entrega_presupuesto' => $this->idOrden,
+      ];
+    } catch (Exception) {
+
+      $this->rollback();
+
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'ordenesEntregasPresupuestos',
+        'accion'    => 'registrar',
+        'resultado' => 'Fallido',
+        'viejo'     => [],
+        'nuevo'     => [
+          'rif'       => $this->rifCliente,
+          'productos' => count($this->productos),
+          'servicios' => count($this->servicios),
+        ]
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error al Registrar',
+        'texto'  => 'No se pudo registrar la orden',
+        'icono'  => 'error',
+      ];
     }
-}
-private function procesarPresupuestoP() {
+  }
+  private function procesarPresupuestoP() {
     $objBitacora  = new bitacoraModelo();
     $objProductos = new productosModelo();
     $cn = $this->conectar();
 
     try {
-        // Verificar que la OEP exista y sea un presupuesto (status 20)
-        $stmt = $cn->prepare(
-            "SELECT status, rif_cedula_cliente FROM ordenes_entregas_presupuestos WHERE id_orden_entrega_presupuesto = :id"
-        );
-        $stmt->execute([':id' => $this->idOrden]);
-        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+      // Verificar que la OEP exista y sea un presupuesto (status 20)
+      $stmt = $cn->prepare(
+        "SELECT status, rif_cedula_cliente FROM ordenes_entregas_presupuestos WHERE id_orden_entrega_presupuesto = :id"
+      );
+      $stmt->execute([':id' => $this->idOrden]);
+      $fila = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$fila) {
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'Orden no encontrada',
-                'texto'  => 'El presupuesto no existe en el sistema',
-                'icono'  => 'error',
-            ];
-        }
-
-        if (intval($fila['status']) !== 20) {
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'No es un presupuesto',
-                'texto'  => 'Esta orden no se encuentra en estado Presupuesto',
-                'icono'  => 'warning',
-            ];
-        }
-
-        // estados 3 o 4 del modal → status BD 3 (despachada); 1 o 2 → status BD 1
-        $nuevoStatus = ($this->estadoSeleccionado == 3 || $this->estadoSeleccionado == 4) ? 3 : 1;
-
-        // Borrar el detalle actual del presupuesto
-        $this->eliminarDatos2(['tabla' => 'productos_ordenes_entregas_presupuestos', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
-        $this->eliminarDatos2(['tabla' => 'servicios_ordenes_entregas_presupuestos', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
-        $this->eliminarDatos2(['tabla' => 'deliveries', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
-
-        // Actualizar el status y el cliente (por si cambió)
-        $this->actualizarDatos2([
-            'tabla' => 'ordenes_entregas_presupuestos',
-            'datos' => ['status' => $nuevoStatus, 'rif_cedula_cliente' => $this->rifCliente],
-            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
-        ]);
-
-        // Insertar los productos y validar stock simultaneamente
-        foreach ($this->productos as $p) {
-            $idPresentacion = $p['id_presentacion_producto'] ?? '';
-            $cantidad       = (float)($p['cantidad'] ?? 0);
-
-            if (empty($idPresentacion) || $cantidad <= 0) continue;
-
-            $resultadoStock = $this->seleccionarDatos2([
-                'campos'     => 'p.stock_producto, pp.id_producto, pre.cantidad_pmp, p.nombre_producto',
-                'tabla'      => 'presentaciones_productos AS pp',
-                'datosJoins' => [
-                    'productos p' => 'pp.id_producto = p.id_producto',
-                    'presentaciones pre' => 'pp.id_presentacion = pre.id_presentacion'
-                ],
-                'WHERE'      => ['pp.id_presentacion_producto' => $idPresentacion, 'pp.status' => 1]
-            ]);
-            $datosProd = $resultadoStock->fetch(PDO::FETCH_ASSOC);
-
-            if (!$datosProd) continue;
-
-            $capacidad = (float)($datosProd['cantidad_pmp'] ?? 1);
-            $volumenRequerido = $cantidad * $capacidad;
-
-            if ($datosProd['stock_producto'] < $volumenRequerido) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'ordenesEntregasPresupuestos',
-                    'accion'    => 'procesarPresupuesto',
-                    'resultado' => 'Fallido — Stock insuficiente',
-                    'viejo'     => ['id_orden' => $this->idOrden, 'status' => 20],
-                    'nuevo'     => []
-                ]);
-                $this->rollback();
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Stock insuficiente',
-                    'texto'  => "No hay suficiente stock para el producto '{$datosProd['nombre_producto']}' (disponible: {$datosProd['stock_producto']}, requerido: {$volumenRequerido})",
-                    'icono'  => 'error',
-                ];
-            }
-
-            // Insertar
-            $this->guardarDatos2([
-                'tabla' => 'productos_ordenes_entregas_presupuestos',
-                'datos' => [
-                    'id_orden_entrega_presupuesto' => $this->idOrden,
-                    'id_presentacion_producto' => $idPresentacion,
-                    'cantidad_producto'        => $cantidad,
-                    'status'                   => 1
-                ]
-            ]);
-
-            // Descontar stock
-            $resStock = $objProductos->modificarStock($datosProd['id_producto'], -$volumenRequerido, $cn);
-            if ($resStock !== true) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'ordenesEntregasPresupuestos',
-                    'accion'    => 'procesarPresupuesto',
-                    'resultado' => 'Fallido — Error al descontar stock',
-                    'viejo'     => ['id_orden' => $this->idOrden, 'status' => 20],
-                    'nuevo'     => []
-                ]);
-                $this->rollback();
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Error al Procesar',
-                    'texto'  => 'No se pudo descontar el stock del presupuesto',
-                    'icono'  => 'error',
-                ];
-            }
-        }
-
-        // Insertar servicios
-        foreach ($this->servicios as $s) {
-            $idServicio    = $s['id_servicio']         ?? '';
-            $cantidad      = (float)($s['cantidad']    ?? 1);
-            $esMapfre      = (int)($s['es_mapfre']     ?? 0);
-            $precioMapfre  = (float)($s['precio_mapfre'] ?? 0);
-            $fechaEjecucion = $s['fecha_ejecucion'] ?? date('Y-m-d H:i:s');
-            $latitud        = $s['latitud'] ?? '';
-            $longitud       = $s['longitud'] ?? '';
-            $idRuta         = (int)($s['id_ruta'] ?? 0);
-
-            if (empty($idServicio)) continue;
-
-            $idDireccion = null;
-            if ($idRuta > 0 && $latitud !== '' && $longitud !== '') {
-                $idLat = $this->guardarDatos2(['tabla' => 'latitudes_direcciones', 'datos' => ['coordenada_latitud' => $latitud, 'status' => 1]]);
-                $idLng = $this->guardarDatos2(['tabla' => 'longitudes_direcciones', 'datos' => ['coordenada_longitud' => $longitud, 'status' => 1]]);
-                if ($idLat && $idLng) {
-                    $idDireccion = $this->guardarDatos2([
-                        'tabla' => 'direcciones',
-                        'datos' => ['id_latitud_direccion' => $idLat, 'id_longitud_direccion' => $idLng, 'id_ruta' => $idRuta, 'status' => 1]
-                    ]);
-                }
-            }
-
-            $this->guardarDatos2([
-                'tabla' => 'servicios_ordenes_entregas_presupuestos',
-                'datos' => [
-                    'id_orden_entrega_presupuesto' => $this->idOrden,
-                    'id_servicio'               => $idServicio,
-                    'cantidad_servicio'         => $cantidad,
-                    'es_precio_mapfre'          => $esMapfre,
-                    'precio_servicio_mapfre'    => $precioMapfre,
-                    'id_direccion'              => $idDireccion,
-                    'fecha_ejecucion'           => $fechaEjecucion,
-                    'status'                    => 1
-                ]
-            ]);
-        }
-
-        // Insertar delivery si aplica
-        if (!empty($this->delivery['id_ruta']) && !empty($this->delivery['latitud']) && !empty($this->delivery['longitud'])) {
-            $latPartes = explode('|', $this->delivery['latitud']);
-            $latitudReal = $latPartes[0];
-            $idLat = $this->guardarDatos2(['tabla' => 'latitudes_direcciones', 'datos' => ['coordenada_latitud' => $latitudReal, 'status' => 1]]);
-            $idLng = $this->guardarDatos2(['tabla' => 'longitudes_direcciones', 'datos' => ['coordenada_longitud' => $this->delivery['longitud'], 'status' => 1]]);
-            if ($idLat && $idLng) {
-                $idDireccion = $this->guardarDatos2([
-                    'tabla' => 'direcciones',
-                    'datos' => ['id_latitud_direccion' => $idLat, 'id_longitud_direccion' => $idLng, 'id_ruta' => $this->delivery['id_ruta'], 'status' => 1]
-                ]);
-                if ($idDireccion) {
-                    $this->guardarDatos2([
-                        'tabla' => 'deliveries',
-                        'datos' => [
-                            'id_delivery' => $this->generarCodSeg(['tablaBD' => 'deliveries', 'prefijo' => 'DELI', 'campoID' => 'id_delivery']),
-                            'id_orden_entrega_presupuesto' => $this->idOrden,
-                            'id_direccion' => $idDireccion,
-                            'cedula_repartidor' => $this->delivery['cedula_repartidor'] ?: null,
-                            'status' => 1
-                        ]
-                    ]);
-                }
-            }
-        }
-
-        // Registro en bitácora
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'ordenesEntregasPresupuestos',
-            'accion'    => 'procesarPresupuesto',
-            'resultado' => 'Éxito',
-            'viejo'     => ['id_orden' => $this->idOrden, 'status' => 20],
-            'nuevo'     => ['id_orden' => $this->idOrden, 'status' => $nuevoStatus, 'productos' => count($this->productos)]
-        ]);
-
-        $this->commit();
-
-        $objetoNot = new mensajesWSModelo();
-        $objetoNot->enviarMensajesWS([
-            "receptor" => [
-                'tipo' => 'rol',
-                'rol'  => 'ADMINISTRADOR'
-            ],
-            'cuerpo' => [
-                ['accion' => "borrarDataModuloSS", 'modulo' => 'ordenesEntregasPresupuestos'],
-                ['accion' => "actDT", 'modulo' => 'ordenesEntregasPresupuestos'],
-                [
-                    'accion' => 'alertar',
-                    'alerta' => [
-                        'tipo'     => 'simple',
-                        'titulo'   => 'Presupuesto Procesado',
-                        'texto'    => "El presupuesto {$this->idOrden} fue procesado como orden real.",
-                        'icono'    => 'success',
-                        'notifier' => true,
-                        'tiempo'   => 3000
-                    ]
-                ],
-            ],
-            'noCommit' => true
-        ]);
-
+      if (!$fila) {
         return [
-            'tipo'   => 'simple',
-            'titulo' => 'Presupuesto Procesado',
-            'texto'  => "La orden {$this->idOrden} fue procesada exitosamente.",
-            'icono'  => 'success',
-            'id_orden_entrega_presupuesto' => $this->idOrden,
+          'tipo'   => 'simple',
+          'titulo' => 'Orden no encontrada',
+          'texto'  => 'El presupuesto no existe en el sistema',
+          'icono'  => 'error',
         ];
+      }
 
-    } catch (Exception) {
-        $this->rollback();
-        $objBitacora->registrarBitacora([
+      if (intval($fila['status']) !== 20) {
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'No es un presupuesto',
+          'texto'  => 'Esta orden no se encuentra en estado Presupuesto',
+          'icono'  => 'warning',
+        ];
+      }
+
+      // estados 3 o 4 del modal → status BD 3 (despachada); 1 o 2 → status BD 1
+      $nuevoStatus = ($this->estadoSeleccionado == 3 || $this->estadoSeleccionado == 4) ? 3 : 1;
+
+      // Borrar el detalle actual del presupuesto
+      $this->eliminarDatos2(['tabla' => 'productos_ordenes_entregas_presupuestos', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
+      $this->eliminarDatos2(['tabla' => 'servicios_ordenes_entregas_presupuestos', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
+      $this->eliminarDatos2(['tabla' => 'deliveries', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
+
+      // Actualizar el status y el cliente (por si cambió)
+      $this->actualizarDatos2([
+        'tabla' => 'ordenes_entregas_presupuestos',
+        'datos' => ['status' => $nuevoStatus, 'rif_cedula_cliente' => $this->rifCliente],
+        'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
+      ]);
+
+      // Insertar los productos y validar stock simultaneamente
+      foreach ($this->productos as $p) {
+        $idPresentacion = $p['id_presentacion_producto'] ?? '';
+        $cantidad       = (float)($p['cantidad'] ?? 0);
+
+        if (empty($idPresentacion) || $cantidad <= 0) continue;
+
+        $resultadoStock = $this->seleccionarDatos2([
+          'campos'     => 'p.stock_producto, pp.id_producto, pre.cantidad_pmp, p.nombre_producto',
+          'tabla'      => 'presentaciones_productos AS pp',
+          'datosJoins' => [
+            'productos p' => 'pp.id_producto = p.id_producto',
+            'presentaciones pre' => 'pp.id_presentacion = pre.id_presentacion'
+          ],
+          'WHERE'      => ['pp.id_presentacion_producto' => $idPresentacion, 'pp.status' => 1]
+        ]);
+        $datosProd = $resultadoStock->fetch(PDO::FETCH_ASSOC);
+
+        if (!$datosProd) continue;
+
+        $capacidad = (float)($datosProd['cantidad_pmp'] ?? 1);
+        $volumenRequerido = $cantidad * $capacidad;
+
+        if ($datosProd['stock_producto'] < $volumenRequerido) {
+          $objBitacora->registrarBitacora([
             'modulo'    => 'ordenesEntregasPresupuestos',
             'accion'    => 'procesarPresupuesto',
-            'resultado' => 'Fallido',
-            'viejo'     => ['id_orden' => $this->idOrden],
+            'resultado' => 'Fallido — Stock insuficiente',
+            'viejo'     => ['id_orden' => $this->idOrden, 'status' => 20],
             'nuevo'     => []
+          ]);
+          $this->rollback();
+          return [
+            'tipo'   => 'simple',
+            'titulo' => 'Stock insuficiente',
+            'texto'  => "No hay suficiente stock para el producto '{$datosProd['nombre_producto']}' (disponible: {$datosProd['stock_producto']}, requerido: {$volumenRequerido})",
+            'icono'  => 'error',
+          ];
+        }
+
+        // Insertar
+        $this->guardarDatos2([
+          'tabla' => 'productos_ordenes_entregas_presupuestos',
+          'datos' => [
+            'id_orden_entrega_presupuesto' => $this->idOrden,
+            'id_presentacion_producto' => $idPresentacion,
+            'cantidad_producto'        => $cantidad,
+            'status'                   => 1
+          ]
         ]);
-        return [
+
+        // Descontar stock
+        $resStock = $objProductos->modificarStock($datosProd['id_producto'], -$volumenRequerido, $cn);
+        if ($resStock !== true) {
+          $objBitacora->registrarBitacora([
+            'modulo'    => 'ordenesEntregasPresupuestos',
+            'accion'    => 'procesarPresupuesto',
+            'resultado' => 'Fallido — Error al descontar stock',
+            'viejo'     => ['id_orden' => $this->idOrden, 'status' => 20],
+            'nuevo'     => []
+          ]);
+          $this->rollback();
+          return [
             'tipo'   => 'simple',
             'titulo' => 'Error al Procesar',
-            'texto'  => 'No se pudo procesar el presupuesto',
+            'texto'  => 'No se pudo descontar el stock del presupuesto',
             'icono'  => 'error',
-        ];
+          ];
+        }
+      }
+
+      // Insertar servicios
+      foreach ($this->servicios as $s) {
+        $idServicio    = $s['id_servicio']         ?? '';
+        $cantidad      = (float)($s['cantidad']    ?? 1);
+        $esMapfre      = (int)($s['es_mapfre']     ?? 0);
+        $precioMapfre  = (float)($s['precio_mapfre'] ?? 0);
+        $fechaEjecucion = $s['fecha_ejecucion'] ?? date('Y-m-d H:i:s');
+        $latitud        = $s['latitud'] ?? '';
+        $longitud       = $s['longitud'] ?? '';
+        $idRuta         = (int)($s['id_ruta'] ?? 0);
+
+        if (empty($idServicio)) continue;
+
+        $idDireccion = null;
+        if ($idRuta > 0 && $latitud !== '' && $longitud !== '') {
+          $idLat = $this->guardarDatos2(['tabla' => 'latitudes_direcciones', 'datos' => ['coordenada_latitud' => $latitud, 'status' => 1]]);
+          $idLng = $this->guardarDatos2(['tabla' => 'longitudes_direcciones', 'datos' => ['coordenada_longitud' => $longitud, 'status' => 1]]);
+          if ($idLat && $idLng) {
+            $idDireccion = $this->guardarDatos2([
+              'tabla' => 'direcciones',
+              'datos' => ['id_latitud_direccion' => $idLat, 'id_longitud_direccion' => $idLng, 'id_ruta' => $idRuta, 'status' => 1]
+            ]);
+          }
+        }
+
+        $this->guardarDatos2([
+          'tabla' => 'servicios_ordenes_entregas_presupuestos',
+          'datos' => [
+            'id_orden_entrega_presupuesto' => $this->idOrden,
+            'id_servicio'               => $idServicio,
+            'cantidad_servicio'         => $cantidad,
+            'es_precio_mapfre'          => $esMapfre,
+            'precio_servicio_mapfre'    => $precioMapfre,
+            'id_direccion'              => $idDireccion,
+            'fecha_ejecucion'           => $fechaEjecucion,
+            'status'                    => 1
+          ]
+        ]);
+      }
+
+      // Insertar delivery si aplica
+      if (!empty($this->delivery['id_ruta']) && !empty($this->delivery['latitud']) && !empty($this->delivery['longitud'])) {
+        $latPartes = explode('|', $this->delivery['latitud']);
+        $latitudReal = $latPartes[0];
+        $idLat = $this->guardarDatos2(['tabla' => 'latitudes_direcciones', 'datos' => ['coordenada_latitud' => $latitudReal, 'status' => 1]]);
+        $idLng = $this->guardarDatos2(['tabla' => 'longitudes_direcciones', 'datos' => ['coordenada_longitud' => $this->delivery['longitud'], 'status' => 1]]);
+        if ($idLat && $idLng) {
+          $idDireccion = $this->guardarDatos2([
+            'tabla' => 'direcciones',
+            'datos' => ['id_latitud_direccion' => $idLat, 'id_longitud_direccion' => $idLng, 'id_ruta' => $this->delivery['id_ruta'], 'status' => 1]
+          ]);
+          if ($idDireccion) {
+            $this->guardarDatos2([
+              'tabla' => 'deliveries',
+              'datos' => [
+                'id_delivery' => $this->generarCodSeg(['tablaBD' => 'deliveries', 'prefijo' => 'DELI', 'campoID' => 'id_delivery']),
+                'id_orden_entrega_presupuesto' => $this->idOrden,
+                'id_direccion' => $idDireccion,
+                'cedula_repartidor' => $this->delivery['cedula_repartidor'] ?: null,
+                'status' => 1
+              ]
+            ]);
+          }
+        }
+      }
+
+      // Registro en bitácora
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'ordenesEntregasPresupuestos',
+        'accion'    => 'procesarPresupuesto',
+        'resultado' => 'Éxito',
+        'viejo'     => ['id_orden' => $this->idOrden, 'status' => 20],
+        'nuevo'     => ['id_orden' => $this->idOrden, 'status' => $nuevoStatus, 'productos' => count($this->productos)]
+      ]);
+
+      $this->commit();
+
+      $objetoNot = new mensajesWSModelo();
+      $objetoNot->enviarMensajesWS([
+        "receptor" => [
+          'tipo' => 'rol',
+          'rol'  => 'ADMINISTRADOR'
+        ],
+        'cuerpo' => [
+          ['accion' => "borrarDataModuloSS", 'modulo' => 'ordenesEntregasPresupuestos'],
+          ['accion' => "actDT", 'modulo' => 'ordenesEntregasPresupuestos'],
+          [
+            'accion' => 'alertar',
+            'alerta' => [
+              'tipo'     => 'simple',
+              'titulo'   => 'Presupuesto Procesado',
+              'texto'    => "El presupuesto {$this->idOrden} fue procesado como orden real.",
+              'icono'    => 'success',
+              'notifier' => true,
+              'tiempo'   => 3000
+            ]
+          ],
+        ],
+        'noCommit' => true
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Presupuesto Procesado',
+        'texto'  => "La orden {$this->idOrden} fue procesada exitosamente.",
+        'icono'  => 'success',
+        'id_orden_entrega_presupuesto' => $this->idOrden,
+      ];
+    } catch (Exception) {
+      $this->rollback();
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'ordenesEntregasPresupuestos',
+        'accion'    => 'procesarPresupuesto',
+        'resultado' => 'Fallido',
+        'viejo'     => ['id_orden' => $this->idOrden],
+        'nuevo'     => []
+      ]);
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error al Procesar',
+        'texto'  => 'No se pudo procesar el presupuesto',
+        'icono'  => 'error',
+      ];
     }
-}
-private function DespacharOrdenP() {
+  }
+  private function DespacharOrdenP() {
     $objBitacora = new bitacoraModelo();
-    
+
     $resultado = $this->seleccionarDatos2([
       'campos' => 'status',
       'tabla'  => 'ordenes_entregas_presupuestos',
@@ -1186,7 +1181,7 @@ private function DespacharOrdenP() {
       ]);
 
       $estadoTexto = ($nuevoStatus == 11) ? 'Pagada y Despachada' : 'Despachada y sin Pago';
-      
+
       $objBitacora->registrarBitacora([
         'modulo'    => 'ordenesEntregasPresupuestos',
         'accion'    => 'despachar',
@@ -1243,222 +1238,221 @@ private function DespacharOrdenP() {
         'icono'  => 'error',
       ];
     }
-}
-private function AnularOrdenP() {
+  }
+  private function AnularOrdenP() {
     $objBitacora  = new bitacoraModelo();
     $objProductos = new productosModelo();
     $cn = $this->conectar();
 
     try {
-        // No podemos anular algo que ya está anulado
-        $stmt = $cn->prepare(
-            "SELECT status FROM ordenes_entregas_presupuestos WHERE id_orden_entrega_presupuesto = :id"
-        );
-        $stmt->execute([':id' => $this->idOrden]);
-        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+      // No podemos anular algo que ya está anulado
+      $stmt = $cn->prepare(
+        "SELECT status FROM ordenes_entregas_presupuestos WHERE id_orden_entrega_presupuesto = :id"
+      );
+      $stmt->execute([':id' => $this->idOrden]);
+      $fila = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$fila || $fila['status'] == 2) {
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'Orden ya anulada',
-                'texto'  => 'Esta orden ya fue anulada anteriormente',
-                'icono'  => 'warning',
-            ];
-        }
+      if (!$fila || $fila['status'] == 2) {
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Orden ya anulada',
+          'texto'  => 'Esta orden ya fue anulada anteriormente',
+          'icono'  => 'warning',
+        ];
+      }
 
-        $statusAnterior = $fila['status'];
+      $statusAnterior = $fila['status'];
 
-        // Le cambiamos el estado al número 2, que es anulada
-        $resultado = $this->actualizarDatos2([
-            'tabla' => 'ordenes_entregas_presupuestos',
-            'datos' => ['status' => 2],
-            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
+      // Le cambiamos el estado al número 2, que es anulada
+      $resultado = $this->actualizarDatos2([
+        'tabla' => 'ordenes_entregas_presupuestos',
+        'datos' => ['status' => 2],
+        'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
+      ]);
+
+      // Validamos si no se pudo anular la orden
+      if (!$resultado || $resultado <= 0) {
+        $objBitacora->registrarBitacora([
+          'modulo'    => 'ordenesEntregasPresupuestos',
+          'accion'    => 'anular',
+          'resultado' => 'Fallido',
+          'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
+          'nuevo'     => []
         ]);
 
-        // Validamos si no se pudo anular la orden
-        if (!$resultado || $resultado <= 0) {
-            $objBitacora->registrarBitacora([
-                'modulo'    => 'ordenesEntregasPresupuestos',
-                'accion'    => 'anular',
-                'resultado' => 'Fallido',
-                'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
-                'nuevo'     => []
-            ]);
+        $this->rollback();
 
-            $this->rollback();
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Error al Anular',
+          'texto'  => 'No se pudo anular la orden',
+          'icono'  => 'error',
+        ];
+      }
 
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'Error al Anular',
-                'texto'  => 'No se pudo anular la orden',
-                'icono'  => 'error',
-            ];
-        }
-
-        // Devolvemos al inventario todos los productos usando modelo POO
-        $stmtProd = $cn->prepare("
+      // Devolvemos al inventario todos los productos usando modelo POO
+      $stmtProd = $cn->prepare("
             SELECT pf.cantidad_producto, pp.id_producto, pre.cantidad_pmp
             FROM productos_ordenes_entregas_presupuestos pf
             JOIN presentaciones_productos pp ON pf.id_presentacion_producto = pp.id_presentacion_producto
             JOIN presentaciones pre ON pp.id_presentacion = pre.id_presentacion
             WHERE pf.id_orden_entrega_presupuesto = :id AND pf.status = 1
         ");
-        $stmtProd->execute([':id' => $this->idOrden]);
-        $prods = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
+      $stmtProd->execute([':id' => $this->idOrden]);
+      $prods = $stmtProd->fetchAll(PDO::FETCH_ASSOC);
 
-        foreach ($prods as $p) {
-            $cantidadRestaurar = $p['cantidad_producto'] * ($p['cantidad_pmp'] ?? 1);
-            $resStock = $objProductos->modificarStock($p['id_producto'], $cantidadRestaurar, $cn);
+      foreach ($prods as $p) {
+        $cantidadRestaurar = $p['cantidad_producto'] * ($p['cantidad_pmp'] ?? 1);
+        $resStock = $objProductos->modificarStock($p['id_producto'], $cantidadRestaurar, $cn);
 
-            // VALIDACIÓN: si falla modificar stock de productos
-            if ($resStock !== true) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'ordenesEntregasPresupuestos',
-                    'accion'    => 'anular',
-                    'resultado' => 'Fallido',
-                    'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
-                    'nuevo'     => []
-                ]);
-
-                $this->rollback();
-
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Error al Anular',
-                    'texto'  => 'No se pudo anular la orden',
-                    'icono'  => 'error',
-                ];
-            }
-        }
-
-        
-        // SOLO restauramos stock de las OS que fueron ejecutadas (status = 2) ya que son las únicas que descontaron
-        $stmtServ = $cn->prepare("
-            SELECT sf.id_servicio, sf.cantidad_servicio
-            FROM servicios_ordenes_entregas_presupuestos sf
-            WHERE sf.id_orden_entrega_presupuesto = :id AND sf.status = 2
-        ");
-        $stmtServ->execute([':id' => $this->idOrden]);
-        $servs = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
-
-        $objServicios = new serviciosModelo();
-        foreach ($servs as $s) {
-            $infoServ = $objServicios->seleccionarServicios([
-                'id_servicio' => $s['id_servicio'],
-                'isInterno' => true
-            ]);
-            $mps = $infoServ['detallesExtra']['productos_servicio'] ?? [];
-
-            foreach ($mps as $mp) {
-                $cantidadRestaurar = $mp['cantidad_producto'] * $s['cantidad_servicio'];
-                $resStock = $objProductos->modificarStock($mp['id_producto'], $cantidadRestaurar, $cn);
-
-                // VALIDACIÓN: si falla modificar stock de materiales de servicio
-                if ($resStock !== true) {
-                    $objBitacora->registrarBitacora([
-                        'modulo'    => 'ordenesEntregasPresupuestos',
-                        'accion'    => 'anular',
-                        'resultado' => 'Fallido',
-                        'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
-                        'nuevo'     => []
-                    ]);
-
-                    $this->rollback();
-
-                    return [
-                        'tipo'   => 'simple',
-                        'titulo' => 'Error al Anular',
-                        'texto'  => 'No se pudo anular la orden',
-                        'icono'  => 'error',
-                    ];
-                }
-            }
-        }
-
-        // Cancelar todas las OS asociadas que estuvieran activas
-        $this->actualizarDatos2([
-            'tabla' => 'servicios_ordenes_entregas_presupuestos',
-            'datos' => ['status' => 4],
-            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden, 'status' => 1]
-        ]);
-        // Cancelar todas las OS asociadas que estuvieran ejecutadas
-        $this->actualizarDatos2([
-            'tabla' => 'servicios_ordenes_entregas_presupuestos',
-            'datos' => ['status' => 4],
-            'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden, 'status' => 2]
-        ]);
-
-        // Guardar en bitácora con viejo y nuevo
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'ordenesEntregasPresupuestos',
-            'accion'    => 'anular',
-            'resultado' => 'Éxito',
-            'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
-            'nuevo'     => ['id_orden' => $this->idOrden, 'status' => 2]
-        ]);
-
-        $this->commit();
-
-        $objetoNot = new mensajesWSModelo();
-        $objetoNot->enviarMensajesWS([
-            "receptor" => [
-                'tipo' => 'rol',
-                'rol' => 'ADMINISTRADOR'
-            ],
-            'cuerpo' => [
-                ['accion' => "borrarDataModuloSS", 'modulo' => 'ordenesEntregasPresupuestos'],
-                ['accion' => "actDT", 'modulo' => 'ordenesEntregasPresupuestos'],
-                [
-                    'accion' => 'alertar',
-                    'alerta' => [
-                        'tipo' => 'simple',
-                        'titulo' => 'Orden Anulada',
-                        'texto' => "La orden {$this->idOrden} fue anulada.",
-                        'icono' => 'warning',
-                        'notifier' => true,
-                        'tiempo' => 3000
-                    ]
-                ]
-            ],
-            'noCommit' => true
-        ]);
-
-        return [
-            'tipo'   => 'simple',
-            'titulo' => 'Orden Anulada',
-            'texto'  => "La orden {$this->idOrden} fue anulada y el stock restaurado.",
-            'icono'  => 'success',
-        ];
-
-    } catch (Exception) {
-        
-        $this->rollback();
-
-        $objBitacora->registrarBitacora([
+        // VALIDACIÓN: si falla modificar stock de productos
+        if ($resStock !== true) {
+          $objBitacora->registrarBitacora([
             'modulo'    => 'ordenesEntregasPresupuestos',
             'accion'    => 'anular',
             'resultado' => 'Fallido',
-            'viejo'     => ['id_orden' => $this->idOrden],
+            'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
             'nuevo'     => []
-        ]);
+          ]);
 
-        return [
+          $this->rollback();
+
+          return [
             'tipo'   => 'simple',
             'titulo' => 'Error al Anular',
             'texto'  => 'No se pudo anular la orden',
             'icono'  => 'error',
-        ];
+          ];
+        }
+      }
+
+
+      // SOLO restauramos stock de las OS que fueron ejecutadas (status = 2) ya que son las únicas que descontaron
+      $stmtServ = $cn->prepare("
+            SELECT sf.id_servicio, sf.cantidad_servicio
+            FROM servicios_ordenes_entregas_presupuestos sf
+            WHERE sf.id_orden_entrega_presupuesto = :id AND sf.status = 2
+        ");
+      $stmtServ->execute([':id' => $this->idOrden]);
+      $servs = $stmtServ->fetchAll(PDO::FETCH_ASSOC);
+
+      $objServicios = new serviciosModelo();
+      foreach ($servs as $s) {
+        $infoServ = $objServicios->seleccionarServicios([
+          'id_servicio' => $s['id_servicio'],
+          'isInterno' => true
+        ]);
+        $mps = $infoServ['detallesExtra']['productos_servicio'] ?? [];
+
+        foreach ($mps as $mp) {
+          $cantidadRestaurar = $mp['cantidad_producto'] * $s['cantidad_servicio'];
+          $resStock = $objProductos->modificarStock($mp['id_producto'], $cantidadRestaurar, $cn);
+
+          // VALIDACIÓN: si falla modificar stock de materiales de servicio
+          if ($resStock !== true) {
+            $objBitacora->registrarBitacora([
+              'modulo'    => 'ordenesEntregasPresupuestos',
+              'accion'    => 'anular',
+              'resultado' => 'Fallido',
+              'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
+              'nuevo'     => []
+            ]);
+
+            $this->rollback();
+
+            return [
+              'tipo'   => 'simple',
+              'titulo' => 'Error al Anular',
+              'texto'  => 'No se pudo anular la orden',
+              'icono'  => 'error',
+            ];
+          }
+        }
+      }
+
+      // Cancelar todas las OS asociadas que estuvieran activas
+      $this->actualizarDatos2([
+        'tabla' => 'servicios_ordenes_entregas_presupuestos',
+        'datos' => ['status' => 4],
+        'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden, 'status' => 1]
+      ]);
+      // Cancelar todas las OS asociadas que estuvieran ejecutadas
+      $this->actualizarDatos2([
+        'tabla' => 'servicios_ordenes_entregas_presupuestos',
+        'datos' => ['status' => 4],
+        'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden, 'status' => 2]
+      ]);
+
+      // Guardar en bitácora con viejo y nuevo
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'ordenesEntregasPresupuestos',
+        'accion'    => 'anular',
+        'resultado' => 'Éxito',
+        'viejo'     => ['id_orden' => $this->idOrden, 'status' => $statusAnterior],
+        'nuevo'     => ['id_orden' => $this->idOrden, 'status' => 2]
+      ]);
+
+      $this->commit();
+
+      $objetoNot = new mensajesWSModelo();
+      $objetoNot->enviarMensajesWS([
+        "receptor" => [
+          'tipo' => 'rol',
+          'rol' => 'ADMINISTRADOR'
+        ],
+        'cuerpo' => [
+          ['accion' => "borrarDataModuloSS", 'modulo' => 'ordenesEntregasPresupuestos'],
+          ['accion' => "actDT", 'modulo' => 'ordenesEntregasPresupuestos'],
+          [
+            'accion' => 'alertar',
+            'alerta' => [
+              'tipo' => 'simple',
+              'titulo' => 'Orden Anulada',
+              'texto' => "La orden {$this->idOrden} fue anulada.",
+              'icono' => 'warning',
+              'notifier' => true,
+              'tiempo' => 3000
+            ]
+          ]
+        ],
+        'noCommit' => true
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Orden Anulada',
+        'texto'  => "La orden {$this->idOrden} fue anulada y el stock restaurado.",
+        'icono'  => 'success',
+      ];
+    } catch (Exception) {
+
+      $this->rollback();
+
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'ordenesEntregasPresupuestos',
+        'accion'    => 'anular',
+        'resultado' => 'Fallido',
+        'viejo'     => ['id_orden' => $this->idOrden],
+        'nuevo'     => []
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error al Anular',
+        'texto'  => 'No se pudo anular la orden',
+        'icono'  => 'error',
+      ];
     }
-}
-private function ListarMetodosPagoP() {
+  }
+  private function ListarMetodosPagoP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => '*',
       'tabla'  => 'metodos_pagos',
       'WHERE'  => ['status' => 1]
     ]);
     return $resultado->fetchAll(PDO::FETCH_ASSOC);
-}
-private function obtenerIVAActualP(): int {
+  }
+  private function obtenerIVAActualP(): int {
     $resultado = $this->seleccionarDatos2([
       'campos' => 'id_cambio_iva',
       'tabla'  => 'cambios_iva',
@@ -1468,10 +1462,8 @@ private function obtenerIVAActualP(): int {
     ]);
     $fila = $resultado->fetch(PDO::FETCH_ASSOC);
     return $fila ? (int)$fila['id_cambio_iva'] : 1;
-
-}
-
-private function RegistrarPagoP() {
+  }
+  private function RegistrarPagoP() {
     if (empty($this->pagos)) {
       return ['tipo' => 'simple', 'titulo' => 'Error', 'texto' => 'Debe ingresar al menos un detalle de pago.', 'icono' => 'warning'];
     }
@@ -1482,31 +1474,30 @@ private function RegistrarPagoP() {
       'pagos' => is_array($this->pagos) ? json_encode($this->pagos) : $this->pagos,
       'noCommit' => false
     ];
-    
+
     // Si la orden también trae comprobantes en $_FILES, pagosModelo lo maneja
     $resPago = $objPagos->registrarPago($info);
 
     if (isset($resPago['tipo']) && $resPago['tipo'] == 'simple' && isset($resPago['icono']) && $resPago['icono'] != 'success') {
-       return $resPago;
+      return $resPago;
     }
 
     return ['tipo' => 'limpiarYcerrar', 'titulo' => 'Pago Registrado', 'texto' => 'El pago se ha registrado exitosamente.', 'icono' => 'success'];
-}
-
-private function impresionPlanillaOEPP() {
+  }
+  private function impresionPlanillaOEPP() {
     $datosOrden = $this->ObtenerDetalleOrdenInterno($this->idOrden);
-    if(empty($datosOrden) || !isset($datosOrden['cabecera'])){
-       return [
-          'tipo'   => 'simple',
-          'titulo' => 'Error',
-          'texto'  => 'No se encontró la orden',
-          'icono'  => 'error',
-       ];
+    if (empty($datosOrden) || !isset($datosOrden['cabecera'])) {
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error',
+        'texto'  => 'No se encontró la orden',
+        'icono'  => 'error',
+      ];
     }
-    
+
     require_once 'vendor/autoload.php';
     $objPdf = new pdfModel(['tamanoPagina' => 'carta', 'header' => false, 'footer' => false]);
-    
+
     // Configuramos los márgenes
     $objPdf->SetMargins(10, 10, 10);
     $objPdf->AddPage();
@@ -1533,7 +1524,7 @@ private function impresionPlanillaOEPP() {
     $objPdf->cell2(10, 5, 'DÍA', 1, 0, 'C');
     $objPdf->cell2(10, 5, 'MES', 1, 0, 'C');
     $objPdf->cell2(15, 5, 'AÑO', 1, 1, 'C');
-    
+
     $objPdf->SetX(10);
     $objPdf->SetFont('Arial', '', 8);
     $objPdf->cell2(45, 5, 'BARQUISIMETO', 1, 0, 'C');
@@ -1548,7 +1539,7 @@ private function impresionPlanillaOEPP() {
     $objPdf->SetFont('Arial', '', 7.5);
     $objPdf->cell2(145, 5, ' NOMBRE APELLIDO O RAZÓN SOCIAL:   ' . ($cabecera['CLIENTE'] ?? ''), 1, 0, 'L');
     $objPdf->cell2(50, 5, ' R.I.F.:   ' . ($cabecera['rif_cedula_cliente'] ?? ''), 1, 1, 'L');
-    
+
     $direccion = $cabecera['direccion_cliente'] ?? 'CIUDAD';
     $objPdf->cell2(195, 5, ' DOMICILIO FISCAL:   ' . $direccion, 1, 1, 'L');
 
@@ -1563,14 +1554,14 @@ private function impresionPlanillaOEPP() {
 
     $telefono = $cabecera['telefono_cliente'] ?? '';
     $objPdf->cell2(35, 5, 'S/N: ' . $telefono, 1, 0, 'C');
-    
-    $fechaEmision = $fechaArray[2].'/'.$fechaArray[1].'/'.$fechaArray[0];
+
+    $fechaEmision = $fechaArray[2] . '/' . $fechaArray[1] . '/' . $fechaArray[0];
     $objPdf->cell2(80, 5, 'N°: ' . $cabecera['id_orden_entrega_presupuesto'] . '       DEL: ' . $fechaEmision, 1, 0, 'C');
-    
+
     $objPdf->cell2(15, 5, 'CONTADO', 1, 0, 'C');
     $objPdf->cell2(7, 5, 'X', 1, 0, 'C');
     $objPdf->cell2(15, 5, 'CRÉDITO', 1, 0, 'C');
-    $objPdf->cell2(8, 5, '', 1, 0, 'C'); 
+    $objPdf->cell2(8, 5, '', 1, 0, 'C');
     $objPdf->cell2(35, 5, '', 1, 1, 'C');
 
     // ==========================================
@@ -1587,25 +1578,25 @@ private function impresionPlanillaOEPP() {
     // ==========================================
     $startY = $objPdf->GetY();
     $boxHeight = 125; // Alto de la caja
-    
+
     // Contorno y separadores
     $objPdf->Rect(10, $startY, 195, $boxHeight);
-    $objPdf->Line(25, $startY, 25, $startY + $boxHeight); 
-    $objPdf->Line(145, $startY, 145, $startY + $boxHeight); 
+    $objPdf->Line(25, $startY, 25, $startY + $boxHeight);
+    $objPdf->Line(145, $startY, 145, $startY + $boxHeight);
     $objPdf->Line(175, $startY, 175, $startY + $boxHeight);
-    
+
     $subProdServDel = 0;
     $objPdf->SetY($startY + 3);
     $objPdf->SetFont('Arial', '', 8);
 
-    $imprimirFila = function($cant, $desc, $precioU, $monto) use (&$subProdServDel, $fnBolivares, $objPdf) {
-        $objPdf->SetX(10);
-        $objPdf->cell2(15, 5, $cant, 0, 0, 'C');
-        $objPdf->cell2(120, 5, substr($desc, 0, 70), 0, 0, 'L');
-        $objPdf->cell2(30, 5, $fnBolivares($precioU), 0, 0, 'C');
-        $objPdf->cell2(30, 5, $fnBolivares($monto), 0, 1, 'R');
-        $subProdServDel += $monto;
-        $objPdf->Ln(2);
+    $imprimirFila = function ($cant, $desc, $precioU, $monto) use (&$subProdServDel, $fnBolivares, $objPdf) {
+      $objPdf->SetX(10);
+      $objPdf->cell2(15, 5, $cant, 0, 0, 'C');
+      $objPdf->cell2(120, 5, substr($desc, 0, 70), 0, 0, 'L');
+      $objPdf->cell2(30, 5, $fnBolivares($precioU), 0, 0, 'C');
+      $objPdf->cell2(30, 5, $fnBolivares($monto), 0, 1, 'R');
+      $subProdServDel += $monto;
+      $objPdf->Ln(2);
     };
 
     foreach ($productos as $producto) {
@@ -1633,21 +1624,21 @@ private function impresionPlanillaOEPP() {
     // ==========================================
     // 6. TOTALES
     // ==========================================
-    $objPdf->SetY($startY + $boxHeight); 
-    $objPdf->Ln(2); 
-    
+    $objPdf->SetY($startY + $boxHeight);
+    $objPdf->Ln(2);
+
     $ivaPorcentaje = floatval($cabecera['IVA']) / 100;
     $montoIva = $subProdServDel * $ivaPorcentaje;
     $totalOrden = $subProdServDel + $montoIva;
-    
-    $objPdf->SetX(115); 
+
+    $objPdf->SetX(115);
     $objPdf->cell2(60, 6, ' MONTO TOTAL BASE DISPONIBLE', 1, 0, 'L');
     $objPdf->cell2(30, 6, $fnBolivares($subProdServDel), 1, 1, 'R');
-    
+
     $objPdf->SetX(115);
     $objPdf->cell2(60, 6, ' MONTO TOTAL IVA A PAGAR ' . number_format($cabecera['IVA'], 2) . '%', 1, 0, 'L');
     $objPdf->cell2(30, 6, $fnBolivares($montoIva), 1, 1, 'R');
-    
+
     $objPdf->SetX(115);
     $objPdf->cell2(60, 6, ' MONTO TOTAL A PAGAR', 1, 0, 'L');
     $objPdf->cell2(30, 6, $fnBolivares($totalOrden), 1, 1, 'R');
@@ -1655,8 +1646,5 @@ private function impresionPlanillaOEPP() {
     ob_end_clean();
     $objPdf->Output('I', 'Planilla_OEP_' . $this->idOrden . '.pdf');
     exit();
+  }
 }
-
-}
-
-

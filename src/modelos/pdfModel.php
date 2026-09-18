@@ -164,7 +164,7 @@ class pdfModel extends FPDF {
       $this->cell2(10, 6, 'MES', 1, 0, 'C');
       $this->cell2(10, 6, 'AÑO', 1, 1, 'C');
 
-      $fechaCompleta = explode(' ', $this->FechaHora_Sel('fecha_hora_AM_PM', $this->dataNotaEntrega['fecha_orden']));
+      $fechaCompleta = explode(' ', $this->fechaHoraSel('fecha_hora_AM_PM', $this->dataNotaEntrega['fecha_orden']));
       $fechaArray = explode('-', $fechaCompleta[0]);
 
       $this->SetFont('Arial', '', 8);
@@ -509,7 +509,7 @@ class pdfModel extends FPDF {
     $this->cell2(35, 5, $fnBolivares($this->dataNotaEntrega['calculos']['totalEnvio']) . ' Bs', 0, 0, 'C');
     $this->cell2(35, 5, $fnBolivares($this->dataNotaEntrega['calculos']['totalEnvio']) . ' Bs', 0, 1, 'R');
 
-    $fechaCompleta = explode(' ', $this->FechaHora_Sel('fecha_hora_AM_PM', $this->dataNotaEntrega['fecha_orden']));
+    $fechaCompleta = explode(' ', $this->fechaHoraSel('fecha_hora_AM_PM', $this->dataNotaEntrega['fecha_orden']));
     $fechaArray = explode('-', $fechaCompleta[0]);
     $hora = $fechaCompleta[1] . ' ' . $fechaCompleta[2];
     $fecha = implode('/', $fechaArray) . ' HORA: ' . $hora;

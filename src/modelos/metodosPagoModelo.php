@@ -218,7 +218,7 @@ class metodosPagoModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',
@@ -293,7 +293,7 @@ class metodosPagoModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',
@@ -353,7 +353,7 @@ class metodosPagoModelo extends conexion {
       ],
       'noCommit' => true
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',

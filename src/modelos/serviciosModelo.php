@@ -9,7 +9,6 @@ use src\modelos\accesosModelo;
 use src\modelos\productosModelo;
 use PDO;
 
-
 class serviciosModelo extends conexion {
   private string $idServicio = '';
   private string $idUnidadMedida = '';
@@ -20,8 +19,6 @@ class serviciosModelo extends conexion {
   private array  $productosServicio = [];
 
   // PÚBLICOS
-
-  
   public function validarServicios(string $permiso, array &$info = [], array $requerido = []) {
     $objAcceso = new accesosModelo();
     $v = $objAcceso->validarPermisos('servicios', $permiso);
@@ -195,7 +192,6 @@ class serviciosModelo extends conexion {
     $this->fotoServicio = $info['foto_servicio'];
     return $this->actualizarFotoServicioP();
   }
-
   public function eliminarFotoServicio(array $info) {
     $respuesta = $this->validarServicios('actualizar', $info, ['id_servicio']);
     if ($respuesta !== false) return $respuesta;
@@ -204,7 +200,6 @@ class serviciosModelo extends conexion {
   }
 
   // PRIVADOS
-
   private function obtenerParaChatbotP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => 'nombre_servicio, precio_servicio',
@@ -213,8 +208,7 @@ class serviciosModelo extends conexion {
     ]);
     return ($resultado && $resultado->rowCount() > 0) ? $resultado->fetchAll(\PDO::FETCH_ASSOC) : [];
   }
- 
-  private function seleccionarServiciosP(){
+  private function seleccionarServiciosP() {
     if ($this->idServicio == null || $this->idServicio == "") {
       $resultado = $this->seleccionarDatos2([
         'campos' => '*',
@@ -494,7 +488,7 @@ class serviciosModelo extends conexion {
       'productos_servicio' => $this->productosServicio,
     ];
 
-    $productosServicioViejos = array_map(function($p) {
+    $productosServicioViejos = array_map(function ($p) {
       return [
         'id_producto' => (string)$p['id_producto'],
         'cantidad_producto' => (string)$p['cantidad_producto']

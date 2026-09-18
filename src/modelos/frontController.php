@@ -2,7 +2,6 @@
 
 namespace src\controladores;
 
-use src\modelos\accesosModelo;
 use src\modelos\traitModelo;
 
 class frontController {

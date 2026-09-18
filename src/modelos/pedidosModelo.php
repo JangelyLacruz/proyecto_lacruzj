@@ -728,7 +728,7 @@ class pedidosModelo extends conexion {
         'id_orden_entrega_presupuesto' => $idPedido,
         'rif_cedula_cliente' => $_SESSION['cedula'],
         'id_cambio_iva' => $cambioIva['id_cambio_iva'],
-        'fecha_orden_entrega_presupuesto' => $this->FechaHora_Sel('fecha_hora_BD'),
+        'fecha_orden_entrega_presupuesto' => $this->fechaHoraSel('fecha_hora_BD'),
         'status' => 5,
       ],
     ]);
@@ -794,7 +794,7 @@ class pedidosModelo extends conexion {
       'datos' => [
         'id_pago' => $idPago,
         'id_orden_entrega_presupuesto' => $idPedido,
-        'fecha_pago' => $this->FechaHora_Sel('Fecha_Actual_BD'),
+        'fecha_pago' => $this->fechaHoraSel('Fecha_Actual_BD'),
       ]
     ]);
     if ($resultado == false || $resultado <= 0) {

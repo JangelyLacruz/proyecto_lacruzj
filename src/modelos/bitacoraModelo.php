@@ -117,7 +117,7 @@ class bitacoraModelo extends conexion {
       "resultado_bitacora" => $this->resultadoBitacora,
       "accion" => $this->accionBitacora,
       "ip_dispositivo" => $this->ipDispositivo,
-      "fecha_bitacora" => $this->FechaHora_Sel('fecha_hora_BD'),
+      "fecha_bitacora" => $this->fechaHoraSel('fecha_hora_BD'),
     ];
 
     if ($this->cambiosEfectuados !== null && !empty($this->cambiosEfectuados)) {

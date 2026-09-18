@@ -67,12 +67,11 @@ class produccionesModelo extends conexion {
       ],
       'requerido' => $requerido
     ];
-    
+
     $r = $this->limpiarValidar($info, $esquemaProducciones);
     if ($r) return $r;
     return false;
   }
-  
   public function seleccionarProducciones(array $info) {
     $requerido = [];
     if (($info['id_produccion'] ?? '') != '') {
@@ -85,23 +84,21 @@ class produccionesModelo extends conexion {
     }
     return $this->seleccionarProduccionesP();
   }
-
   public function registrarProducciones(array $info) {
     if (isset($info['productos']) && is_string($info['productos'])) {
-        $info['productos'] = json_decode($info['productos'], true);
+      $info['productos'] = json_decode($info['productos'], true);
     }
-    
+
     $resultado = $this->validarProducciones('registrar', $info, ['productos']);
     if ($resultado) return $resultado;
     $this->productos = $info['productos'];
     return $this->registrarProduccionesP();
   }
-
   public function actualizarProducciones(array $info) {
     if (isset($info['productos']) && is_string($info['productos'])) {
-        $info['productos'] = json_decode($info['productos'], true);
+      $info['productos'] = json_decode($info['productos'], true);
     }
-    
+
     $resultado = $this->validarProducciones('actualizar', $info, ['id_produccion', 'productos']);
     if ($resultado) return $resultado;
     $this->idProduccion = $info['id_produccion'];
@@ -142,12 +139,11 @@ class produccionesModelo extends conexion {
           "id_produccion" => $this->idProduccion,
         ]
       ]);
-      
+
       $produccion['detalles'] = $resultado->rowCount() > 0 ? $resultado->fetchAll() : [];
       return $produccion;
     }
   }
-
   private function registrarProduccionesP() {
     $objBitacora = new bitacoraModelo();
 
@@ -161,7 +157,7 @@ class produccionesModelo extends conexion {
       'tabla' => 'producciones',
       'datos' => [
         'id_produccion' => $idProduccion,
-        'fecha_produccion' => $this->FechaHora_Sel('fecha_hora_BD')
+        'fecha_produccion' => $this->fechaHoraSel('fecha_hora_BD')
       ]
     ]);
 
@@ -357,7 +353,6 @@ class produccionesModelo extends conexion {
       'texto' => 'Se registró correctamente la producción: ' . $idProduccion,
     ];
   }
-
   private function actualizarProduccionesP() {
     $objBitacora = new bitacoraModelo();
 

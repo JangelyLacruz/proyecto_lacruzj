@@ -108,7 +108,6 @@ class inventarioModelo extends conexion {
     }
     return $this->limpiar_Verificar($totalValidaciones);
   }
-  
   public function registrarMovimientos(array $info) {
     $this->tipoItem = $info['tipo_item'] ?? '';
 
@@ -155,7 +154,6 @@ class inventarioModelo extends conexion {
       return $this->registrarMovimientosProductosP();
     }
   }
-  
   public function verEntradasSalidas(array $info) {
     $this->tipo = $info['tipo'] ?? '';
 
@@ -188,7 +186,6 @@ class inventarioModelo extends conexion {
       "icono" => "error"
     ];
   }
-  
   public function reporteProductos(array $info) {
     $resultado = $this->validarInventario('ver historial de e/s de los productos', [
       'infoVal' => &$info,
@@ -203,8 +200,8 @@ class inventarioModelo extends conexion {
     $this->info = $info;
     $this->info['id_producto'] = $info['id_producto'] ?? null;
 
-    $this->info['fecha_desde'] = $this->FechaHora_Sel("fecha_BD", date('d/m/Y', strtotime($info['fecha_desde'])));
-    $this->info['fecha_hasta'] = $this->FechaHora_Sel("fecha_BD", date('d/m/Y', strtotime($info['fecha_hasta'])));
+    $this->info['fecha_desde'] = $this->fechaHoraSel("fecha_BD", date('d/m/Y', strtotime($info['fecha_desde'])));
+    $this->info['fecha_hasta'] = $this->fechaHoraSel("fecha_BD", date('d/m/Y', strtotime($info['fecha_hasta'])));
 
     if ($this->info['fecha_desde'] > $this->info['fecha_hasta']) {
       return [
@@ -217,7 +214,6 @@ class inventarioModelo extends conexion {
 
     return $this->reporteProductosP();
   }
-  
   public function reporteMateriasPrimas(array $info) {
     $resultado = $this->validarInventario('ver historial de e/s de las materias primas', [
       'infoVal' => &$info,
@@ -232,8 +228,8 @@ class inventarioModelo extends conexion {
     $this->info = $info;
     $this->info['id_materia_prima'] = $info['id_materia_prima'] ?? null;
 
-    $this->info['fecha_desde'] = $this->FechaHora_Sel("fecha_BD", date('d/m/Y', strtotime($info['fecha_desde'])));
-    $this->info['fecha_hasta'] = $this->FechaHora_Sel("fecha_BD", date('d/m/Y', strtotime($info['fecha_hasta'])));
+    $this->info['fecha_desde'] = $this->fechaHoraSel("fecha_BD", date('d/m/Y', strtotime($info['fecha_desde'])));
+    $this->info['fecha_hasta'] = $this->fechaHoraSel("fecha_BD", date('d/m/Y', strtotime($info['fecha_hasta'])));
 
     if ($this->info['fecha_desde'] > $this->info['fecha_hasta']) {
       return [
@@ -311,7 +307,6 @@ class inventarioModelo extends conexion {
     }
     return true;
   }
-  
   private function registrarMovimientosProductosP() {
     $objBitacora = new bitacoraModelo();
 
@@ -378,7 +373,7 @@ class inventarioModelo extends conexion {
         "cantidad_movimiento" => $this->cantidadMovimiento,
         "tipo_movimiento" => $this->tipoMovimiento,
         "motivo_movimiento" => $this->motivoMovimiento,
-        "fecha_movimiento" => $this->FechaHora_Sel('fecha_hora_BD'),
+        "fecha_movimiento" => $this->fechaHoraSel('fecha_hora_BD'),
       ]
     ]);
 
@@ -505,7 +500,6 @@ class inventarioModelo extends conexion {
       "icono" => "success"
     ];
   }
-  
   private function registrarMovimientosMateriasPrimasP() {
     $objBitacora = new bitacoraModelo();
 
@@ -561,7 +555,7 @@ class inventarioModelo extends conexion {
         "cantidad_movimiento" => $this->cantidadMovimiento,
         "tipo_movimiento" => $this->tipoMovimiento,
         "motivo_movimiento" => $this->motivoMovimiento,
-        "fecha_movimiento" => $this->FechaHora_Sel('fecha_hora_BD'),
+        "fecha_movimiento" => $this->fechaHoraSel('fecha_hora_BD'),
       ]
     ]);
 
@@ -649,7 +643,6 @@ class inventarioModelo extends conexion {
       "icono" => "success"
     ];
   }
-  
   private function verMovimientosProductosP() {
     return $this->seleccionarDatos2([
       'campos' => 'map.id_movimiento_anomalo_producto, p.nombre_presentacion, map.cantidad_movimiento, map.tipo_movimiento, map.motivo_movimiento, map.fecha_movimiento, pr.id_producto, pr.nombre_producto',
@@ -666,7 +659,6 @@ class inventarioModelo extends conexion {
       'ORDER' => 'map.id_movimiento_anomalo_producto DESC'
     ])->fetchAll();
   }
-  
   private function verMovimientosMateriasPrimasP() {
     return $this->seleccionarDatos2([
       'campos' => '
@@ -685,7 +677,6 @@ class inventarioModelo extends conexion {
       'ORDER' => 'mamp.id_movimiento_anomalo_materia_prima DESC'
     ])->fetchAll();
   }
-  
   private function reporteProductosP() {
     $conexion = $this->conectar();
     
@@ -733,7 +724,7 @@ class inventarioModelo extends conexion {
     }
 
     foreach ($infoCeldas as &$fila) {
-        $fila['fecha_movimiento'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_movimiento']);
+        $fila['fecha_movimiento'] = $this->fechaHoraSel('fecha_hora_AM_PM', $fila['fecha_movimiento']);
         $fila['tipo_movimiento'] = $fila['tipo_movimiento'] == 1 ? 'CARGA' : 'DESCARGA';
     }
     unset($fila);
@@ -758,7 +749,6 @@ class inventarioModelo extends conexion {
         "infoBD" => $infoCeldas,
     ]);
   }
-  
   private function reporteMateriasPrimasP() {
     $conexion = $this->conectar();
 
@@ -803,7 +793,7 @@ class inventarioModelo extends conexion {
     }
 
     foreach ($infoCeldas as &$fila) {
-        $fila['fecha_movimiento'] = $this->FechaHora_Sel('fecha_hora_AM_PM', $fila['fecha_movimiento']);
+        $fila['fecha_movimiento'] = $this->fechaHoraSel('fecha_hora_AM_PM', $fila['fecha_movimiento']);
         $fila['tipo_movimiento'] = $fila['tipo_movimiento'] == 1 ? 'CARGA' : 'DESCARGA';
     }
     unset($fila);

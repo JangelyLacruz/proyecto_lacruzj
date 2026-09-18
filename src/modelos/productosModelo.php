@@ -580,7 +580,7 @@ class productosModelo extends conexion {
             'icono' => 'info',
             'notifier' => true,
           ]
-        ], 
+        ],
         'noCommit' => true
       ],
       [

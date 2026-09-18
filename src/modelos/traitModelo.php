@@ -846,7 +846,7 @@ trait traitModelo {
     }
     return false;
   }
-  public function FechaHora_Sel(string $tipo, $fecha = null, $tiempo = null) {
+  public function fechaHoraSel(string $tipo, $fecha = null, $tiempo = null) {
     if ($tipo === 'Fecha_hora_foto') {
       $fecha = new DateTime('now', new DateTimeZone('America/Caracas')); // Especifica la zona horaria de Venezuela
       $fecha = $fecha->format('Y-m-d H:i:s');
@@ -1130,7 +1130,7 @@ trait traitModelo {
         return $alerta;
       }
 
-      $nombreFoto = $tablaBD . "_" . $this->FechaHora_Sel("Fecha_hora_foto") . '_' . rand(1, 100);
+      $nombreFoto = $tablaBD . "_" . $this->fechaHoraSel("Fecha_hora_foto") . '_' . rand(1, 100);
       $nombreFoto = str_ireplace(" ", "_", $nombreFoto);
       $nombreFoto = str_ireplace("-", "_", $nombreFoto);
 
@@ -1266,7 +1266,7 @@ trait traitModelo {
       $nombreFoto = $nombreFoto[0];
     } else {
       $nombreFoto = str_ireplace(" ", "_", $tablaBD);
-      $nombreFoto .= "_" . $this->FechaHora_Sel("Fecha_hora_foto"); /*para cambiar el sufijo de la foto por si algún usuario repite el nombre */
+      $nombreFoto .= "_" . $this->fechaHoraSel("Fecha_hora_foto"); /*para cambiar el sufijo de la foto por si algún usuario repite el nombre */
     }
 
     /*Asignación del tipo de archivo */
@@ -1299,7 +1299,7 @@ trait traitModelo {
     }
 
     //Asignamos el numero de version a la foto para forzar que se actualice en el HTML
-    $nombreFoto .= "?v=" . $this->FechaHora_Sel("Fecha_hora_foto");
+    $nombreFoto .= "?v=" . $this->fechaHoraSel("Fecha_hora_foto");
     $resultado = $this->objetoBD->actualizarDatos2([
       "tabla" => $tablaBD,
       'BD' => $BD,

@@ -560,7 +560,7 @@ class mensajesWSModelo extends conexion {
           'tiempo_notificacion' => $infoNot['tiempo_notificacion'],
           'titulo_notificacion' => $infoNot['titulo_notificacion'],
           'texto_notificacion' => $infoNot['texto_notificacion'],
-          "fecha_creacion_notificacion" => $this->FechaHora_Sel('fecha_hora_BD'),
+          "fecha_creacion_notificacion" => $this->fechaHoraSel('fecha_hora_BD'),
         ]
       ]);
       if ($ultimoId == false || $ultimoId == 0) {

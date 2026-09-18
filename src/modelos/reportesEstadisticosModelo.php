@@ -11,6 +11,14 @@ use PDO;
 class reportesEstadisticosModelo extends conexion {
   use traitModelo;
 
+  // Atributos privados de la clase (Encapsulamiento estricto)
+  private string $rango = 'ultimos_30_dias';
+  private ?string $fechaInicio = null;
+  private ?string $fechaFin = null;
+  private string $filtroVentas = '';
+  private string $filtroCompras = '';
+  private string $filtroProduccion = '';
+
   public function validarReportesEstadisticos(string $permiso, ?array &$info = null, ?array $requerido = null) {
     $objAcceso = new accesosModelo();
     $v = $objAcceso->validarPermisos('reportesEstadisticos', $permiso);
@@ -49,36 +57,42 @@ class reportesEstadisticosModelo extends conexion {
     if ($v) return $v;
     return false;
   }
-
   public function obtenerDatosDashboard(array $datos) {
     $v = $this->validarReportesEstadisticos('ver reportes estadísticos', $datos);
     if ($v) return $v;
 
-    // Sanitización y armado de filtros
-    $filtros = [
-      'ventas' => "AND o.fecha_orden_entrega_presupuesto >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
-      'compras' => "AND c.fecha_compra >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)",
-      'produccion' => "AND p.fecha_produccion >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)"
-    ];
+    // Asignación de atributos de clase
+    $this->rango = $datos['rango'] ?? 'ultimos_30_dias';
+    $this->fechaInicio = !empty($datos['fecha_inicio']) ? $datos['fecha_inicio'] : null;
+    $this->fechaFin = !empty($datos['fecha_fin']) ? $datos['fecha_fin'] : null;
 
-    if (isset($datos['rango'])) {
-      if ($datos['rango'] === 'ultimos_3_meses') {
-        $filtros['ventas'] = "AND o.fecha_orden_entrega_presupuesto >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
-        $filtros['compras'] = "AND c.fecha_compra >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
-        $filtros['produccion'] = "AND p.fecha_produccion >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
-      } elseif ($datos['rango'] === 'personalizado' && !empty($datos['fecha_inicio']) && !empty($datos['fecha_fin'])) {
-        $inicio = $datos['fecha_inicio'];
-        $fin = $datos['fecha_fin'] . ' 23:59:59';
-        $filtros['ventas'] = "AND o.fecha_orden_entrega_presupuesto BETWEEN '$inicio' AND '$fin'";
-        $filtros['compras'] = "AND c.fecha_compra BETWEEN '$inicio' AND '$fin'";
-        $filtros['produccion'] = "AND p.fecha_produccion BETWEEN '$inicio' AND '$fin'";
-      }
-    }
+    // Armado interno de los filtros
+    $this->establecerFiltros();
 
-    return $this->obtenerDatosDashboardP($filtros);
+    // El método privado NO recibe parámetros; opera sobre los atributos encapsulados
+    return $this->obtenerDatosDashboardP();
   }
 
-  private function obtenerDatosDashboardP(array $filtros) {
+  
+  private function establecerFiltros(): void {
+    // Filtro por defecto: últimos 30 días
+    $this->filtroVentas = "AND o.fecha_orden_entrega_presupuesto >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+    $this->filtroCompras = "AND c.fecha_compra >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+    $this->filtroProduccion = "AND p.fecha_produccion >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
+
+    if ($this->rango === 'ultimos_3_meses') {
+      $this->filtroVentas = "AND o.fecha_orden_entrega_presupuesto >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
+      $this->filtroCompras = "AND c.fecha_compra >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
+      $this->filtroProduccion = "AND p.fecha_produccion >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)";
+    } elseif ($this->rango === 'personalizado' && $this->fechaInicio !== null && $this->fechaFin !== null) {
+      $inicio = $this->fechaInicio;
+      $fin = $this->fechaFin . ' 23:59:59';
+      $this->filtroVentas = "AND o.fecha_orden_entrega_presupuesto BETWEEN '$inicio' AND '$fin'";
+      $this->filtroCompras = "AND c.fecha_compra BETWEEN '$inicio' AND '$fin'";
+      $this->filtroProduccion = "AND p.fecha_produccion BETWEEN '$inicio' AND '$fin'";
+    }
+  }
+  private function obtenerDatosDashboardP() {
     $this->conectar();
 
     try {
@@ -93,9 +107,9 @@ class reportesEstadisticosModelo extends conexion {
         return ['labels' => $labels, 'data' => $values];
       };
 
-      $fVentas = $filtros['ventas'];
-      $fCompras = $filtros['compras'];
-      $fProd = $filtros['produccion'];
+      $fVentas = $this->filtroVentas;
+      $fCompras = $this->filtroCompras;
+      $fProd = $this->filtroProduccion;
 
       // KPIs
       $stmt = self::$conexion->prepare("SELECT COUNT(rif_cedula_cliente) FROM clientes");

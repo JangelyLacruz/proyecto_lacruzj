@@ -527,7 +527,7 @@ class usuariosModelo extends conexion {
     }
 
     $objNot = new mensajesWSModelo();
-    $r= $objNot->enviarMensajesWS([
+    $r = $objNot->enviarMensajesWS([
       "receptor" => ['tipo' => 'todos'],
       'cuerpo' => [
         [
@@ -541,7 +541,7 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',
@@ -649,7 +649,7 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',
@@ -679,7 +679,7 @@ class usuariosModelo extends conexion {
       return [
         "tipo" => "simple",
         "titulo" => "Usuario no eliminado",
-        "texto" => "El usuario no pudo ser eliminado de la Base de Datos. Error: #000".$numeroFallo,
+        "texto" => "El usuario no pudo ser eliminado de la Base de Datos. Error: #000" . $numeroFallo,
         "icono" => "error"
       ];
     };
@@ -778,7 +778,7 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',
@@ -824,7 +824,7 @@ class usuariosModelo extends conexion {
       ],
       'noCommit' => true,
     ]);
-    if (isset($r['error'])){
+    if (isset($r['error'])) {
       return [
         'tipo' => 'simple',
         'titulo' => 'Error de socket',
@@ -853,20 +853,20 @@ class usuariosModelo extends conexion {
       ],
     ];
     $datosUsAtuales = $this->seleccionarDatos2($instruccionesConsultaCom)->fetch();
-    
-    if($datosUsAtuales['intentos_inicio_sesion_fallidos_usuario'] >=3){
+
+    if ($datosUsAtuales['intentos_inicio_sesion_fallidos_usuario'] >= 3) {
       return [
-        'tipo'=>'simple',
-        'icono'=>'error',
-        'titulo'=>'Usuario Bloqueado',
-        'texto'=>"
+        'tipo' => 'simple',
+        'icono' => 'error',
+        'titulo' => 'Usuario Bloqueado',
+        'texto' => "
           Actualmente su usuario se encuentra bloqueado, por favor 
           desbloqueelo en la opción de [ ¿Olvidaste tu contraseña? ] 
           que se encuntre en la parte inferior
         "
       ];
     }
-    
+
 
     if (!isset($datosUsAtuales['cedula_usuario'])) {
       return [
@@ -1174,6 +1174,94 @@ class usuariosModelo extends conexion {
         break;
     }
   }
+  private function restablecerContrasenaUsuarioP($info) {
+    $tokenActual = $this->seleccionarDatos2([
+      'BD' => 'seguridad',
+      'tabla' => 'tokens_usuarios',
+      'campos' => 'token, vencimiento_token',
+      'WHERE' => [
+        'tipo_token' => 1, //Para recuperar la contraseña
+        'cedula_usuario' => $this->cedulaUsuario,
+      ]
+    ])->fetch();
+    if (empty($tokenActual)) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => "Token expirado",
+        'texto' => 'El token de seguridad ha expirado',
+        'icono' => 'error'
+      ];
+    }
+
+    $datetime = new Datetime($tokenActual['vencimiento_token']);
+    $segundosVencimientoToken = $datetime->getTimestamp();
+    $fechaActual = new Datetime();
+    $segundosFechaActual = $fechaActual->getTimestamp();
+
+    if (($segundosVencimientoToken - $segundosFechaActual) <= 0) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Token Vencido',
+        'texto' => 'Tu token ha caducado, por favor, reanuda el proceso desde el principio',
+        'icono' => 'error',
+      ];
+    }
+    if ($this->codigoRecContrasenaUsuario == $tokenActual['token']) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Token erróneo',
+        'texto' => 'El token que ha enviado no es válido',
+        'icono' => 'error',
+      ];
+    }
+
+    $resultado = $this->actualizarDatos2([
+      'BD' => 'seguridad',
+      'tabla' => 'usuarios',
+      'datos' => [
+        'contrasena_usuario' => password_hash($this->contrasena1Usuario, PASSWORD_BCRYPT, ["cost" => 10]),
+        'intentos_inicio_sesion_fallidos_usuario' => 0,
+      ],
+      'WHERE' => [
+        'cedula_usuario' => $this->cedulaUsuario
+      ]
+    ]);
+    if ($resultado == false || $resultado <= 0) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Contraseña no actualizada',
+        'texto' => 'La contraseña no ha sido actualizada',
+        'icono' => 'error',
+      ];
+    }
+    $resultado = $this->eliminarDatos2([
+      'fisico' => true,
+      'BD' => 'seguridad',
+      'tabla' => 'tokens_usuarios',
+      'WHERE' => [
+        'tipo_token' => [
+          '=' => [1, 2]
+        ],
+        'cedula_usuario' => $this->cedulaUsuario,
+      ]
+    ]);
+    if ($resultado == false || $resultado <= 0) {
+      return [
+        'tipo' => 'simple',
+        'titulo' => 'Token no eliminado',
+        'texto' => 'El token no ha podido ser eliminado',
+        'icono' => 'error',
+      ];
+    }
+
+    $this->commit();
+    return [
+      'tipo' => 'simple',
+      'titulo' => 'Contraseña actualizada',
+      'texto' => 'La contraseña ha sido actualizada correctamente',
+      'icono' => 'success'
+    ];
+  }
   private function solicitarCodigoRecContrasenaP(array $info) {
     switch ($info['tipo_metodo'] ?? '') {
       case '1': //mensaje normal
@@ -1296,94 +1384,6 @@ class usuariosModelo extends conexion {
           'correo' => $correoRecortado,
         ];
     }
-  }
-  private function restablecerContrasenaUsuarioP($info) {
-    $tokenActual = $this->seleccionarDatos2([
-      'BD' => 'seguridad',
-      'tabla' => 'tokens_usuarios',
-      'campos' => 'token, vencimiento_token',
-      'WHERE' => [
-        'tipo_token' => 1, //Para recuperar la contraseña
-        'cedula_usuario' => $this->cedulaUsuario,
-      ]
-    ])->fetch();
-    if (empty($tokenActual)) {
-      return [
-        'tipo' => 'simple',
-        'titulo' => "Token expirado",
-        'texto' => 'El token de seguridad ha expirado',
-        'icono' => 'error'
-      ];
-    }
-
-    $datetime = new Datetime($tokenActual['vencimiento_token']);
-    $segundosVencimientoToken = $datetime->getTimestamp();
-    $fechaActual = new Datetime();
-    $segundosFechaActual = $fechaActual->getTimestamp();
-
-    if (($segundosVencimientoToken - $segundosFechaActual) <= 0) {
-      return [
-        'tipo' => 'simple',
-        'titulo' => 'Token Vencido',
-        'texto' => 'Tu token ha caducado, por favor, reanuda el proceso desde el principio',
-        'icono' => 'error',
-      ];
-    }
-    if ($this->codigoRecContrasenaUsuario == $tokenActual['token']) {
-      return [
-        'tipo' => 'simple',
-        'titulo' => 'Token erróneo',
-        'texto' => 'El token que ha enviado no es válido',
-        'icono' => 'error',
-      ];
-    }
-
-    $resultado = $this->actualizarDatos2([
-      'BD' => 'seguridad',
-      'tabla' => 'usuarios',
-      'datos' => [
-        'contrasena_usuario' => password_hash($this->contrasena1Usuario, PASSWORD_BCRYPT, ["cost" => 10]),
-        'intentos_inicio_sesion_fallidos_usuario' => 0,
-      ],
-      'WHERE' => [
-        'cedula_usuario' => $this->cedulaUsuario
-      ]
-    ]);
-    if ($resultado == false || $resultado <= 0) {
-      return [
-        'tipo' => 'simple',
-        'titulo' => 'Contraseña no actualizada',
-        'texto' => 'La contraseña no ha sido actualizada',
-        'icono' => 'error',
-      ];
-    }
-    $resultado = $this->eliminarDatos2([
-      'fisico' => true,
-      'BD' => 'seguridad',
-      'tabla' => 'tokens_usuarios',
-      'WHERE' => [
-        'tipo_token' => [
-          '=' => [1, 2]
-        ],
-        'cedula_usuario' => $this->cedulaUsuario,
-      ]
-    ]);
-    if ($resultado == false || $resultado <= 0) {
-      return [
-        'tipo' => 'simple',
-        'titulo' => 'Token no eliminado',
-        'texto' => 'El token no ha podido ser eliminado',
-        'icono' => 'error',
-      ];
-    }
-
-    $this->commit();
-    return [
-      'tipo' => 'simple',
-      'titulo' => 'Contraseña actualizada',
-      'texto' => 'La contraseña ha sido actualizada correctamente',
-      'icono' => 'success'
-    ];
   }
   private function programarCierreSesionUsuarioP() {
     $laSesionEstaActiva = $this->validarVigenciaSesionUsuario();

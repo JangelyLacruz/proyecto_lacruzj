@@ -54,7 +54,7 @@ class clientesModelo extends conexion {
           "nombreAlerta" => "número de control de factura",
           "nombreBD" => "numero_control_factura",
           "tablaBD" => 'control_ordenes_entregas_presupuestos',
-],
+        ],
         'correo_cliente' => [
           ...molCorreo,
           "nombreAlerta" => "correo electrónico del cliente",
@@ -116,7 +116,7 @@ class clientesModelo extends conexion {
     if (trim($this->numeroControlFactura) !== '') {
       $camposAValidar[] = 'numero_control_factura';
     }
-    $v = $this->validarClientes($permiso, $info, $camposAValidar); 
+    $v = $this->validarClientes($permiso, $info, $camposAValidar);
 
     if ($v !== false) return $v;
 
@@ -140,7 +140,7 @@ class clientesModelo extends conexion {
       $camposAValidar[] = 'numero_control_factura';
     }
 
-    $v = $this->validarClientes('actualizar', $info, $camposAValidar); 
+    $v = $this->validarClientes('actualizar', $info, $camposAValidar);
     if ($v) return $v;
 
     $this->rifCedulaCliente = $info['rif_cedula_cliente'];
@@ -177,7 +177,7 @@ class clientesModelo extends conexion {
       ])->fetchAll();
     } else {
       return $this->seleccionarDatos2([
-          'campos' => '
+        'campos' => '
             clientes.rif_cedula_cliente, 
             clientes.razon_social_cliente, 
             clientes.telefono_cliente, 
@@ -185,9 +185,9 @@ class clientesModelo extends conexion {
             clientes.direccion_cliente, 
             control_ordenes_entregas_presupuestos.numero_control_factura
           ',
-          'tabla' => 'clientes INNER JOIN control_ordenes_entregas_presupuestos ON clientes.rif_cedula_cliente = control_ordenes_entregas_presupuestos.rif_cliente',
+        'tabla' => 'clientes INNER JOIN control_ordenes_entregas_presupuestos ON clientes.rif_cedula_cliente = control_ordenes_entregas_presupuestos.rif_cliente',
 
-      /*  'campos' => '
+        /*  'campos' => '
           rif_cedula_cliente, razon_social_cliente,
           telefono_cliente, correo_cliente, direccion_cliente, numero_control_factura
         ',
@@ -199,7 +199,6 @@ class clientesModelo extends conexion {
       ])->fetch();
     }
   }
-
   private function registrarClientesP(array $info) {
 
     $ultimoID = $this->guardarDatos2([

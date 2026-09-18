@@ -16,7 +16,6 @@ class monedasModelo extends conexion {
   private float $valorMoneda = 0;
 
   // PÚBLICOS
-
   public function validarMonedas(string $permiso, array $instruccionesVal) {
     $objAcceso = new accesosModelo();
     $r = $objAcceso->validarPermisos('monedas', $permiso);
@@ -167,10 +166,7 @@ class monedasModelo extends conexion {
     return $this->eliminarMonedasP();
   }
 
-
   //PRIVADOS
-
-
   private function seleccionarMonedasP(array $info) {
     if ($this->idMoneda == null || $this->idMoneda == "") {;
       switch ($info['tipoConsulta'] ?? '') {
@@ -219,15 +215,12 @@ class monedasModelo extends conexion {
       ])->fetch();
     }
   }
-
   private function seleccionarCambiosMonedasP() {
     return $this->seleccionarDatos2([
       'campos' => '*',
       'tabla' => 'v_cambios_monedas_todos',
     ])->fetchAll();
   }
-
-
   private function registrarMonedasP() {
     $objBitacora = new bitacoraModelo();
 
@@ -327,7 +320,6 @@ class monedasModelo extends conexion {
       ];
     }
   }
-
   private function actualizarMonedasP($tipoAct = null) {
     $objBitacora = new bitacoraModelo();
 
@@ -462,7 +454,6 @@ class monedasModelo extends conexion {
       ];
     }
   }
-
   private function eliminarMonedasP() {
     $objBitacora = new bitacoraModelo();
 

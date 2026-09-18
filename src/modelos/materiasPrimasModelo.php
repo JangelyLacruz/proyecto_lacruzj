@@ -17,9 +17,8 @@ class materiasPrimasModelo extends conexion {
   private int $stockMinimoMateriaPrima = 0;
   private array $presentaciones = [];
 
-// PÚBLICOS
-  
-public function validarMateriasPrimas(string $permiso, array $instruccionesVal){
+  // PÚBLICOS
+  public function validarMateriasPrimas(string $permiso, array $instruccionesVal) {
     $objAcceso = new accesosModelo();
     $r = $objAcceso->validarPermisos('materiasPrimas', $permiso);
     if ($r) return $r;
@@ -136,8 +135,8 @@ public function validarMateriasPrimas(string $permiso, array $instruccionesVal){
       }
     }
     return $this->limpiar_Verificar($campos);
-}
-public function modificarStock(string $id_materia_prima, float $cantidad, $conexionTransaction = null) {
+  }
+  public function modificarStock(string $id_materia_prima, float $cantidad, $conexionTransaction = null) {
     try {
       $cn = $conexionTransaction ?? $this->conectar();
       $stmt = $cn->prepare("UPDATE materias_primas SET stock_materia_prima = stock_materia_prima + :cant WHERE id_materia_prima = :id");
@@ -147,15 +146,15 @@ public function modificarStock(string $id_materia_prima, float $cantidad, $conex
       ]);
       return true;
     } catch (\Throwable) {
-      return[
-                'tipo'   => 'simple',
-                'titulo' => 'Error',
-                'texto'  => 'Ha ocurrido un error',
-                'icono'  => 'error',
-            ];
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error',
+        'texto'  => 'Ha ocurrido un error',
+        'icono'  => 'error',
+      ];
     }
-}
-public function seleccionarMateriasPrimas($info = null) {
+  }
+  public function seleccionarMateriasPrimas($info = null) {
     $objAcceso = new accesosModelo();
     $v = $objAcceso->validarPermisos('materiasPrimas', 'listar');
     if ($v) return $v;
@@ -171,8 +170,8 @@ public function seleccionarMateriasPrimas($info = null) {
       $this->idMateriaPrima = $info['id_materia_prima'];
     }
     return $this->seleccionarMateriasPrimasP();
-}
-public function registrarMateriasPrimas(array $info) {
+  }
+  public function registrarMateriasPrimas(array $info) {
     $resultado = $this->validarMateriasPrimas('registrar', [
       'infoVal' => &$info,
       'camposVal' => [
@@ -194,8 +193,8 @@ public function registrarMateriasPrimas(array $info) {
     $this->presentaciones = $info['presentaciones'];
 
     return $this->registrarMateriasPrimasP();
-}
-public function actualizarMateriasPrimas(array $info) {
+  }
+  public function actualizarMateriasPrimas(array $info) {
     $resultado = $this->validarMateriasPrimas('actualizar', [
       'infoVal' => &$info,
       'camposVal' => [
@@ -219,8 +218,8 @@ public function actualizarMateriasPrimas(array $info) {
     $this->presentaciones = $info['presentaciones'];
 
     return $this->actualizarMateriasPrimasP();
-}
-public function eliminarMateriasPrimas(array $info) {
+  }
+  public function eliminarMateriasPrimas(array $info) {
     $resultado = $this->validarMateriasPrimas('eliminar', [
       'infoVal' => &$info,
       'camposVal' => [
@@ -230,11 +229,10 @@ public function eliminarMateriasPrimas(array $info) {
     if ($resultado) return $resultado;
     $this->idMateriaPrima = $info['id_materia_prima'];
     return $this->eliminarMateriasPrimasP();
-}
+  }
 
-// PRIVADOS
-
-private function seleccionarMateriasPrimasP() {
+  // PRIVADOS
+  private function seleccionarMateriasPrimasP() {
     if ($this->idMateriaPrima == null || $this->idMateriaPrima == "") {
       $instruccionesBD = [
         'campos' => '
@@ -276,545 +274,545 @@ private function seleccionarMateriasPrimasP() {
       $materiaPrima['presentaciones'] = $presentaciones;
       return $materiaPrima;
     }
-}
-private function registrarMateriasPrimasP(){
+  }
+  private function registrarMateriasPrimasP() {
     $objBitacora = new bitacoraModelo();
     $objWS       = new mensajesWSModelo();
     $idMateriaPrima = null;
 
     $datosMateriaPrima = [
-        'id_unidad_medida'          => $this->idUnidadMedida,
-        'nombre_materia_prima'      => $this->nombreMateriaPrima,
-        'stock_materia_prima'       => $this->stockMateriaPrima,
-        'stock_minimo_materia_prima' => $this->stockMinimoMateriaPrima,
-        'precio_materia_prima'      => $this->precioMateriaPrima,
+      'id_unidad_medida'          => $this->idUnidadMedida,
+      'nombre_materia_prima'      => $this->nombreMateriaPrima,
+      'stock_materia_prima'       => $this->stockMateriaPrima,
+      'stock_minimo_materia_prima' => $this->stockMinimoMateriaPrima,
+      'precio_materia_prima'      => $this->precioMateriaPrima,
     ];
 
     try {
-        $idMateriaPrima = $this->generarCodSeg([
-            'tablaBD' => 'materias_primas',
-            'prefijo' => 'MATE',
-            'campoID' => 'id_materia_prima',
+      $idMateriaPrima = $this->generarCodSeg([
+        'tablaBD' => 'materias_primas',
+        'prefijo' => 'MATE',
+        'campoID' => 'id_materia_prima',
+      ]);
+
+      $ultimoId = $this->guardarDatos2([
+        'tabla' => 'materias_primas',
+        'datos' => [
+          'id_materia_prima'          => $idMateriaPrima,
+          'id_unidad_medida'          => $this->idUnidadMedida,
+          'nombre_materia_prima'      => $this->nombreMateriaPrima,
+          'stock_materia_prima'       => $this->stockMateriaPrima,
+          'stock_minimo_materia_prima' => $this->stockMinimoMateriaPrima,
+          'precio_materia_prima'      => $this->precioMateriaPrima,
+        ],
+      ]);
+
+      // Validamos si la materia prima fue registrada
+      if ($ultimoId === false || $ultimoId <= 0) {
+        $objBitacora->registrarBitacora([
+          'modulo'    => 'materiasPrimas',
+          'accion'    => 'registrar',
+          'resultado' => 'Fallido',
+          'viejo'     => [],
+          'nuevo'     => $datosMateriaPrima,
         ]);
 
-        $ultimoId = $this->guardarDatos2([
-            'tabla' => 'materias_primas',
-            'datos' => [
-                'id_materia_prima'          => $idMateriaPrima,
-                'id_unidad_medida'          => $this->idUnidadMedida,
-                'nombre_materia_prima'      => $this->nombreMateriaPrima,
-                'stock_materia_prima'       => $this->stockMateriaPrima,
-                'stock_minimo_materia_prima' => $this->stockMinimoMateriaPrima,
-                'precio_materia_prima'      => $this->precioMateriaPrima,
-            ],
-        ]);
+        $this->rollback();
 
-        // Validamos si la materia prima fue registrada
-        if ($ultimoId === false || $ultimoId <= 0) {
-            $objBitacora->registrarBitacora([
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Error al registrar',
+          'texto'  => 'La materia prima no ha podido ser registrada',
+          'icono'  => 'error',
+        ];
+      }
+
+      // Registramos las presentaciones relacionadas
+      if (!empty($this->presentaciones)) {
+        foreach ($this->presentaciones as $idPresentacion) {
+          if ($idPresentacion !== '') {
+            $ultimoIdPresentacion = $this->guardarDatos2([
+              'tabla' => 'presentaciones_materias_primas',
+              'datos' => [
+                'id_materia_prima' => $idMateriaPrima,
+                'id_presentacion' => $idPresentacion,
+              ],
+            ]);
+
+            // Validamos si la presentación fue relacionada correctamente
+            if (
+              $ultimoIdPresentacion === false
+              || $ultimoIdPresentacion <= 0
+            ) {
+              $objBitacora->registrarBitacora([
                 'modulo'    => 'materiasPrimas',
                 'accion'    => 'registrar',
                 'resultado' => 'Fallido',
                 'viejo'     => [],
-                'nuevo'     => $datosMateriaPrima,
-            ]);
+                'nuevo'     => array_merge(
+                  $datosMateriaPrima,
+                  [
+                    'id_materia_prima' => $idMateriaPrima,
+                    'id_presentacion'  => $idPresentacion,
+                  ]
+                ),
+              ]);
 
-            $this->rollback();
+              $this->rollback();
 
-            return [
+              return [
                 'tipo'   => 'simple',
                 'titulo' => 'Error al registrar',
-                'texto'  => 'La materia prima no ha podido ser registrada',
+                'texto'  => 'La presentación de la materia prima no ha podido ser registrada',
                 'icono'  => 'error',
-            ];
-        }
-
-        // Registramos las presentaciones relacionadas
-        if (!empty($this->presentaciones)) {
-            foreach ($this->presentaciones as $idPresentacion) {
-                if ($idPresentacion !== '') {
-                    $ultimoIdPresentacion = $this->guardarDatos2([
-                        'tabla' => 'presentaciones_materias_primas',
-                        'datos' => [
-                            'id_materia_prima' => $idMateriaPrima,
-                            'id_presentacion' => $idPresentacion,
-                        ],
-                    ]);
-
-                    // Validamos si la presentación fue relacionada correctamente
-                    if (
-                        $ultimoIdPresentacion === false
-                        || $ultimoIdPresentacion <= 0
-                    ) {
-                        $objBitacora->registrarBitacora([
-                            'modulo'    => 'materiasPrimas',
-                            'accion'    => 'registrar',
-                            'resultado' => 'Fallido',
-                            'viejo'     => [],
-                            'nuevo'     => array_merge(
-                                $datosMateriaPrima,
-                                [
-                                    'id_materia_prima' => $idMateriaPrima,
-                                    'id_presentacion'  => $idPresentacion,
-                                ]
-                            ),
-                        ]);
-
-                        $this->rollback();
-
-                        return [
-                            'tipo'   => 'simple',
-                            'titulo' => 'Error al registrar',
-                            'texto'  => 'La presentación de la materia prima no ha podido ser registrada',
-                            'icono'  => 'error',
-                        ];
-                    }
-                }
+              ];
             }
+          }
         }
+      }
 
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'materiasPrimas',
-            'accion'    => 'registrar',
-            'resultado' => 'Éxito',
-            'viejo'     => [],
-            'nuevo'     => $this->seleccionarMateriasPrimas([
-                'id_materia_prima' => $idMateriaPrima,
-            ]),
-        ]);
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'materiasPrimas',
+        'accion'    => 'registrar',
+        'resultado' => 'Éxito',
+        'viejo'     => [],
+        'nuevo'     => $this->seleccionarMateriasPrimas([
+          'id_materia_prima' => $idMateriaPrima,
+        ]),
+      ]);
 
-        $this->commit();
+      $this->commit();
 
-        $objWS->enviarMensajesWS([
-            'noCommit' => true,
-            'receptor' => [
-                'tipo' => 'rol',
-                'rol'  => 'ADMINISTRADOR',
+      $objWS->enviarMensajesWS([
+        'noCommit' => true,
+        'receptor' => [
+          'tipo' => 'rol',
+          'rol'  => 'ADMINISTRADOR',
+        ],
+        'cuerpo' => [
+          [
+            'accion' => 'borrarDataModuloSS',
+            'modulo' => 'materiasPrimas',
+          ],
+          [
+            'accion' => 'actDT',
+            'modulo' => 'materiasPrimas',
+          ],
+          [
+            'accion' => 'alertar',
+            'alerta' => [
+              'tipo'     => 'simple',
+              'titulo'   => 'Materia prima registrada',
+              'texto'    => "Se ha registrado la materia prima {$this->nombreMateriaPrima}",
+              'icono'    => 'info',
+              'notifier' => true,
+              'tiempo'   => 3000,
             ],
-            'cuerpo' => [
-                [
-                    'accion' => 'borrarDataModuloSS',
-                    'modulo' => 'materiasPrimas',
-                ],
-                [
-                    'accion' => 'actDT',
-                    'modulo' => 'materiasPrimas',
-                ],
-                [
-                    'accion' => 'alertar',
-                    'alerta' => [
-                        'tipo'     => 'simple',
-                        'titulo'   => 'Materia prima registrada',
-                        'texto'    => "Se ha registrado la materia prima {$this->nombreMateriaPrima}",
-                        'icono'    => 'info',
-                        'notifier' => true,
-                        'tiempo'   => 3000,
-                    ],
-                ],
-            ],
-        ]);
+          ],
+        ],
+      ]);
 
-        return [
-            'tipo'   => 'limpiarYcerrar',
-            'titulo' => 'Materia prima registrada',
-            'texto'  => 'La materia prima ha sido registrada exitosamente',
-            'icono'  => 'success',
-        ];
+      return [
+        'tipo'   => 'limpiarYcerrar',
+        'titulo' => 'Materia prima registrada',
+        'texto'  => 'La materia prima ha sido registrada exitosamente',
+        'icono'  => 'success',
+      ];
     } catch (\Throwable) {
-        $this->rollback();
+      $this->rollback();
 
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'materiasPrimas',
-            'accion'    => 'registrar',
-            'resultado' => 'Fallido',
-            'viejo'     => [],
-            'nuevo'     => array_merge(
-                $datosMateriaPrima,
-                $idMateriaPrima
-                    ? ['id_materia_prima' => $idMateriaPrima]
-                    : []
-            ),
-        ]);
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'materiasPrimas',
+        'accion'    => 'registrar',
+        'resultado' => 'Fallido',
+        'viejo'     => [],
+        'nuevo'     => array_merge(
+          $datosMateriaPrima,
+          $idMateriaPrima
+            ? ['id_materia_prima' => $idMateriaPrima]
+            : []
+        ),
+      ]);
 
-        return [
-            'tipo'   => 'simple',
-            'titulo' => 'Error al registrar',
-            'texto'  => 'No se pudo registrar la materia prima',
-            'icono'  => 'error',
-        ];
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error al registrar',
+        'texto'  => 'No se pudo registrar la materia prima',
+        'icono'  => 'error',
+      ];
     }
-}
-private function actualizarMateriasPrimasP(){
+  }
+  private function actualizarMateriasPrimasP() {
     $objBitacora = new bitacoraModelo();
     $objWS       = new mensajesWSModelo();
     $datosAntes = null;
 
     $datosNuevos = [
-        'id_unidad_medida'           => $this->idUnidadMedida,
-        'nombre_materia_prima'       => $this->nombreMateriaPrima,
-        'stock_materia_prima'        => $this->stockMateriaPrima,
-        'stock_minimo_materia_prima' => $this->stockMinimoMateriaPrima,
-        'precio_materia_prima'       => $this->precioMateriaPrima,
+      'id_unidad_medida'           => $this->idUnidadMedida,
+      'nombre_materia_prima'       => $this->nombreMateriaPrima,
+      'stock_materia_prima'        => $this->stockMateriaPrima,
+      'stock_minimo_materia_prima' => $this->stockMinimoMateriaPrima,
+      'precio_materia_prima'       => $this->precioMateriaPrima,
     ];
 
     try {
-        $MAT = 0;
-        $PRE = 0;
+      $MAT = 0;
+      $PRE = 0;
 
-        $datosAntes = $this->seleccionarMateriasPrimas([
+      $datosAntes = $this->seleccionarMateriasPrimas([
+        'id_materia_prima' => $this->idMateriaPrima,
+      ]);
+
+      // Validamos si existe la materia prima
+      if (!$datosAntes) {
+        $objBitacora->registrarBitacora([
+          'modulo'    => 'materiasPrimas',
+          'accion'    => 'actualizar',
+          'resultado' => 'Fallido',
+          'viejo'     => [
             'id_materia_prima' => $this->idMateriaPrima,
+          ],
+          'nuevo'     => $datosNuevos,
         ]);
 
-        // Validamos si existe la materia prima
-        if (!$datosAntes) {
-            $objBitacora->registrarBitacora([
-                'modulo'    => 'materiasPrimas',
-                'accion'    => 'actualizar',
-                'resultado' => 'Fallido',
-                'viejo'     => [
-                    'id_materia_prima' => $this->idMateriaPrima,
-                ],
-                'nuevo'     => $datosNuevos,
-            ]);
+        $this->rollback();
 
-            $this->rollback();
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Error al actualizar',
+          'texto'  => 'La materia prima no existe en el sistema',
+          'icono'  => 'error',
+        ];
+      }
 
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'Error al actualizar',
-                'texto'  => 'La materia prima no existe en el sistema',
-                'icono'  => 'error',
-            ];
+      $resultado = $this->actualizarDatos2([
+        'tabla' => 'materias_primas',
+        'datos' => $datosNuevos,
+        'WHERE' => [
+          'id_materia_prima' => $this->idMateriaPrima,
+        ],
+      ]);
+
+      if ($resultado !== false && $resultado > 0) {
+        $MAT++;
+      }
+
+      // Eliminamos las presentaciones anteriores si existen
+      if (!empty($datosAntes['presentaciones'])) {
+        $resultado = $this->eliminarDatos2([
+          'tabla' => 'presentaciones_materias_primas',
+          'WHERE' => [
+            'id_materia_prima' => $this->idMateriaPrima,
+          ],
+          'fisico' => true,
+        ]);
+
+        if ($resultado === false || $resultado <= 0) {
+          $objBitacora->registrarBitacora([
+            'modulo'    => 'materiasPrimas',
+            'accion'    => 'actualizar',
+            'resultado' => 'Fallido',
+            'viejo'     => $datosAntes,
+            'nuevo'     => $datosNuevos,
+          ]);
+
+          $this->rollback();
+
+          return [
+            'tipo'   => 'simple',
+            'titulo' => 'Error al actualizar',
+            'texto'  => 'Las presentaciones de la materia prima no han podido ser eliminadas',
+            'icono'  => 'error',
+          ];
         }
 
-        $resultado = $this->actualizarDatos2([
-            'tabla' => 'materias_primas',
-            'datos' => $datosNuevos,
-            'WHERE' => [
+        $PRE += $resultado;
+      }
+
+      // Registramos las nuevas presentaciones
+      if (!empty($this->presentaciones)) {
+        foreach ($this->presentaciones as $idPresentacion) {
+          if ($idPresentacion !== '') {
+            $ultimoId = $this->guardarDatos2([
+              'tabla' => 'presentaciones_materias_primas',
+              'datos' => [
                 'id_materia_prima' => $this->idMateriaPrima,
-            ],
-        ]);
-
-        if ($resultado !== false && $resultado > 0) {
-            $MAT++;
-        }
-
-        // Eliminamos las presentaciones anteriores si existen
-        if (!empty($datosAntes['presentaciones'])) {
-            $resultado = $this->eliminarDatos2([
-                'tabla' => 'presentaciones_materias_primas',
-                'WHERE' => [
-                    'id_materia_prima' => $this->idMateriaPrima,
-                ],
-                'fisico' => true,
+                'id_presentacion' => $idPresentacion,
+              ],
             ]);
 
-            if ($resultado === false || $resultado <= 0) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'materiasPrimas',
-                    'accion'    => 'actualizar',
-                    'resultado' => 'Fallido',
-                    'viejo'     => $datosAntes,
-                    'nuevo'     => $datosNuevos,
-                ]);
-
-                $this->rollback();
-
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Error al actualizar',
-                    'texto'  => 'Las presentaciones de la materia prima no han podido ser eliminadas',
-                    'icono'  => 'error',
-                ];
-            }
-
-            $PRE += $resultado;
-        }
-
-        // Registramos las nuevas presentaciones
-        if (!empty($this->presentaciones)) {
-            foreach ($this->presentaciones as $idPresentacion) {
-                if ($idPresentacion !== '') {
-                    $ultimoId = $this->guardarDatos2([
-                        'tabla' => 'presentaciones_materias_primas',
-                        'datos' => [
-                            'id_materia_prima' => $this->idMateriaPrima,
-                            'id_presentacion' => $idPresentacion,
-                        ],
-                    ]);
-
-                    if ($ultimoId === false || $ultimoId <= 0) {
-                        $objBitacora->registrarBitacora([
-                            'modulo'    => 'materiasPrimas',
-                            'accion'    => 'actualizar',
-                            'resultado' => 'Fallido',
-                            'viejo'     => $datosAntes,
-                            'nuevo'     => array_merge(
-                                $datosNuevos,
-                                [
-                                    'id_materia_prima' => $this->idMateriaPrima,
-                                    'id_presentacion'  => $idPresentacion,
-                                ]
-                            ),
-                        ]);
-
-                        $this->rollback();
-
-                        return [
-                            'tipo'   => 'simple',
-                            'titulo' => 'Error al actualizar',
-                            'texto'  => 'La presentación de la materia prima no ha podido ser registrada',
-                            'icono'  => 'error',
-                        ];
-                    }
-
-                    $PRE++;
-                }
-            }
-        }
-
-        // Validamos si se realizó algún cambio
-        if ($PRE === 0 && $MAT === 0) {
-            $objBitacora->registrarBitacora([
+            if ($ultimoId === false || $ultimoId <= 0) {
+              $objBitacora->registrarBitacora([
                 'modulo'    => 'materiasPrimas',
                 'accion'    => 'actualizar',
                 'resultado' => 'Fallido',
                 'viejo'     => $datosAntes,
-                'nuevo'     => $datosNuevos,
-            ]);
+                'nuevo'     => array_merge(
+                  $datosNuevos,
+                  [
+                    'id_materia_prima' => $this->idMateriaPrima,
+                    'id_presentacion'  => $idPresentacion,
+                  ]
+                ),
+              ]);
 
-            $this->rollback();
+              $this->rollback();
 
-            return [
+              return [
                 'tipo'   => 'simple',
-                'titulo' => 'Aviso',
-                'texto'  => 'La materia prima no ha sido actualizada',
-                'icono'  => 'warning',
-            ];
+                'titulo' => 'Error al actualizar',
+                'texto'  => 'La presentación de la materia prima no ha podido ser registrada',
+                'icono'  => 'error',
+              ];
+            }
+
+            $PRE++;
+          }
         }
+      }
 
-        $datosDespues = $this->seleccionarMateriasPrimas([
-            'id_materia_prima' => $this->idMateriaPrima,
-        ]);
-
+      // Validamos si se realizó algún cambio
+      if ($PRE === 0 && $MAT === 0) {
         $objBitacora->registrarBitacora([
-            'modulo'    => 'materiasPrimas',
-            'accion'    => 'actualizar',
-            'resultado' => 'Éxito',
-            'viejo'     => $datosAntes,
-            'nuevo'     => $datosDespues,
+          'modulo'    => 'materiasPrimas',
+          'accion'    => 'actualizar',
+          'resultado' => 'Fallido',
+          'viejo'     => $datosAntes,
+          'nuevo'     => $datosNuevos,
         ]);
 
-        $this->commit();
-
-        $objWS->enviarMensajesWS([
-            'noCommit' => true,
-            'receptor' => [
-                'tipo' => 'rol',
-                'rol'  => 'ADMINISTRADOR',
-            ],
-            'cuerpo' => [
-                [
-                    'accion' => 'borrarDataModuloSS',
-                    'modulo' => 'materiasPrimas',
-                ],
-                [
-                    'accion' => 'actDT',
-                    'modulo' => 'materiasPrimas',
-                ],
-                [
-                    'accion' => 'alertar',
-                    'alerta' => [
-                        'tipo'     => 'simple',
-                        'titulo'   => 'Materia Prima actualizada',
-                        'texto'    => "Se ha actualizado la materia prima {$this->nombreMateriaPrima}",
-                        'icono'    => 'info',
-                        'notifier' => true,
-                        'tiempo'   => 3000,
-                    ],
-                ],
-            ],
-        ]);
-
-        return [
-            'tipo'   => 'limpiarYcerrar',
-            'titulo' => 'Materia prima actualizada',
-            'texto'  => 'La materia prima ha sido actualizada exitosamente',
-            'icono'  => 'success',
-        ];
-    } catch (\Throwable) {
         $this->rollback();
 
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'materiasPrimas',
-            'accion'    => 'actualizar',
-            'resultado' => 'Fallido',
-            'viejo'     => $datosAntes ?: [
-                'id_materia_prima' => $this->idMateriaPrima,
-            ],
-            'nuevo'     => $datosNuevos,
-        ]);
-
         return [
-            'tipo'   => 'simple',
-            'titulo' => 'Error al actualizar',
-            'texto'  => 'No se pudo actualizar la materia prima',
-            'icono'  => 'warning',
+          'tipo'   => 'simple',
+          'titulo' => 'Aviso',
+          'texto'  => 'La materia prima no ha sido actualizada',
+          'icono'  => 'warning',
         ];
+      }
+
+      $datosDespues = $this->seleccionarMateriasPrimas([
+        'id_materia_prima' => $this->idMateriaPrima,
+      ]);
+
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'materiasPrimas',
+        'accion'    => 'actualizar',
+        'resultado' => 'Éxito',
+        'viejo'     => $datosAntes,
+        'nuevo'     => $datosDespues,
+      ]);
+
+      $this->commit();
+
+      $objWS->enviarMensajesWS([
+        'noCommit' => true,
+        'receptor' => [
+          'tipo' => 'rol',
+          'rol'  => 'ADMINISTRADOR',
+        ],
+        'cuerpo' => [
+          [
+            'accion' => 'borrarDataModuloSS',
+            'modulo' => 'materiasPrimas',
+          ],
+          [
+            'accion' => 'actDT',
+            'modulo' => 'materiasPrimas',
+          ],
+          [
+            'accion' => 'alertar',
+            'alerta' => [
+              'tipo'     => 'simple',
+              'titulo'   => 'Materia Prima actualizada',
+              'texto'    => "Se ha actualizado la materia prima {$this->nombreMateriaPrima}",
+              'icono'    => 'info',
+              'notifier' => true,
+              'tiempo'   => 3000,
+            ],
+          ],
+        ],
+      ]);
+
+      return [
+        'tipo'   => 'limpiarYcerrar',
+        'titulo' => 'Materia prima actualizada',
+        'texto'  => 'La materia prima ha sido actualizada exitosamente',
+        'icono'  => 'success',
+      ];
+    } catch (\Throwable) {
+      $this->rollback();
+
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'materiasPrimas',
+        'accion'    => 'actualizar',
+        'resultado' => 'Fallido',
+        'viejo'     => $datosAntes ?: [
+          'id_materia_prima' => $this->idMateriaPrima,
+        ],
+        'nuevo'     => $datosNuevos,
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error al actualizar',
+        'texto'  => 'No se pudo actualizar la materia prima',
+        'icono'  => 'warning',
+      ];
     }
-}
-private function eliminarMateriasPrimasP(){
+  }
+  private function eliminarMateriasPrimasP() {
     $objBitacora = new bitacoraModelo();
     $objWS       = new mensajesWSModelo();
     $datosAntes = null;
 
     try {
-        $datosAntes = $this->seleccionarMateriasPrimas([
+      $datosAntes = $this->seleccionarMateriasPrimas([
+        'id_materia_prima' => $this->idMateriaPrima,
+      ]);
+
+      // Validamos si existe la materia prima
+      if (!$datosAntes) {
+        $objBitacora->registrarBitacora([
+          'modulo'    => 'materiasPrimas',
+          'accion'    => 'eliminar',
+          'resultado' => 'Fallido',
+          'viejo'     => [
             'id_materia_prima' => $this->idMateriaPrima,
+          ],
+          'nuevo'     => [],
         ]);
 
-        // Validamos si existe la materia prima
-        if (!$datosAntes) {
-            $objBitacora->registrarBitacora([
-                'modulo'    => 'materiasPrimas',
-                'accion'    => 'eliminar',
-                'resultado' => 'Fallido',
-                'viejo'     => [
-                    'id_materia_prima' => $this->idMateriaPrima,
-                ],
-                'nuevo'     => [],
-            ]);
+        $this->rollback();
 
-            $this->rollback();
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Error al eliminar',
+          'texto'  => 'La materia prima no existe en el sistema',
+          'icono'  => 'error',
+        ];
+      }
 
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'Error al eliminar',
-                'texto'  => 'La materia prima no existe en el sistema',
-                'icono'  => 'error',
-            ];
-        }
-
-        // Eliminamos las presentaciones relacionadas
-        if (!empty($datosAntes['presentaciones'])) {
-            $resultado = $this->eliminarDatos2([
-                'tabla' => 'presentaciones_materias_primas',
-                'WHERE' => [
-                    'id_materia_prima' => $this->idMateriaPrima,
-                ],
-            ]);
-
-            if ($resultado === false || $resultado <= 0) {
-                $objBitacora->registrarBitacora([
-                    'modulo'    => 'materiasPrimas',
-                    'accion'    => 'eliminar',
-                    'resultado' => 'Fallido',
-                    'viejo'     => $datosAntes,
-                    'nuevo'     => [],
-                ]);
-
-                $this->rollback();
-
-                return [
-                    'tipo'   => 'simple',
-                    'titulo' => 'Error al eliminar',
-                    'texto'  => 'Las presentaciones de la materia prima no han podido ser eliminadas',
-                    'icono'  => 'error',
-                ];
-            }
-        }
-
-        // Eliminamos la materia prima principal
+      // Eliminamos las presentaciones relacionadas
+      if (!empty($datosAntes['presentaciones'])) {
         $resultado = $this->eliminarDatos2([
-            'tabla' => 'materias_primas',
-            'WHERE' => [
-                'id_materia_prima' => $this->idMateriaPrima,
-            ],
+          'tabla' => 'presentaciones_materias_primas',
+          'WHERE' => [
+            'id_materia_prima' => $this->idMateriaPrima,
+          ],
         ]);
 
         if ($resultado === false || $resultado <= 0) {
-            $objBitacora->registrarBitacora([
-                'modulo'    => 'materiasPrimas',
-                'accion'    => 'eliminar',
-                'resultado' => 'Fallido',
-                'viejo'     => $datosAntes,
-                'nuevo'     => [],
-            ]);
-
-            $this->rollback();
-
-            return [
-                'tipo'   => 'simple',
-                'titulo' => 'Error al eliminar',
-                'texto'  => 'La materia prima no ha podido ser eliminada',
-                'icono'  => 'error',
-            ];
-        }
-
-        $objBitacora->registrarBitacora([
-            'modulo'    => 'materiasPrimas',
-            'accion'    => 'eliminar',
-            'resultado' => 'Éxito',
-            'viejo'     => $datosAntes,
-            'nuevo'     => [],
-        ]);
-
-        $this->commit();
-
-        $objWS->enviarMensajesWS([
-            'noCommit' => true,
-            'receptor' => [
-                'tipo' => 'rol',
-                'rol'  => 'ADMINISTRADOR',
-            ],
-            'cuerpo' => [
-                [
-                    'accion' => 'borrarDataModuloSS',
-                    'modulo' => 'materiasPrimas',
-                ],
-                [
-                    'accion' => 'actDT',
-                    'modulo' => 'materiasPrimas',
-                ],
-                [
-                    'accion' => 'alertar',
-                    'alerta' => [
-                        'tipo'     => 'simple',
-                        'titulo'   => 'Materia Prima eliminada',
-                        'texto'    => 'La materia prima ha sido eliminada del sistema',
-                        'icono'    => 'info',
-                        'notifier' => true,
-                        'tiempo'   => 3000,
-                    ],
-                ],
-            ],
-        ]);
-
-        return [
-            'tipo'   => 'simple',
-            'titulo' => 'Materia prima eliminada',
-            'texto'  => 'La materia prima ha sido eliminada con éxito',
-            'icono'  => 'success',
-        ];
-    } catch (\Throwable) {
-        $this->rollback();
-
-        $objBitacora->registrarBitacora([
+          $objBitacora->registrarBitacora([
             'modulo'    => 'materiasPrimas',
             'accion'    => 'eliminar',
             'resultado' => 'Fallido',
-            'viejo'     => $datosAntes ?: [
-                'id_materia_prima' => $this->idMateriaPrima,
-            ],
+            'viejo'     => $datosAntes,
             'nuevo'     => [],
-        ]);
+          ]);
 
-        return [
+          $this->rollback();
+
+          return [
             'tipo'   => 'simple',
             'titulo' => 'Error al eliminar',
-            'texto'  => 'No se pudo eliminar la materia prima',
+            'texto'  => 'Las presentaciones de la materia prima no han podido ser eliminadas',
             'icono'  => 'error',
+          ];
+        }
+      }
+
+      // Eliminamos la materia prima principal
+      $resultado = $this->eliminarDatos2([
+        'tabla' => 'materias_primas',
+        'WHERE' => [
+          'id_materia_prima' => $this->idMateriaPrima,
+        ],
+      ]);
+
+      if ($resultado === false || $resultado <= 0) {
+        $objBitacora->registrarBitacora([
+          'modulo'    => 'materiasPrimas',
+          'accion'    => 'eliminar',
+          'resultado' => 'Fallido',
+          'viejo'     => $datosAntes,
+          'nuevo'     => [],
+        ]);
+
+        $this->rollback();
+
+        return [
+          'tipo'   => 'simple',
+          'titulo' => 'Error al eliminar',
+          'texto'  => 'La materia prima no ha podido ser eliminada',
+          'icono'  => 'error',
         ];
+      }
+
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'materiasPrimas',
+        'accion'    => 'eliminar',
+        'resultado' => 'Éxito',
+        'viejo'     => $datosAntes,
+        'nuevo'     => [],
+      ]);
+
+      $this->commit();
+
+      $objWS->enviarMensajesWS([
+        'noCommit' => true,
+        'receptor' => [
+          'tipo' => 'rol',
+          'rol'  => 'ADMINISTRADOR',
+        ],
+        'cuerpo' => [
+          [
+            'accion' => 'borrarDataModuloSS',
+            'modulo' => 'materiasPrimas',
+          ],
+          [
+            'accion' => 'actDT',
+            'modulo' => 'materiasPrimas',
+          ],
+          [
+            'accion' => 'alertar',
+            'alerta' => [
+              'tipo'     => 'simple',
+              'titulo'   => 'Materia Prima eliminada',
+              'texto'    => 'La materia prima ha sido eliminada del sistema',
+              'icono'    => 'info',
+              'notifier' => true,
+              'tiempo'   => 3000,
+            ],
+          ],
+        ],
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Materia prima eliminada',
+        'texto'  => 'La materia prima ha sido eliminada con éxito',
+        'icono'  => 'success',
+      ];
+    } catch (\Throwable) {
+      $this->rollback();
+
+      $objBitacora->registrarBitacora([
+        'modulo'    => 'materiasPrimas',
+        'accion'    => 'eliminar',
+        'resultado' => 'Fallido',
+        'viejo'     => $datosAntes ?: [
+          'id_materia_prima' => $this->idMateriaPrima,
+        ],
+        'nuevo'     => [],
+      ]);
+
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Error al eliminar',
+        'texto'  => 'No se pudo eliminar la materia prima',
+        'icono'  => 'error',
+      ];
     }
-}
+  }
 }

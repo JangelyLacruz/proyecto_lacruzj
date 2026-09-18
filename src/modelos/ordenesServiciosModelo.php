@@ -59,7 +59,6 @@ class ordenesServiciosModelo extends conexion {
 
     return $this->limpiar_Verificar($campos);
   }
-  
   public function listarOrdenesServicios(array $info) {
     if (($info['id_servicio_factura'] ?? '') != "") {
       $resultado = $this->validarOrdenesServicios('ver', $info, ['id_servicio_factura']);
@@ -68,7 +67,6 @@ class ordenesServiciosModelo extends conexion {
     }
     return $this->listarOrdenesServiciosP($info);
   }
-  
   public function actualizarOrdenesServicio(array $info) {
     $resultado = $this->validarOrdenesServicios('actualizar', $info, ['id_servicio_factura', 'status']);
     if ($resultado) return $resultado;
@@ -79,7 +77,6 @@ class ordenesServiciosModelo extends conexion {
 
     return $this->actualizarOrdenesServicioP();
   }
-
   private function listarOrdenesServiciosP(array $info) {
     if ($this->idOrdenServicio != '') {
       return $this->seleccionarOrdenesServiciosP();
@@ -149,7 +146,6 @@ class ordenesServiciosModelo extends conexion {
 
     return $ordenes;
   }
-
   private function seleccionarOrdenesServiciosP() {
     $orden = $this->seleccionarDatos2([
       'campos' => '
@@ -245,7 +241,6 @@ class ordenesServiciosModelo extends conexion {
 
     return $orden;
   }
-
   private function actualizarOrdenesServicioP() {
     $objBitacora = new bitacoraModelo();
     $error = function () use ($objBitacora) {

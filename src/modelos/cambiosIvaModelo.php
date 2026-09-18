@@ -133,7 +133,7 @@ class cambiosIvaModelo extends conexion {
       'tabla' => 'cambios_iva',
       'datos' => [
         "monto_cambio_iva" => $this->montoCambioIva,
-        "fecha_cambio_iva" => $this->FechaHora_Sel('fecha_hora_BD'),
+        "fecha_cambio_iva" => $this->fechaHoraSel('fecha_hora_BD'),
       ]
     ]);
 
