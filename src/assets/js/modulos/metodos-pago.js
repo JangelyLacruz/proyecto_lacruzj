@@ -33,11 +33,13 @@ $(document).on('DOMContentLoaded', async function (e) {
       mostrar_ecommerce: (info) => { return (info.valor == 1 ? 'SI' : 'NO') },
     },
     visualizacionResponsiveColumnas: {
-      "necesita_moneda": "l",
-      "necesita_banco_emisor": "xl",
-      "necesita_banco_receptor": "xl",
-      "necesita_referencia": "xxl",
-      "mostrar_ecommerce": "xxl",
+      "id_metodo_pago": 1,
+      "nombre_metodo_pago": 1,
+      "necesita_moneda": 2,
+      "necesita_banco_emisor": 3,
+      "necesita_banco_receptor": 4,
+      "necesita_referencia": 5,
+      "mostrar_ecommerce": 6,
     },
   });
   driverAyuda('metodos-pago', {

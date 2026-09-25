@@ -208,8 +208,8 @@ function renderizarDashboard() {
   let total = datosTabla.length;
   let criticos = datosTabla.filter(p => parseFloat(p.stock_producto) <= parseFloat(p.stock_minimo_producto)).length;
   let valorDivisas = datosTabla.reduce((acc, p) => acc + (parseFloat(p.precio_producto) * parseFloat(p.stock_producto)), 0);
-  valorDivisas= valorDivisas.toFixed(2)
-  
+  valorDivisas = valorDivisas.toFixed(2)
+
   let dashboardHTML = `
     <div class="row mb-4" id="metricasDashboard">
       <div class="col-md-4">
@@ -270,7 +270,7 @@ function renderizarDashboard() {
   let dashboard = $('#metricasDashboard');
   if (dashboard.length == 0) {
     $(dashboardHTML).insertBefore($('.tabla-ajax').closest('.card'));
-  } else { 
+  } else {
     dashboard.find('.totalProdDashboard').text(total)
     dashboard.find('.valorTotalInventario').text(`${formateoCampos(valorDivisas, 'dineroDolar')}`)
     dashboard.find('.nroProdStockCriticos').text(criticos)
@@ -440,10 +440,12 @@ $(document).on("DOMContentLoaded", async function () {
       },
     },
     visualizacionResponsiveColumnas: {
-      "stock_producto": "m",
-      "precio_producto": "l",
-      "nombre_categoria_producto": "xl",
-      "nombre_unidad_medida": "xxl",
+      "id_producto": 2,
+      "nombre_producto": 1,
+      "nombre_categoria_producto": 3,
+      "precio_producto": 4,
+      "stock_producto": 5,
+      "nombre_unidad_medida": 6,
     },
   });
 

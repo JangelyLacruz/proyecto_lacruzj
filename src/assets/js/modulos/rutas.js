@@ -31,11 +31,11 @@ $(document).on('DOMContentLoaded', async function (e) {
       maximo_km_ruta: (info) => { return info.valor + ' Km' },
     },
     visualizacionResponsiveColumnas: {
-      "id_ruta": "p",
-      "nombre_ruta": "p",
-      "precio_ruta": "l",
-      "minimo_km_ruta": "xl",
-      "maximo_km_ruta": "xl",
+      "nombre_ruta": 1,
+      "id_ruta": 2,
+      "precio_ruta": 3,
+      "minimo_km_ruta": 4,
+      "maximo_km_ruta": 5,
     },
   });
   driverAyuda('rutas', {

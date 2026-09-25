@@ -307,14 +307,14 @@ $(document).on('DOMContentLoaded', async function (e) {
         }
       },
       visualizacionResponsiveColumnas: {
-        "cedula_usuario": "p",
-        "nombre_usuario": "p",
-        "apellido_usuario": "xl",
-        "foto_usuario": "xl",
-        "nombre_rol": "xl",
-        "telefono_usuario": "xl",
-        "correo_usuario": "xl",
-        "usuario_usuario": "xl",
+        "cedula_usuario": 1,
+        "nombre_usuario": 2,
+        "apellido_usuario": 3,
+        "foto_usuario": 4,
+        "nombre_rol": 5,
+        "telefono_usuario": 4,
+        "correo_usuario": 6,
+        "usuario_usuario": 7,
       },
     });
     extraerDatosAjax({

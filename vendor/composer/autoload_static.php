@@ -16,13 +16,22 @@ class ComposerStaticInit46b5bf6509e2820999b53820d11f97fc
         array (
             'src\\' => 4,
         ),
+        'Z' => 
+        array (
+            'ZipStream\\' => 10,
+        ),
         'P' => 
         array (
             'Psr\\SimpleCache\\' => 16,
             'Psr\\Cache\\' => 10,
             'Phpfastcache\\' => 13,
             'PhpParser\\' => 10,
+            'PhpOffice\\PhpSpreadsheet\\' => 25,
             'PHPMailer\\PHPMailer\\' => 20,
+        ),
+        'M' => 
+        array (
+            'Matrix\\' => 7,
         ),
         'E' => 
         array (
@@ -32,6 +41,11 @@ class ComposerStaticInit46b5bf6509e2820999b53820d11f97fc
         array (
             'DeepCopy\\' => 9,
             'DASPRiD\\Enum\\' => 13,
+        ),
+        'C' => 
+        array (
+            'Composer\\Pcre\\' => 14,
+            'Complex\\' => 8,
         ),
         'B' => 
         array (
@@ -43,6 +57,10 @@ class ComposerStaticInit46b5bf6509e2820999b53820d11f97fc
         'src\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
+        ),
+        'ZipStream\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/maennchen/zipstream-php/src',
         ),
         'Psr\\SimpleCache\\' => 
         array (
@@ -60,9 +78,17 @@ class ComposerStaticInit46b5bf6509e2820999b53820d11f97fc
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
         ),
+        'PhpOffice\\PhpSpreadsheet\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpoffice/phpspreadsheet/src/PhpSpreadsheet',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'Matrix\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/matrix/classes/src',
         ),
         'Endroid\\QrCode\\' => 
         array (
@@ -75,6 +101,14 @@ class ComposerStaticInit46b5bf6509e2820999b53820d11f97fc
         'DASPRiD\\Enum\\' => 
         array (
             0 => __DIR__ . '/..' . '/dasprid/enum/src',
+        ),
+        'Composer\\Pcre\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/composer/pcre/src',
+        ),
+        'Complex\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/complex/classes/src',
         ),
         'BaconQrCode\\' => 
         array (

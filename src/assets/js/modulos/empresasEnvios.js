@@ -22,6 +22,10 @@ $(document).on('DOMContentLoaded', async function (e) {
     },
     campoIdBtn: 'id_empresa_envios',
     botones: 'CRUD',
+    visualizacionResponsiveColumnas: {
+      "nombre_empresa": 1,
+      "id_empresa_envios": 2,
+    },
   });
   driverAyuda('empresasEnvios', {
     pasos: [

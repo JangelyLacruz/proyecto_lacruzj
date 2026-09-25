@@ -2,10 +2,16 @@
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/bootstrap.min.js"></script>
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/jquery-3.7.1.min.js"></script>
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/jquery.mask.min.js"></script>
-<script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/jquery.dataTables.min.js"></script>
+
+<!-- <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/jquery.dataTables.min.js"></script> -->
+
+<script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/dataTables.min.js"></script>
+<script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/dataTables.bootstrap5.min.js"></script>
+<script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/dataTables.responsive.min.js"></script>
+<script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/responsive.bootstrap5.min.js"></script>
+
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/select2.min.js"></script>
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/sweetalert2.all.min.js"></script>
-<script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/dataTables.bootstrap5.min.js"></script>
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/chart.min.js"></script>
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/notifier.min.js"></script>
 <script nonce="<?php echo $_SESSION['nonce']; ?>" src="/proyecto-lacruz-j/src/assets/js/plugins/datepicker-full.min.js"></script>

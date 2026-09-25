@@ -1,6 +1,6 @@
 //#region [ IMPORTACIONES ] COMIENZO
 import {
-  enviarFormulario, obtenerDatosRegistro,eliminarRegistro,
+  enviarFormulario, obtenerDatosRegistro, eliminarRegistro,
   listarDataTable, cargarInputsActualizarQNR, validarEnTiempoReal
 } from '/proyecto-lacruz-j/src/assets/js/modulos/global.js';
 import { driverAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js"
@@ -22,6 +22,10 @@ $(document).on('DOMContentLoaded', async function (e) {
     },
     campoIdBtn: 'id_pregunta',
     botones: 'CRUD',
+    visualizacionResponsiveColumnas: {
+      "id_pregunta": 1,
+      "texto_pregunta": 2,
+    }
   });
   driverAyuda('preguntas_seguridad', {
     pasos:

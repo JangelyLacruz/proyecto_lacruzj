@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 18-09-2026 a las 01:39:51
+-- Tiempo de generación: 25-09-2026 a las 14:37:22
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -393,6 +393,7 @@ INSERT INTO `clientes` (`rif_cedula_cliente`, `razon_social_cliente`, `telefono_
 ('J310729425', 'Condominio Centro Comercial Profesional Rosancar', '04128479199', 'rosancarbarquisimeto@gmail.com', 'Calle 20 Esq. Carrera 31 C.C Rosancar Nivel 30-97 Local PB Sector Centro Barquisimeto Edo. Lara', 1),
 ('J31317343', 'Carlos Hurtado', '04164532184', 'carloshurtado30e15@gmail.com', 'Valles de uribana, tamaca', 0),
 ('J314964291', 'Mbzoluciones C.A', '04222547862', 'mbzolucioles@gmail.com', 'Calle 26 entre Carreras 16 y 17 Edif. Torre Ejecutiva piso 4 oficina 45 Barquisimeto Edo Lara', 0),
+('J33333333', 'ANDEROSN FREITEZ', '04169484649', 'andersonfreitez6@gmail.com', 'BARQUISIMETO\r\nQUIBOR', 1),
 ('J54686423', 'asdadasdasdasd', '04243453453', 'carlosdsd30e15@gmail.com', 'dfsdfsfsdfsdff', 0),
 ('V12345666', 'Anderson Freitez', '04169484640', 'andersonfreitez61@gmail.com', 'SANARE', 0),
 ('V123456669', 'Anderson Freitez', '04169484678', 'andersonfreitekz6@gmail.com', 'SANARE', 0),
@@ -477,26 +478,15 @@ INSERT INTO `comprobantes_pagos` (`id_comprobante_pago`, `id_pago`, `path_compro
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `control_ordenes_entregas_presupuestos`
+-- Estructura de tabla para la tabla `control_facturas`
 --
 
-CREATE TABLE `control_ordenes_entregas_presupuestos` (
-  `rif_cliente` varchar(20) NOT NULL,
-  `numero_control_factura` varchar(11) NOT NULL,
+CREATE TABLE `control_facturas` (
+  `nro_factura` varchar(7) NOT NULL,
+  `id_orden_entrega_presupuesto` varchar(20) NOT NULL,
+  `nro_control` varchar(10) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `control_ordenes_entregas_presupuestos`
---
-
-INSERT INTO `control_ordenes_entregas_presupuestos` (`rif_cliente`, `numero_control_factura`, `status`) VALUES
-('J001241345', 'GTC5834467', 1),
-('J001673920', 'DFG3453454', 1),
-('J070003448', 'zfd3458644', 1),
-('J310729425', '2312ASDAD5', 1),
-('J31317343', 'ZCT2345563', 1),
-('J314964291', '5676SFS234', 1);
 
 -- --------------------------------------------------------
 
@@ -1089,6 +1079,18 @@ CREATE TABLE `movimientos_anomalos_productos` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `nros_control_retenciones`
+--
+
+CREATE TABLE `nros_control_retenciones` (
+  `nro_control_factura` varchar(11) NOT NULL,
+  `rif_proveedor` varchar(20) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `ordenes_entregas_presupuestos`
 --
 
@@ -1118,6 +1120,30 @@ INSERT INTO `ordenes_entregas_presupuestos` (`id_orden_entrega_presupuesto`, `ce
 ('OEP-26258-00001-71', 'V30485684', 258, 'J310729425', '2026-09-16 23:16:37', 10),
 ('OEP-26258-00002-85', 'V30485684', 258, 'J314964291', '2026-09-16 23:24:24', 10),
 ('OEP-26259-00001-32', 'V30485684', 258, 'J310729425', '2026-09-17 10:08:40', 2);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `ordenes_retenciones_compras`
+--
+
+CREATE TABLE `ordenes_retenciones_compras` (
+  `id_retencion_compra` varchar(20) NOT NULL,
+  `id_compra` varchar(20) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `ordenes_retenciones_facturas`
+--
+
+CREATE TABLE `ordenes_retenciones_facturas` (
+  `nro_comprobante` varchar(14) NOT NULL,
+  `nro_factura` varchar(7) NOT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1211,7 +1237,8 @@ INSERT INTO `precios_productos` (`id_precio_producto`, `id_producto`, `precio_pr
 (98, 'PROD-26222-00003-10', 1.00, '2026-08-12 00:37:59', 0),
 (101, 'PROD-26222-00004-43', 1.00, '2026-08-12 00:48:20', 0),
 (102, 'PROD-26222-00005-98', 1.00, '2026-08-12 00:48:53', 0),
-(103, 'PROD-26222-00006-10', 10.00, '2026-08-12 00:50:58', 0);
+(103, 'PROD-26222-00006-10', 10.00, '2026-08-12 00:50:58', 0),
+(104, 'PROD-26265-00001-91', 1.00, '2026-09-23 16:33:04', 1);
 
 -- --------------------------------------------------------
 
@@ -1399,7 +1426,13 @@ INSERT INTO `presentaciones_productos` (`id_presentacion_producto`, `id_producto
 ('PRPR-26222-00038-12', 'PROD-26222-00004-43', 'PRES-26159-00002-78', 0, '', 0),
 ('PRPR-26222-00039-70', 'PROD-26222-00004-43', 'PRES-26159-00003-24', 1, 'presentaciones_productos_2026-08-11_13_57_40.png?v=2026-08-11_13_57_40', 0),
 ('PRPR-26222-00040-06', 'PROD-26222-00004-43', 'PRES-26177-00001-19', 1, '', 0),
-('PRPR-26222-00041-20', 'PROD-26222-00004-43', 'PRES-26177-00002-40', 0, 'presentaciones_productos_2026-08-11_13_57_32.png?v=2026-08-11_13_57_32', 0);
+('PRPR-26222-00041-20', 'PROD-26222-00004-43', 'PRES-26177-00002-40', 0, 'presentaciones_productos_2026-08-11_13_57_32.png?v=2026-08-11_13_57_32', 0),
+('PRPR-26265-00001-06', 'PROD-26265-00001-91', 'PRES-26123-00001-28', 1, '', 1),
+('PRPR-26265-00002-96', 'PROD-26265-00001-91', 'PRES-26159-00001-42', 0, '', 1),
+('PRPR-26265-00003-15', 'PROD-26265-00001-91', 'PRES-26159-00002-78', 1, '', 1),
+('PRPR-26265-00004-21', 'PROD-26265-00001-91', 'PRES-26159-00003-24', 0, '', 1),
+('PRPR-26265-00005-57', 'PROD-26265-00001-91', 'PRES-26177-00001-19', 0, '', 1),
+('PRPR-26265-00006-77', 'PROD-26265-00001-91', 'PRES-26177-00002-40', 1, '', 1);
 
 -- --------------------------------------------------------
 
@@ -1452,7 +1485,8 @@ INSERT INTO `productos` (`id_producto`, `id_unidad_medida`, `id_categoria_produc
 ('PROD-26222-00003-10', 2, 1, 'CLORO2', 1.00, 1.00, 5.00, 0),
 ('PROD-26222-00004-43', 2, 1, 'CLOROf', 1.00, 1.00, 5.00, 0),
 ('PROD-26222-00005-98', 2, 2, 'CLOROm', 1.00, 1.00, 5.00, 0),
-('PROD-26222-00006-10', 2, 1, 'CLOROs', 10.00, 1.00, 5.00, 0);
+('PROD-26222-00006-10', 2, 1, 'CLOROs', 10.00, 1.00, 5.00, 0),
+('PROD-26265-00001-91', 2, 2, 'CLORO2', 1.00, 10.00, 5.00, 1);
 
 --
 -- Disparadores `productos`
@@ -2053,10 +2087,11 @@ ALTER TABLE `comprobantes_pagos`
   ADD KEY `id_pago_comprobantes_pagos_fk` (`id_pago`);
 
 --
--- Indices de la tabla `control_ordenes_entregas_presupuestos`
+-- Indices de la tabla `control_facturas`
 --
-ALTER TABLE `control_ordenes_entregas_presupuestos`
-  ADD PRIMARY KEY (`rif_cliente`);
+ALTER TABLE `control_facturas`
+  ADD PRIMARY KEY (`nro_factura`),
+  ADD KEY `id_orden_entrega_presupuesto_control_facturas_fk` (`id_orden_entrega_presupuesto`);
 
 --
 -- Indices de la tabla `deliveries`
@@ -2169,12 +2204,31 @@ ALTER TABLE `movimientos_anomalos_productos`
   ADD KEY `id_presentacion_producto_movimientos_anomalos_productos_fk` (`id_presentacion_producto`);
 
 --
+-- Indices de la tabla `nros_control_retenciones`
+--
+ALTER TABLE `nros_control_retenciones`
+  ADD KEY `rif_proveedor_nros_control_retenciones` (`rif_proveedor`);
+
+--
 -- Indices de la tabla `ordenes_entregas_presupuestos`
 --
 ALTER TABLE `ordenes_entregas_presupuestos`
   ADD PRIMARY KEY (`id_orden_entrega_presupuesto`),
   ADD KEY `rif_cedula_cliente_venta_fk` (`rif_cedula_cliente`),
-  ADD KEY `id_cambio_iva_venta` (`id_cambio_iva`);
+  ADD KEY `id_cambio_iva_venta` (`id_cambio_iva`),
+  ADD KEY `cedula_usuario` (`cedula_usuario`);
+
+--
+-- Indices de la tabla `ordenes_retenciones_compras`
+--
+ALTER TABLE `ordenes_retenciones_compras`
+  ADD KEY `id_compra_ordenes_retenciones_compras_fk` (`id_compra`);
+
+--
+-- Indices de la tabla `ordenes_retenciones_facturas`
+--
+ALTER TABLE `ordenes_retenciones_facturas`
+  ADD KEY `nro_factura_ordenes_retenciones_facturas_fk` (`nro_factura`);
 
 --
 -- Indices de la tabla `pagos`
@@ -2460,7 +2514,7 @@ ALTER TABLE `precios_materias_primas`
 -- AUTO_INCREMENT de la tabla `precios_productos`
 --
 ALTER TABLE `precios_productos`
-  MODIFY `id_precio_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+  MODIFY `id_precio_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT de la tabla `precios_rutas`
@@ -2564,10 +2618,10 @@ ALTER TABLE `comprobantes_pagos`
   ADD CONSTRAINT `id_pago_comprobantes_pagos_fk` FOREIGN KEY (`id_pago`) REFERENCES `pagos` (`id_pago`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `control_ordenes_entregas_presupuestos`
+-- Filtros para la tabla `control_facturas`
 --
-ALTER TABLE `control_ordenes_entregas_presupuestos`
-  ADD CONSTRAINT `control_ordenes_entregas_presupuestos_ibfk_1` FOREIGN KEY (`rif_cliente`) REFERENCES `clientes` (`rif_cedula_cliente`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `control_facturas`
+  ADD CONSTRAINT `id_orden_entrega_presupuesto_control_facturas_fk` FOREIGN KEY (`id_orden_entrega_presupuesto`) REFERENCES `ordenes_entregas_presupuestos` (`id_orden_entrega_presupuesto`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `deliveries`
@@ -2640,11 +2694,29 @@ ALTER TABLE `movimientos_anomalos_productos`
   ADD CONSTRAINT `id_presentacion_producto_movimientos_anomalos_productos_fk` FOREIGN KEY (`id_presentacion_producto`) REFERENCES `presentaciones_productos` (`id_presentacion_producto`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Filtros para la tabla `nros_control_retenciones`
+--
+ALTER TABLE `nros_control_retenciones`
+  ADD CONSTRAINT `rif_proveedor_nros_control_retenciones` FOREIGN KEY (`rif_proveedor`) REFERENCES `proveedores` (`rif_proveedor`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Filtros para la tabla `ordenes_entregas_presupuestos`
 --
 ALTER TABLE `ordenes_entregas_presupuestos`
   ADD CONSTRAINT `id_cambio_iva_venta` FOREIGN KEY (`id_cambio_iva`) REFERENCES `cambios_iva` (`id_cambio_iva`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `rif_cedula_cliente_venta_fk` FOREIGN KEY (`rif_cedula_cliente`) REFERENCES `clientes` (`rif_cedula_cliente`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `ordenes_retenciones_compras`
+--
+ALTER TABLE `ordenes_retenciones_compras`
+  ADD CONSTRAINT `id_compra_ordenes_retenciones_compras_fk` FOREIGN KEY (`id_compra`) REFERENCES `compras` (`id_compra`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `ordenes_retenciones_facturas`
+--
+ALTER TABLE `ordenes_retenciones_facturas`
+  ADD CONSTRAINT `nro_factura_ordenes_retenciones_facturas_fk` FOREIGN KEY (`nro_factura`) REFERENCES `control_facturas` (`nro_factura`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `pagos`

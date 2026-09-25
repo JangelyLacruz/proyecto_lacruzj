@@ -16,7 +16,8 @@
     "setasign/fpdf": "^1.8",
     "endroid/qr-code": "^6.0",
     "phpfastcache/phpfastcache": "^9.2",
-    "phpmailer/phpmailer": "^7.1"
+    "phpmailer/phpmailer": "^7.1",
+    "phpoffice/phpspreadsheet": "^5.10"
   },
   "scripts": {
     "tpu": "vendor/bin/phpunit -c src/tests/phpunit/config/phpunit.xml --colors=always",
