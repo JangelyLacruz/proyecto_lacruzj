@@ -908,6 +908,12 @@ async function verDetalleOrden(idOrden) {
   if (data.delivery && c.estado_num != 3 && c.estado_num != 4 && c.estado_num != 5 && c.estado_num != 20) {
     botonesHtml += `<button type="button" class="btn btn-info text-white btnDespacharOrden" data-id="${c.id_orden_entrega_presupuesto}"><i class="fi fi-rs-truck-side me-1"></i>Despachar</button> `;
   }
+
+  // Botón Planilla de Retención IVA (Solo para órdenes pendientes de pago o ya pagadas; nunca en presupuestos ni anuladas)
+  if (c.status != 20 && c.status != 2 && c.status != 0 && c.estado_num != 20 && c.estado_num != 5) {
+    botonesHtml += `<button type="button" class="btn btn-outline-primary btnAbrirModalRetencion" data-id="${c.id_orden_entrega_presupuesto}"><i class="fi fi-rs-document-signed me-1"></i>Retención IVA</button> `;
+  }
+
   $('#botonesExtraDetalle').html(botonesHtml);
 
   let modalDetalle = new bootstrap.Modal('.modalDetallesOrden');
@@ -2396,7 +2402,7 @@ async function abrirModalPagos(idOrden) {
 
     $('#spinnerCarga').removeClass('d-none');
     try {
-      let req = await fetch(O + 'ordenesEntregasPresupuestos', {
+      let req = await fetch('?modulo=ordenesEntregasPresupuestos', {
         method: 'POST',
         headers: misHeaders,
         body: fd
@@ -2511,3 +2517,217 @@ $('body').on('click', '.botonImprimirPlanilla', function (e) {
     console.error("Error al imprimir:", error);
   });
 });
+
+//#region [LOGICA DE PLANILLA RETENCION IVA]
+let _datosRetencionActual = null;
+
+// Abrir modal de Retención IVA desde el Detalle de la Orden
+$(document).off('click', '.btnAbrirModalRetencion').on('click', '.btnAbrirModalRetencion', async function (e) {
+  e.preventDefault();
+  let id = $(this).data('id') || $(this).attr('data-id');
+  if (!id) return;
+
+  Swal.fire({
+    title: 'Consultando datos...',
+    text: 'Cargando información para la retención de IVA',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  try {
+    let resp = await pedirDatosAjax({
+      modulo: 'ordenesEntregasPresupuestos',
+      noGuardarLocal: true,
+      datosPe: {
+        accion: 'obtenerDatosRetencion',
+        id_orden_entrega_presupuesto: id
+      }
+    });
+
+    Swal.close();
+
+    if (!resp || (resp.tipo === 'simple' && resp.icono === 'error')) {
+      Swal.fire(resp.titulo || 'Error', resp.texto || 'No se pudieron obtener los datos de la orden', resp.icono || 'error');
+      return;
+    }
+
+    _datosRetencionActual = resp;
+
+    // Rellenar formulario del modal
+    $('#retIdOrden').val(resp.id_orden_entrega_presupuesto);
+    $('#retOrdenBadge').text(resp.id_orden_entrega_presupuesto);
+    $('#retClienteNombre').text(resp.cliente || 'Consumidor Final');
+    $('#retClienteRif').text(resp.rif_cedula_cliente || '-');
+
+    $('#inputRetNroFactura').val(resp.nro_factura || '');
+    $('#inputRetNroControl').val(resp.nro_control || '');
+    $('#inputRetNroComprobante').val(resp.nro_comprobante || '');
+    $('#inputRetFecha').val(resp.fecha_sugerida || new Date().toISOString().slice(0, 10));
+    $('#selectRetPorcentaje').val('75');
+    $('#inputRetTasaCambio').val(parseFloat(resp.tasa_bolivar || 1).toFixed(4));
+
+    // Recalcular montos en pantalla
+    actualizarCalculosModalRetencion();
+
+    let modalRet = new bootstrap.Modal(document.getElementById('modalRetencionIVA'));
+    modalRet.show();
+
+  } catch (err) {
+    Swal.close();
+    console.error("Error al cargar retención:", err);
+    Swal.fire('Error', 'Ocurrió un error al consultar la información de retención', 'error');
+  }
+});
+
+// Función para actualizar en vivo el resumen de montos en Bs del modal
+function actualizarCalculosModalRetencion() {
+  if (!_datosRetencionActual) return;
+
+  let tasa = parseFloat($('#inputRetTasaCambio').val()) || parseFloat(_datosRetencionActual.tasa_bolivar) || 1;
+  let porcRet = parseFloat($('#selectRetPorcentaje').val()) || 75;
+  let alicuota = parseFloat(_datosRetencionActual.alicuota_iva) || 16;
+
+  let baseDolares = parseFloat(_datosRetencionActual.base_imponible_dolares) || 0;
+  let ivaDolares = parseFloat(_datosRetencionActual.iva_dolares) || 0;
+
+  let baseBs = baseDolares * tasa;
+  let ivaBs = ivaDolares * tasa;
+  let totalBs = baseBs + ivaBs;
+  let ivaRetenidoBs = ivaBs * (porcRet / 100);
+  let montoAPagarBs = totalBs - ivaRetenidoBs;
+
+  const fnFmt = (n) => 'Bs ' + n.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  $('#resRetBaseImponible').text(fnFmt(baseBs));
+  $('#resRetAlicuota').text(alicuota);
+  $('#resRetMontoIva').text(fnFmt(ivaBs));
+  $('#resRetPorcBadge').text(porcRet);
+  $('#resRetMontoRetenido').text(fnFmt(ivaRetenidoBs));
+  $('#resRetMontoAPagar').text(fnFmt(montoAPagarBs));
+}
+
+// Eventos para recalcular montos al cambiar tasa o porcentaje
+$(document).on('input change', '#inputRetTasaCambio, #selectRetPorcentaje', function () {
+  actualizarCalculosModalRetencion();
+});
+
+// Generar Retención IVA (Descarga de archivo Excel y persistencia en BD)
+$(document).off('click', '#btnGenerarRetencionIVA').on('click', '#btnGenerarRetencionIVA', async function (e) {
+  e.preventDefault();
+
+  let idOrden = $('#retIdOrden').val().trim();
+  let nroFactura = $('#inputRetNroFactura').val().trim();
+  let nroControl = $('#inputRetNroControl').val().trim();
+  let nroComprobante = $('#inputRetNroComprobante').val().trim();
+  let fecha = $('#inputRetFecha').val().trim();
+  let porcRet = $('#selectRetPorcentaje').val();
+  let tasaCambio = $('#inputRetTasaCambio').val();
+
+  if (!nroFactura) {
+    Swal.fire('Campo Requerido', 'Por favor ingresa el Número de Factura (máx. 7 caracteres).', 'warning');
+    $('#inputRetNroFactura').focus();
+    return;
+  }
+  if (nroFactura.length > 7) {
+    Swal.fire('Límite Excedido', 'El Número de Factura no puede superar 7 caracteres.', 'warning');
+    $('#inputRetNroFactura').focus();
+    return;
+  }
+
+  if (!nroControl) {
+    Swal.fire('Campo Requerido', 'Por favor ingresa el Número de Control de la Factura (máx. 10 caracteres).', 'warning');
+    $('#inputRetNroControl').focus();
+    return;
+  }
+  if (nroControl.length > 10) {
+    Swal.fire('Límite Excedido', 'El Número de Control no puede superar 10 caracteres.', 'warning');
+    $('#inputRetNroControl').focus();
+    return;
+  }
+
+  if (!nroComprobante) {
+    Swal.fire('Campo Requerido', 'Por favor ingresa el Número de Comprobante (14 dígitos).', 'warning');
+    $('#inputRetNroComprobante').focus();
+    return;
+  }
+  if (nroComprobante.length > 14) {
+    Swal.fire('Límite Excedido', 'El Número de Comprobante no puede superar 14 dígitos.', 'warning');
+    $('#inputRetNroComprobante').focus();
+    return;
+  }
+
+  if (!fecha) {
+    Swal.fire('Campo Requerido', 'Por favor selecciona la fecha del comprobante.', 'warning');
+    $('#inputRetFecha').focus();
+    return;
+  }
+
+  let formData = new FormData();
+  formData.append('accion', 'generarRetencionIVA');
+  formData.append('id_orden_entrega_presupuesto', idOrden);
+  formData.append('nro_factura', nroFactura);
+  formData.append('nro_control', nroControl);
+  formData.append('nro_comprobante', nroComprobante);
+  formData.append('fecha_comprobante', fecha);
+  formData.append('porcentaje_retencion', porcRet);
+  formData.append('tasa_cambio', tasaCambio);
+
+  Swal.fire({
+    title: 'Generando comprobante...',
+    text: 'Guardando datos y generando la planilla Excel',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading()
+  });
+
+  try {
+    let response = await fetch('?modulo=ordenesEntregasPresupuestos', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-TOKEN-CSRF': $('meta[name="TOKEN_CSRF"]').attr("content")
+      }
+    });
+
+    const clonada = response.clone();
+    try {
+      const resJson = await response.json();
+      if (resJson && resJson.tipo) {
+        Swal.fire({
+          icon: resJson.icono || 'error',
+          title: resJson.titulo || 'Aviso',
+          text: resJson.texto || 'No se pudo generar la retención'
+        });
+        return;
+      }
+    } catch (errJson) {
+      // Es el archivo binario Excel
+    }
+
+    let blob = await clonada.blob();
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = `Comprobante_Retencion_IVA_${nroComprobante}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
+    Swal.fire({
+      icon: 'success',
+      title: '¡Retención Generada!',
+      text: 'El comprobante de retención IVA en Excel ha sido generado y descargado correctamente.',
+      timer: 3000
+    });
+
+    let modalEl = document.getElementById('modalRetencionIVA');
+    let modalInst = bootstrap.Modal.getInstance(modalEl);
+    if (modalInst) modalInst.hide();
+
+  } catch (err) {
+    console.error("Error al generar retención:", err);
+    Swal.fire('Error', 'Ocurrió un error inesperado al generar el archivo Excel.', 'error');
+  }
+});
+//#endregion [LOGICA DE PLANILLA RETENCION IVA]
+

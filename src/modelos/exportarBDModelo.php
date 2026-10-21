@@ -10,7 +10,9 @@ class exportarBDModelo extends conexion {
   private string $bases = '';
   public function exportar(string $BD) {
 
+    $BD = trim($BD);
     $this->bases = $BD;
+
     if (!isset($_SESSION['cedula'])) {
       http_response_code(403);
       header('Content-Type: application/json');
@@ -29,9 +31,25 @@ class exportarBDModelo extends conexion {
       ]);
       exit;
     }
+
+    $basesPermitidas = ['proyecto_lacruz', 'proyecto_lacruz_seguridad'];
+    if (!in_array($BD, $basesPermitidas, true)) {
+      http_response_code(400);
+      header('Content-Type: application/json');
+      echo json_encode([
+        'icono'  => 'error',
+        'titulo' => 'Base de datos no válida',
+        'texto'  => 'La base de datos solicitada no está autorizada para exportación.'
+      ]);
+      exit;
+    }
+    
     $timestamp = date('Y-m-d_H-i-s');
-    $fileName = "backup_lacruz_{$timestamp}.sql";
+    $prefix = ($this->bases === 'proyecto_lacruz_seguridad') ? 'backup_lacruz_seguridad' : 'backup_lacruz';
+    $fileName = "{$prefix}_{$timestamp}.sql";
     $filePath = __DIR__ . '/exports/' . $fileName;
+    $webPath = 'src/modelos/exports/' . $fileName;
+
     if (!is_dir(dirname($filePath))) {
       mkdir(dirname($filePath), 0755, true);
     }
@@ -44,10 +62,24 @@ class exportarBDModelo extends conexion {
     $bd = ($this->bases === 'proyecto_lacruz_seguridad') ? 'seguridad' : null;
     $pdo = $this->conectar($bd);
     $dump .= $this->volcarBase($pdo, $this->bases);
-    file_put_contents($filePath, $dump);
     $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
-    return $filePath;
+    if (file_put_contents($filePath, $dump) === false) {
+      http_response_code(500);
+      header('Content-Type: application/json');
+      echo json_encode([
+        'icono'  => 'error',
+        'titulo' => 'Error al exportar la base de datos',
+        'texto'  => 'No se pudo guardar el archivo de respaldo.'
+      ]);
+      exit;
+    }
+
+    $dump .= "SET FOREIGN_KEY_CHECKS=1;\n";
+
+    return $webPath;
+
+    //return $filePath;
   }
   private function volcarBase($pdo, string $database): string {
     $dump = "\n-- ============================================\n";
@@ -113,3 +145,4 @@ class exportarBDModelo extends conexion {
     return $dump;
   }
 }
+

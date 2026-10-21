@@ -8,6 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       ob_clean();
       $exportar = new exportarBDModelo();
       $exportar->DECORE($exportar->exportar($_POST['BD']));
+    break;  
   }
 
   exit();

@@ -38,8 +38,6 @@
                             <button type="button"
                                 class="btn btn-outline-primary btn-sm rounded-pill d-flex align-items-center gap-1 shadow-sm px-3"
                                 id="btnModalNuevoProveedor"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalRegistrarProveedorRapido"
                                 title="Registrar nuevo proveedor si no existe">
                                 <i class="fas fa-user-plus"></i>
                                 <span>+ Proveedor</span>
@@ -53,8 +51,7 @@
                             </label>
                             <select class="form-select selectProveedorAct"
                                 name="rif_proveedor"
-                                id="selectProveedorEdicion"
-                                disabled>
+                                id="selectProveedorEdicion">
                                 <option value="">Seleccione proveedor...</option>
                             </select>
                         </div>
@@ -84,6 +81,7 @@
                             <div>Artículo</div>
                             <div>Unidad</div>
                             <div>Cant.</div>
+                            <div>Precio</div>
                             <div class="text-center">Del</div>
                         </div>
 
@@ -94,21 +92,28 @@
                     </div>
 
                     <!-- Footer tabla -->
-                    <div class="p-3 bg-light border-top
-                        d-flex align-items-center justify-content-between">
-                        <span class="small text-muted fw-semibold"
-                            id="contadorFilas">Items: 0</span>
-                        <div class="d-flex flex-column align-items-center mx-auto">
+                    <div class="p-3 bg-light border-top position-relative d-flex align-items-center justify-content-between" style="min-height: 72px;">
+                        <span class="small text-muted fw-semibold flex-shrink-0"
+                            id="contadorFilas" style="min-width: 70px; z-index: 1;">Items: 0</span>
+
+                        <!-- Botón Agregar Artículo centrado absoluto para que nunca se desplace -->
+                        <div class="position-absolute start-50 translate-middle-x d-flex flex-column align-items-center" style="z-index: 2;">
                             <button type="button"
                                 class="btn btn-primary rounded-circle shadow btn-add-item"
                                 id="btnAgregarFila">
                                 +
                             </button>
-                            <div class="small text-muted mt-1 fw-semibold">
+                            <div class="small text-muted mt-1 fw-semibold" style="font-size: 0.75rem;">
                                 Agregar artículo
                             </div>
                         </div>
-                        <span class="px-5"></span><!-- spacer para equilibrar el contador -->
+
+                        <!-- Total estimado a la derecha con ancho máximo controlado -->
+                        <div class="text-end ms-auto flex-shrink-0" id="contenedorTotalCompra" style="max-width: 280px; z-index: 1;">
+                            <span class="small text-muted d-block fw-semibold" style="font-size:0.72rem; line-height: 1;">Total Estimado:</span>
+                            <div class="fw-bold text-success text-truncate mt-1" id="totalEstimadoCompraBs" style="font-size: 0.95rem; line-height: 1.2;">0.00 Bs</div>
+                            <div class="text-muted small text-truncate" id="totalEstimadoCompraUsd" style="font-size:0.75rem; line-height: 1.2;">(0.00 $)</div>
+                        </div>
                     </div>
                 </div>
 
@@ -204,6 +209,7 @@
                         <div>Artículo</div>
                         <div>Unidad</div>
                         <div>Cant.</div>
+                        <div>Precio</div>
                     </div>
                     <div id="verItemsBody">
                         <!-- JS llenará esto -->
@@ -213,11 +219,18 @@
             </div>
 
             <div class="modal-footer-custom justify-content-between">
-                <button type="button"
-                    class="btn btn-outline-primary px-4 btn-cancel-custom"
-                    id="btnImprimirModalVer">
-                    <i class="fas fa-print me-2"></i> Imprimir Orden
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="button"
+                        class="btn btn-outline-primary px-4 btn-cancel-custom"
+                        id="btnImprimirModalVer">
+                        <i class="fas fa-print me-2"></i> Imprimir Orden
+                    </button>
+                    <button type="button"
+                        class="btn btn-success px-4 btn-cancel-custom text-white shadow-sm"
+                        id="btnPlanillaRetencionModalVer">
+                        <i class="fas fa-file-invoice-dollar me-2"></i> Planilla de Retención
+                    </button>
+                </div>
                 <button type="button"
                     class="btn btn-light px-4 btn-cancel-custom"
                     data-bs-dismiss="modal">
@@ -230,14 +243,14 @@
 </div>
 
 <!-- Modal Registrar Proveedor Rápido -->
-<div class="modal fade" id="modalRegistrarProveedorRapido" tabindex="-1" style="z-index: 1065;" aria-labelledby="modalRegistrarProveedorRapidoLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="modalRegistrarProveedorRapido" tabindex="-1" style="z-index: 1065;" aria-labelledby="modalRegistrarProveedorRapidoLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg">
             <div class="modal-header modal-header-custom" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
                 <h5 class="modal-title text-white fw-bold" id="modalRegistrarProveedorRapidoLabel">
                     <i class="fas fa-user-plus me-2"></i> Registrar Nuevo Proveedor
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close btn-close-white" id="btnCerrarProveedorRapido" aria-label="Cerrar"></button>
             </div>
             <form id="formRegistrarProveedorRapido" class="validar" method="POST" novalidate>
                 <input type="hidden" name="accion" value="registrar">
@@ -281,13 +294,16 @@
                             <label class="form-label fw-semibold">Teléfono <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <select class="input-group-text" name="prefijo_telefono_proveedor" required>
-                                    <option value="0414">0414</option>
-                                    <option value="0424">0424</option>
-                                    <option value="0412">0412</option>
                                     <option value="0416">0416</option>
                                     <option value="0426">0426</option>
-                                    <option value="0251">0251</option>
+                                    <option value="0424">0424</option>
+                                    <option value="0414" selected>0414</option>
+                                    <option value="0412">0412</option>
+                                    <option value="0422">0422</option>
                                     <option value="0212">0212</option>
+                                    <option value="0251">0251</option>
+                                    <option value="0241">0241</option>
+                                    <option value="0257">0257</option>
                                 </select>
                                 <input type="text"
                                     class="form-control noRepetir"
@@ -313,20 +329,21 @@
                         </div>
 
                         <div class="col-md-12 mb-3">
-                            <label class="form-label fw-semibold">Dirección</label>
+                            <label class="form-label fw-semibold">Dirección <span class="text-danger">*</span></label>
                             <textarea class="form-control"
                                 name="direccion_proveedor"
                                 rows="2"
                                 placeholder="Dirección física del proveedor..."
                                 pattern="<?php echo regexDescripcion ?>"
                                 minlength="<?php echo minRegexDescripcion ?>"
-                                maxlength="<?php echo maxRegexDescripcion ?>"></textarea>
+                                maxlength="<?php echo maxRegexDescripcion ?>"
+                                required></textarea>
                         </div>
                     </div>
                 </div>
 
                 <div class="modal-footer-custom justify-content-between bg-light p-3">
-                    <button type="button" class="btn btn-light px-4 btn-cancel-custom" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-light px-4 btn-cancel-custom" id="btnCancelarProveedorRapido">
                         <i class="fas fa-times me-2"></i> Cancelar
                     </button>
                     <button type="submit" class="btn btn-primary px-4 btn-save-custom" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">

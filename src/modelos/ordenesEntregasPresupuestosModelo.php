@@ -68,26 +68,26 @@ class ordenesEntregasPresupuestosModelo extends conexion {
 
     return false;
   }
-  public function ListarOrdenes(array $info = []) {
+  public function listarOrdenes(array $info = []) {
     $v = $this->validarOrdenes('listar', $info);
     if ($v) return $v;
-    return $this->ListarOrdenesP();
+    return $this->listarOrdenesP();
   }
-  public function ObtenerOrden(array $info) {
+  public function obtenerOrden(array $info) {
     $v = $this->validarOrdenes('listar', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
-    return $this->ObtenerOrdenP();
+    return $this->obtenerOrdenP();
   }
-  public function ObtenerDetalleOrden(array $info) {
+  public function obtenerDetalleOrden(array $info) {  
     $v = $this->validarOrdenes('listar', $info, ['id_orden_entrega_presupuesto']);
-    if ($v) return $v;
+    if ($v) return $v;  
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
-    return $this->ObtenerDetalleOrdenP();
+    return $this->obtenerDetalleOrdenP();
   }
-  public function RegistrarOrden(array $info) {
+  public function registrarOrden(array $info) {
     $v = $this->validarOrdenes('registrar', $info, ['rif_cedula_cliente']);
     if ($v) return $v;
 
@@ -123,28 +123,28 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       }
     }
 
-    return $this->RegistrarOrdenP();
+    return $this->registrarOrdenP();
   }
-  public function DespacharOrden(array $info) {
+  public function despacharOrden(array $info) {
     $v = $this->validarOrdenes('despachar orden', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
-    return $this->DespacharOrdenP();
+    return $this->despacharOrdenP();
   }
-  public function AnularOrden(array $info) {
+  public function anularOrden(array $info) {
     $v = $this->validarOrdenes('anular', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
-    return $this->AnularOrdenP();
+    return $this->anularOrdenP();
   }
-  public function ListarMetodosPago(array $info = []) {
+  public function listarMetodosPago(array $info = []) {
     $v = $this->validarOrdenes('listar', $info);
     if ($v) return $v;
-    return $this->ListarMetodosPagoP();
+    return $this->listarMetodosPagoP();
   }
-  public function RegistrarPago(array $info) {
+  public function registrarPago(array $info) {
     $v = $this->validarOrdenes('agregar pago', $info, ['id_orden_entrega_presupuesto']);
     if ($v) return $v;
 
@@ -152,11 +152,11 @@ class ordenesEntregasPresupuestosModelo extends conexion {
 
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     $this->pagos   = $pagos;
-    return $this->RegistrarPagoP();
+    return $this->registrarPagoP();
   }
-  public function ObtenerDetalleOrdenInterno(string $idOrden) {
+  public function obtenerDetalleOrdenInterno(string $idOrden) {
     $this->idOrden = $idOrden;
-    return $this->ObtenerDetalleOrdenP();
+    return $this->obtenerDetalleOrdenP();
   }
   public function procesarPresupuesto(array $info) {
     $v = $this->validarOrdenes('registrar', $info, ['id_orden_entrega_presupuesto']);
@@ -188,9 +188,19 @@ class ordenesEntregasPresupuestosModelo extends conexion {
     $this->idOrden = $info['id_orden_entrega_presupuesto'];
     return $this->impresionPlanillaOEPP();
   }
+  public function obtenerDatosRetencion(array $info) {
+    $v = $this->validarOrdenes('ver', $info, ['id_orden_entrega_presupuesto']);
+    if ($v) return $v;
+
+    $this->idOrden = $info['id_orden_entrega_presupuesto'];
+    return $this->obtenerDatosRetencionP();
+  }
+  public function generarRetencionIVA(array $info) {
+    return $this->generarRetencionIVAP($info);
+  }
 
   // PRIVADOS
-  private function ListarOrdenesP() {
+  private function listarOrdenesP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => "
         f.id_orden_entrega_presupuesto,
@@ -317,7 +327,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
     }
     return $filas;
   }
-  private function ObtenerOrdenP() {
+  private function obtenerOrdenP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => "
         f.id_orden_entrega_presupuesto, f.rif_cedula_cliente,
@@ -343,7 +353,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
 
     return $resultado->fetch(PDO::FETCH_ASSOC);
   }
-  private function ObtenerDetalleOrdenP() {
+  private function obtenerDetalleOrdenP() {
     // Primero buscamos los datos principales de la orden
     $stmtCab = $this->conectar()->prepare("
       SELECT f.id_orden_entrega_presupuesto, f.fecha_orden_entrega_presupuesto, f.status,
@@ -562,7 +572,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       'delivery'  => $delivery ?: null,
     ];
   }
-  private function RegistrarOrdenP() {
+    private function registrarOrdenP() {
     $objBitacora  = new bitacoraModelo();
     $cn = $this->conectar();
 
@@ -1145,7 +1155,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       ];
     }
   }
-  private function DespacharOrdenP() {
+    private function despacharOrdenP() {
     $objBitacora = new bitacoraModelo();
 
     $resultado = $this->seleccionarDatos2([
@@ -1239,7 +1249,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       ];
     }
   }
-  private function AnularOrdenP() {
+  private function anularOrdenP() {
     $objBitacora  = new bitacoraModelo();
     $objProductos = new productosModelo();
     $cn = $this->conectar();
@@ -1444,7 +1454,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       ];
     }
   }
-  private function ListarMetodosPagoP() {
+  private function listarMetodosPagoP() {
     $resultado = $this->seleccionarDatos2([
       'campos' => '*',
       'tabla'  => 'metodos_pagos',
@@ -1463,7 +1473,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
     $fila = $resultado->fetch(PDO::FETCH_ASSOC);
     return $fila ? (int)$fila['id_cambio_iva'] : 1;
   }
-  private function RegistrarPagoP() {
+  private function registrarPagoP() {
     if (empty($this->pagos)) {
       return ['tipo' => 'simple', 'titulo' => 'Error', 'texto' => 'Debe ingresar al menos un detalle de pago.', 'icono' => 'warning'];
     }
@@ -1647,4 +1657,600 @@ class ordenesEntregasPresupuestosModelo extends conexion {
     $objPdf->Output('I', 'Planilla_OEP_' . $this->idOrden . '.pdf');
     exit();
   }
+
+  private function obtenerDatosRetencionP() {
+    $datosOrden = $this->ObtenerDetalleOrdenInterno($this->idOrden);
+    if (empty($datosOrden) || !isset($datosOrden['cabecera'])) {
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Orden no encontrada',
+        'texto'  => 'No se encontró la orden solicitada.',
+        'icono'  => 'error',
+      ];
+    }
+
+    $c = $datosOrden['cabecera'];
+
+    // Validar condición 2: Presupuestos y Anuladas no pueden generar retención
+    if ($c['status'] == 20 || $c['status'] == 2 || (isset($c['estado_num']) && ($c['estado_num'] == 20 || $c['estado_num'] == 5))) {
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'Operación no permitida',
+        'texto'  => 'No se puede generar comprobante de retención para presupuestos ni órdenes anuladas.',
+        'icono'  => 'warning',
+      ];
+    }
+
+    // Consultar si ya existe control_facturas y comprobante
+    $stmtFactura = $this->conectar()->prepare("
+      SELECT cf.nro_factura, cf.nro_control, orf.nro_comprobante
+      FROM control_facturas cf
+      LEFT JOIN ordenes_retenciones_facturas orf ON cf.nro_factura = orf.nro_factura AND orf.status = 1
+      WHERE cf.id_orden_entrega_presupuesto = :id AND cf.status = 1
+      LIMIT 1
+    ");
+    $stmtFactura->execute([':id' => $this->idOrden]);
+    $facturaExistente = $stmtFactura->fetch(PDO::FETCH_ASSOC);
+
+    // Si no tiene nro_comprobante, calcular sugerencia: YYYYMM + correlativo de 8 dígitos (14 dígitos)
+    $periodoActual = date('Ym');
+    $nroComprobanteSugerido = '';
+    if ($facturaExistente && !empty($facturaExistente['nro_comprobante'])) {
+      $nroComprobanteSugerido = $facturaExistente['nro_comprobante'];
+    } else {
+      $stmtMaxComp = $this->conectar()->prepare("
+        SELECT MAX(nro_comprobante) AS max_comp 
+        FROM ordenes_retenciones_facturas 
+        WHERE nro_comprobante LIKE :prefijo
+      ");
+      $stmtMaxComp->execute([':prefijo' => $periodoActual . '%']);
+      $maxRow = $stmtMaxComp->fetch(PDO::FETCH_ASSOC);
+      $siguienteSecuencia = 1;
+      if (!empty($maxRow['max_comp']) && strlen($maxRow['max_comp']) == 14) {
+        $secuenciaActual = intval(substr($maxRow['max_comp'], 6));
+        $siguienteSecuencia = $secuenciaActual + 1;
+      }
+      $nroComprobanteSugerido = $periodoActual . str_pad((string)$siguienteSecuencia, 8, '0', STR_PAD_LEFT);
+    }
+
+    // Tasa del dólar a Bolívar vigente
+    $stmtMoneda = $this->conectar()->query("
+      SELECT cm.valor_moneda 
+      FROM cambios_monedas cm 
+      JOIN monedas m ON cm.id_moneda = m.id_moneda 
+      WHERE m.nombre_moneda IN ('DÓLAR', 'DOLAR') 
+      ORDER BY cm.fecha_cambio DESC, cm.id_cambio_moneda DESC 
+      LIMIT 1
+    ");
+    $tasaRow = $stmtMoneda ? $stmtMoneda->fetch(PDO::FETCH_ASSOC) : null;
+    $tasaBolivar = ($tasaRow && floatval($tasaRow['valor_moneda']) > 0) ? floatval($tasaRow['valor_moneda']) : 1.0;
+
+    // Subtotales
+    $subProd = 0;
+    foreach ($datosOrden['productos'] as $p) {
+      $subProd += (floatval($p['cantidad_producto']) * floatval($p['precio_producto']));
+    }
+    $subServ = 0;
+    foreach ($datosOrden['servicios'] as $s) {
+      if ($s['status'] == 1 || $s['status'] == 2) {
+        $precio = $s['es_precio_mapfre'] == 1 ? $s['precio_servicio_mapfre'] : $s['precio_servicio'];
+        $subServ += (floatval($s['cantidad_servicio']) * floatval($precio));
+      }
+    }
+    $subDel = 0;
+    if ($datosOrden['delivery']) {
+      $subDel = floatval($datosOrden['delivery']['costo_delivery_total'] ?? $datosOrden['delivery']['precio_ruta'] ?? 0);
+    }
+    $baseDolares = $subProd + $subServ + $subDel;
+    $alicuotaIva = floatval($c['IVA'] ?? 16);
+    $ivaDolares = $baseDolares * ($alicuotaIva / 100);
+    $totalDolares = $baseDolares + $ivaDolares;
+
+    // Montos en Bolívares
+    $baseBs = $baseDolares * $tasaBolivar;
+    $ivaBs = $ivaDolares * $tasaBolivar;
+    $totalBs = $totalDolares * $tasaBolivar;
+
+    return [
+      'id_orden_entrega_presupuesto' => $this->idOrden,
+      'cliente'                      => $c['CLIENTE'] ?? '',
+      'rif_cedula_cliente'           => $c['rif_cedula_cliente'] ?? '',
+      'direccion_cliente'            => $c['direccion_cliente'] ?? '',
+      'nro_factura'                  => $facturaExistente['nro_factura'] ?? '',
+      'nro_control'                  => $facturaExistente['nro_control'] ?? '',
+      'nro_comprobante'              => $nroComprobanteSugerido,
+      'fecha_sugerida'               => date('Y-m-d'),
+      'tasa_bolivar'                 => $tasaBolivar,
+      'alicuota_iva'                 => $alicuotaIva,
+      'base_imponible_dolares'       => $baseDolares,
+      'iva_dolares'                  => $ivaDolares,
+      'total_dolares'                => $totalDolares,
+      'base_imponible_bs'            => round($baseBs, 2),
+      'iva_bs'                       => round($ivaBs, 2),
+      'total_bs'                     => round($totalBs, 2),
+    ];
+  }
+
+  private function generarRetencionIVAP(array $info) {
+    $objAcceso = new accesosModelo();
+    $v = $objAcceso->validarPermisos('ordenesEntregasPresupuestos', 'imprimir');
+    if ($v) return $v;
+
+    $idOrden = trim($info['id_orden_entrega_presupuesto'] ?? '');
+    $nroFactura = trim($info['nro_factura'] ?? '');
+    $nroControl = trim($info['nro_control'] ?? '');
+    $nroComprobante = trim($info['nro_comprobante'] ?? '');
+    $fechaComprobante = trim($info['fecha_comprobante'] ?? date('Y-m-d'));
+    $porcentajeRetencion = floatval($info['porcentaje_retencion'] ?? 75);
+    $tasaCambio = floatval($info['tasa_cambio'] ?? 0);
+
+    if (empty($idOrden)) {
+      return ['tipo' => 'simple', 'titulo' => 'Campo requerido', 'texto' => 'ID de orden no proporcionado', 'icono' => 'warning'];
+    }
+    if (empty($nroFactura) || strlen($nroFactura) > 7) {
+      return ['tipo' => 'simple', 'titulo' => 'Número de Factura inválido', 'texto' => 'El número de factura es obligatorio y no puede exceder 7 caracteres.', 'icono' => 'warning'];
+    }
+    if (empty($nroControl) || strlen($nroControl) > 10) {
+      return ['tipo' => 'simple', 'titulo' => 'Número de Control inválido', 'texto' => 'El número de control es obligatorio y no puede exceder 10 caracteres.', 'icono' => 'warning'];
+    }
+    if (empty($nroComprobante) || strlen($nroComprobante) > 14) {
+      return ['tipo' => 'simple', 'titulo' => 'Número de Comprobante inválido', 'texto' => 'El número de comprobante es obligatorio y no puede exceder 14 caracteres.', 'icono' => 'warning'];
+    }
+    if ($porcentajeRetencion <= 0 || $porcentajeRetencion > 100) {
+      $porcentajeRetencion = 75;
+    }
+
+    $datosOrden = $this->ObtenerDetalleOrdenInterno($idOrden);
+    if (empty($datosOrden) || !isset($datosOrden['cabecera'])) {
+      return ['tipo' => 'simple', 'titulo' => 'Orden no encontrada', 'texto' => 'No se encontró la orden especificada.', 'icono' => 'error'];
+    }
+
+    $c = $datosOrden['cabecera'];
+    if ($c['status'] == 20 || $c['status'] == 2 || (isset($c['estado_num']) && ($c['estado_num'] == 20 || $c['estado_num'] == 5))) {
+      return ['tipo' => 'simple', 'titulo' => 'Operación no permitida', 'texto' => 'No se puede generar retención para presupuestos ni órdenes anuladas.', 'icono' => 'warning'];
+    }
+
+    $cn = $this->conectar();
+
+    // Validar si nro_factura ya está en uso por otra orden
+    $stmtDupFact = $cn->prepare("SELECT id_orden_entrega_presupuesto FROM control_facturas WHERE nro_factura = :nro_factura AND id_orden_entrega_presupuesto != :id");
+    $stmtDupFact->execute([':nro_factura' => $nroFactura, ':id' => $idOrden]);
+    if ($stmtDupFact->fetch()) {
+      return ['tipo' => 'simple', 'titulo' => 'Factura ya registrada', 'texto' => "El número de factura {$nroFactura} ya está registrado en otra orden.", 'icono' => 'warning'];
+    }
+
+    // Validar si nro_comprobante ya está en uso por otra factura
+    $stmtDupComp = $cn->prepare("SELECT nro_factura FROM ordenes_retenciones_facturas WHERE nro_comprobante = :nro_comp AND nro_factura != :nro_factura");
+    $stmtDupComp->execute([':nro_comp' => $nroComprobante, ':nro_factura' => $nroFactura]);
+    if ($stmtDupComp->fetch()) {
+      return ['tipo' => 'simple', 'titulo' => 'Comprobante ya registrado', 'texto' => "El comprobante {$nroComprobante} ya fue emitido para otra factura.", 'icono' => 'warning'];
+    }
+
+    try {
+      if (!$cn->inTransaction()) {
+        $cn->beginTransaction();
+      }
+
+      // Guardar o actualizar control_facturas
+      $stmtCheckCF = $cn->prepare("SELECT nro_factura FROM control_facturas WHERE id_orden_entrega_presupuesto = :id");
+      $stmtCheckCF->execute([':id' => $idOrden]);
+      $existenteCF = $stmtCheckCF->fetch(PDO::FETCH_ASSOC);
+
+      if ($existenteCF) {
+        $stmtUpdCF = $cn->prepare("UPDATE control_facturas SET nro_factura = :nro_factura, nro_control = :nro_control, status = 1 WHERE id_orden_entrega_presupuesto = :id");
+        $stmtUpdCF->execute([':nro_factura' => $nroFactura, ':nro_control' => $nroControl, ':id' => $idOrden]);
+      } else {
+        $stmtInsCF = $cn->prepare("INSERT INTO control_facturas (nro_factura, id_orden_entrega_presupuesto, nro_control, status) VALUES (:nro_factura, :id, :nro_control, 1)");
+        $stmtInsCF->execute([':nro_factura' => $nroFactura, ':id' => $idOrden, ':nro_control' => $nroControl]);
+      }
+
+      // Guardar o actualizar ordenes_retenciones_facturas
+      $stmtCheckORF = $cn->prepare("SELECT nro_comprobante FROM ordenes_retenciones_facturas WHERE nro_factura = :nro_factura");
+      $stmtCheckORF->execute([':nro_factura' => $nroFactura]);
+      if ($stmtCheckORF->fetch()) {
+        $stmtUpdORF = $cn->prepare("UPDATE ordenes_retenciones_facturas SET nro_comprobante = :nro_comp, status = 1 WHERE nro_factura = :nro_factura");
+        $stmtUpdORF->execute([':nro_comp' => $nroComprobante, ':nro_factura' => $nroFactura]);
+      } else {
+        $stmtInsORF = $cn->prepare("INSERT INTO ordenes_retenciones_facturas (nro_comprobante, nro_factura, status) VALUES (:nro_comp, :nro_factura, 1)");
+        $stmtInsORF->execute([':nro_comp' => $nroComprobante, ':nro_factura' => $nroFactura]);
+      }
+
+      $this->commit();
+    } catch (Exception $e) {
+      $this->rollback();
+      return ['tipo' => 'simple', 'titulo' => 'Error al guardar', 'texto' => 'No se pudo guardar el control de la factura: ' . $e->getMessage(), 'icono' => 'error'];
+    }
+
+    // Calcular montos finales para el Excel
+    if ($tasaCambio <= 0) {
+      $stmtMoneda = $cn->query("
+        SELECT cm.valor_moneda 
+        FROM cambios_monedas cm 
+        JOIN monedas m ON cm.id_moneda = m.id_moneda 
+        WHERE m.nombre_moneda IN ('DÓLAR', 'DOLAR') 
+        ORDER BY cm.fecha_cambio DESC, cm.id_cambio_moneda DESC 
+        LIMIT 1
+      ");
+      $tasaRow = $stmtMoneda ? $stmtMoneda->fetch(PDO::FETCH_ASSOC) : null;
+      $tasaCambio = ($tasaRow && floatval($tasaRow['valor_moneda']) > 0) ? floatval($tasaRow['valor_moneda']) : 1.0;
+    }
+
+    $subProd = 0;
+    foreach ($datosOrden['productos'] as $p) {
+      $subProd += (floatval($p['cantidad_producto']) * floatval($p['precio_producto']));
+    }
+    $subServ = 0;
+    foreach ($datosOrden['servicios'] as $s) {
+      if ($s['status'] == 1 || $s['status'] == 2) {
+        $precio = $s['es_precio_mapfre'] == 1 ? $s['precio_servicio_mapfre'] : $s['precio_servicio'];
+        $subServ += (floatval($s['cantidad_servicio']) * floatval($precio));
+      }
+    }
+    $subDel = 0;
+    if ($datosOrden['delivery']) {
+      $subDel = floatval($datosOrden['delivery']['costo_delivery_total'] ?? $datosOrden['delivery']['precio_ruta'] ?? 0);
+    }
+    $baseDolares = $subProd + $subServ + $subDel;
+    $alicuotaIva = floatval($c['IVA'] ?? 16);
+    $ivaDolares = $baseDolares * ($alicuotaIva / 100);
+
+    $baseBs = round($baseDolares * $tasaCambio, 2);
+    $ivaBs = round($ivaDolares * $tasaCambio, 2);
+    $totalBs = round($baseBs + $ivaBs, 2);
+    $ivaRetenidoBs = round($ivaBs * ($porcentajeRetencion / 100), 2);
+    $montoAPagarBs = round($totalBs - $ivaRetenidoBs, 2);
+
+    // Generar y descargar Excel
+    $this->descargarExcelRetencionIVA([
+      'nro_comprobante'   => $nroComprobante,
+      'fecha_comprobante' => $fechaComprobante,
+      'nro_factura'       => $nroFactura,
+      'nro_control'       => $nroControl,
+      'cliente'           => $c['CLIENTE'] ?? '',
+      'rif_cliente'       => $c['rif_cedula_cliente'] ?? '',
+      'base_imponible'    => $baseBs,
+      'alicuota'          => $alicuotaIva,
+      'iva'               => $ivaBs,
+      'iva_retenido'      => $ivaRetenidoBs,
+      'total'             => $totalBs,
+      'monto_a_pagar'     => $montoAPagarBs
+    ]);
+    exit();
+  }
+
+  private function descargarExcelRetencionIVA(array $data) {
+    require_once 'vendor/autoload.php';
+
+    $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Retención IVA');
+    $sheet->setShowGridLines(true);
+
+    $sheet->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+    $sheet->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_LETTER);
+
+    // Anchos de columna
+    $colWidths = [
+      'A' => 6,
+      'B' => 14,
+      'C' => 16,
+      'D' => 16,
+      'E' => 10,
+      'F' => 10,
+      'G' => 12,
+      'H' => 14,
+      'I' => 18,
+      'J' => 14,
+      'K' => 16,
+      'L' => 10,
+      'M' => 14,
+      'N' => 3,
+      'O' => 18
+    ];
+    foreach ($colWidths as $col => $w) {
+      $sheet->getColumnDimension($col)->setWidth($w);
+    }
+
+    // Estilos de bordes comunes
+    $borderBox = [
+      'borders' => [
+        'outline' => [
+          'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+          'color' => ['rgb' => '000000'],
+        ],
+      ],
+    ];
+
+    $borderAllThin = [
+      'borders' => [
+        'allBorders' => [
+          'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+          'color' => ['rgb' => '000000'],
+        ],
+      ],
+    ];
+
+    // Texto Legal Superior A2:I4
+    $sheet->mergeCells('A2:I4');
+    $sheet->setCellValue('A2', '(Ley del I.V.A. - Art. 11 " Serán responsables del pago del Impuesto en calidad de agentes de retención, los comprobantes o adquirientes de determinados bienes muebles y los receptores de ciertos servicios, a quienes la administración Tributaria designe como tal"');
+    $sheet->getStyle('A2')->getFont()->setName('Arial')->setSize(8);
+    $sheet->getStyle('A2')->getAlignment()->setWrapText(true)->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER);
+
+    // N° DE COMPROBANTE J1:L2
+    $sheet->mergeCells('J1:L1');
+    $sheet->setCellValue('J1', 'N° DE COMPROBANTE');
+    $sheet->getStyle('J1')->getFont()->setName('Arial')->setSize(9)->setBold(true);
+    $sheet->getStyle('J1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+
+    $sheet->mergeCells('J2:L2');
+    $sheet->setCellValueExplicit('J2', $data['nro_comprobante'], \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->getStyle('J2')->getFont()->setName('Arial')->setSize(11)->setBold(true);
+    $sheet->getStyle('J2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('J1:L2')->applyFromArray($borderBox);
+
+    // FECHA O1:O2
+    $sheet->setCellValue('O1', 'FECHA');
+    $sheet->getStyle('O1')->getFont()->setName('Arial')->setSize(9)->setBold(true);
+    $sheet->getStyle('O1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('O1')->applyFromArray($borderBox);
+
+    $fechaObj = !empty($data['fecha_comprobante']) ? strtotime($data['fecha_comprobante']) : time();
+    $fechaFormateada = date('d/m/Y', $fechaObj);
+    $periodoFiscal = date('Y/m', $fechaObj);
+
+    $sheet->setCellValueExplicit('O2', $fechaFormateada, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->getStyle('O2')->getFont()->setName('Arial')->setSize(9);
+    $sheet->getStyle('O2')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('O2')->applyFromArray($borderBox);
+
+    // PERIODO FISCAL O7:O8
+    $sheet->setCellValue('O7', 'PERIODO FISCAL');
+    $sheet->getStyle('O7')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('O7')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('O7')->applyFromArray($borderBox);
+
+    $sheet->setCellValueExplicit('O8', $periodoFiscal, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->getStyle('O8')->getFont()->setName('Arial')->setSize(9);
+    $sheet->getStyle('O8')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('O8')->applyFromArray($borderBox);
+
+    // RAZON SOCIAL DEL AGENTE DE RETENCION B7:E8
+    $sheet->mergeCells('B7:E7');
+    $sheet->setCellValue('B7', 'RAZON SOCIAL DEL AGENTE DE RETENCION');
+    $sheet->getStyle('B7')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('B7')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('B7:E7')->applyFromArray($borderBox);
+
+    $sheet->mergeCells('B8:E8');
+    $sheet->setCellValue('B8', 'J.LACRUZ C.A.');
+    $sheet->getStyle('B8')->getFont()->setName('Arial')->setSize(9.5)->setBold(true);
+    $sheet->getStyle('B8')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('B8:E8')->applyFromArray($borderBox);
+
+    // RIF DEL AGENTE DE RETENCION G7:K8
+    $sheet->mergeCells('G7:K7');
+    $sheet->setCellValue('G7', 'REGISTRO DE INFORMACION FISCAL DEL AGENTE DE RETENCION');
+    $sheet->getStyle('G7')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('G7')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('G7:K7')->applyFromArray($borderBox);
+
+    $sheet->mergeCells('G8:K8');
+    $sheet->setCellValue('G8', 'RIF J-41219270-1');
+    $sheet->getStyle('G8')->getFont()->setName('Arial')->setSize(9.5)->setBold(true);
+    $sheet->getStyle('G8')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('G8:K8')->applyFromArray($borderBox);
+
+    // DIRECCION FISCAL DEL AGENTE DE RETENCION B10:K11
+    $sheet->mergeCells('B10:K10');
+    $sheet->setCellValue('B10', 'DIRECCION FISCAL DEL AGENTE DE RETENCION:');
+    $sheet->getStyle('B10')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('B10:K10')->applyFromArray($borderBox);
+
+    $sheet->mergeCells('B11:K11');
+    $sheet->setCellValue('B11', 'Carrera 2 Entre Calle 6 y 7 Local Casa N914 Nor. Local 3 Sector La Mata Cabudare Estado Lara');
+    $sheet->getStyle('B11')->getFont()->setName('Arial')->setSize(8.5);
+    $sheet->getStyle('B11:K11')->applyFromArray($borderBox);
+
+    // SUJETO RETENIDO B13:E14
+    $sheet->mergeCells('B13:E13');
+    $sheet->setCellValue('B13', 'NOMBRE Y RAZON SOCIAL DEL SUJETO RETENIDO');
+    $sheet->getStyle('B13')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('B13')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('B13:E13')->applyFromArray($borderBox);
+
+    $sheet->mergeCells('B14:E14');
+    $sheet->setCellValue('B14', strtoupper($data['cliente']));
+    $sheet->getStyle('B14')->getFont()->setName('Arial')->setSize(9.5)->setBold(true);
+    $sheet->getStyle('B14')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('B14:E14')->applyFromArray($borderBox);
+
+    // RIF SUJETO RETENIDO G13:K14
+    $sheet->mergeCells('G13:K13');
+    $sheet->setCellValue('G13', 'REGISTRO DE INFORMACION FISCAL DEL SUJETO RETENIDO (R.I.F)');
+    $sheet->getStyle('G13')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('G13')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('G13:K13')->applyFromArray($borderBox);
+
+    $sheet->mergeCells('G14:K14');
+    $sheet->setCellValue('G14', strtoupper($data['rif_cliente']));
+    $sheet->getStyle('G14')->getFont()->setName('Arial')->setSize(9.5)->setBold(true);
+    $sheet->getStyle('G14')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('G14:K14')->applyFromArray($borderBox);
+
+    // COMPRAS INTERNAS O IMPORTACIONES K16:M17
+    $sheet->mergeCells('K16:M17');
+    $sheet->setCellValue('K16', "COMPRAS INTERNAS\nO IMPORTACIONES");
+    $sheet->getStyle('K16')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('K16')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)->setWrapText(true);
+    $sheet->getStyle('K16:M17')->applyFromArray($borderBox);
+
+    // Encabezados Tabla Filas 18 a 20
+    $headers = [
+      'A' => "Oper\nN°",
+      'B' => "Fecha de\nFactura",
+      'C' => "Numero\nde\nFactura",
+      'D' => "N°. Control\nde Factura",
+      'E' => "Número\nND",
+      'F' => "Número\nNC",
+      'G' => "Tipo de\nTransacc.",
+      'H' => "N° Factura\nAfectada",
+      'I' => "Total Compras\nIncluyendo\nIVA",
+      'J' => "Compras\nsin Derecho\na Crédito",
+      'K' => "Base\nImponible",
+      'L' => "%\nAlícuota",
+      'M' => "Impuesto\nIVA",
+      'O' => "IVA\nRetenido"
+    ];
+
+    foreach ($headers as $col => $txt) {
+      $sheet->mergeCells("{$col}18:{$col}20");
+      $sheet->setCellValue("{$col}18", $txt);
+      $sheet->getStyle("{$col}18")->getFont()->setName('Arial')->setSize(8)->setBold(true);
+      $sheet->getStyle("{$col}18")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER)->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER)->setWrapText(true);
+      $sheet->getStyle("{$col}18:{$col}20")->applyFromArray($borderAllThin);
+    }
+
+    // Fila 21: Datos de la Factura y Retención
+    $sheet->setCellValueExplicit('A21', '01', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->setCellValueExplicit('B21', $fechaFormateada, \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->setCellValueExplicit('C21', str_pad((string)$data['nro_factura'], 10, '0', STR_PAD_LEFT), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->setCellValueExplicit('D21', strtoupper($data['nro_control']), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->setCellValue('E21', '');
+    $sheet->setCellValue('F21', '');
+    $sheet->setCellValueExplicit('G21', '01', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+    $sheet->setCellValue('H21', '');
+    $sheet->setCellValue('I21', floatval($data['total']));
+    $sheet->setCellValue('J21', 0.00);
+    $sheet->setCellValue('K21', floatval($data['base_imponible']));
+    $sheet->setCellValue('L21', floatval($data['alicuota']));
+    $sheet->setCellValue('M21', floatval($data['iva']));
+    $sheet->setCellValue('O21', floatval($data['iva_retenido']));
+
+    // Formato de Fila 21
+    $colsTable = ['A','B','C','D','E','F','G','H','I','J','K','L','M','O'];
+    foreach ($colsTable as $col) {
+      $sheet->getStyle("{$col}21")->getFont()->setName('Arial')->setSize(8.5);
+      $sheet->getStyle("{$col}21")->applyFromArray($borderAllThin);
+    }
+    $sheet->getStyle('A21:H21')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('L21')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('I21:K21')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+    $sheet->getStyle('M21')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+    $sheet->getStyle('O21')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+
+    $numFmt = '#,##0.00';
+    $sheet->getStyle('I21')->getNumberFormat()->setFormatCode($numFmt);
+    $sheet->getStyle('J21')->getNumberFormat()->setFormatCode($numFmt);
+    $sheet->getStyle('K21')->getNumberFormat()->setFormatCode($numFmt);
+    $sheet->getStyle('M21')->getNumberFormat()->setFormatCode($numFmt);
+    $sheet->getStyle('O21')->getNumberFormat()->setFormatCode($numFmt);
+
+    // Filas vacías 22 a 25 para estructura de talonario
+    for ($r = 22; $r <= 25; $r++) {
+      foreach ($colsTable as $col) {
+        $sheet->getStyle("{$col}{$r}")->applyFromArray($borderAllThin);
+      }
+    }
+
+    // Fila 26: TOTALES
+    $sheet->mergeCells('A26:H26');
+    $sheet->setCellValue('A26', 'TOTALES');
+    $sheet->getStyle('A26')->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+    $sheet->getStyle('A26')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('A26:H26')->applyFromArray($borderAllThin);
+
+    $sheet->setCellValue('I26', '=I21');
+    $sheet->setCellValue('J26', 0.00);
+    $sheet->setCellValue('K26', '=K21');
+    $sheet->setCellValue('L26', '');
+    $sheet->setCellValue('M26', '=M21');
+    $sheet->setCellValue('O26', '=O21');
+
+    foreach (['I','J','K','L','M','O'] as $col) {
+      $sheet->getStyle("{$col}26")->getFont()->setName('Arial')->setSize(8.5)->setBold(true);
+      $sheet->getStyle("{$col}26")->applyFromArray($borderAllThin);
+      if ($col !== 'L') {
+        $sheet->getStyle("{$col}26")->getNumberFormat()->setFormatCode($numFmt);
+        $sheet->getStyle("{$col}26")->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+      }
+    }
+
+    // Fila 28: MONTO A PAGAR
+    $sheet->mergeCells('J28:M28');
+    $sheet->setCellValue('J28', 'MONTO A PAGAR...............................');
+    $sheet->getStyle('J28')->getFont()->setName('Arial')->setSize(9)->setBold(true)->setItalic(true);
+    $sheet->getStyle('J28')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+
+    $sheet->setCellValue('O28', '=I26-O26');
+    $sheet->getStyle('O28')->getFont()->setName('Arial')->setSize(9.5)->setBold(true);
+    $sheet->getStyle('O28')->getNumberFormat()->setFormatCode($numFmt);
+    $sheet->getStyle('O28')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_RIGHT);
+    $sheet->getStyle('O28')->getBorders()->getTop()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+    $sheet->getStyle('O28')->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_DOUBLE);
+
+    // Firmas y Sellos
+    $posiblesRutas = [
+      dirname(__DIR__, 2) . '/src/assets/images/firma.jpg',
+      dirname(__DIR__, 2) . '/src/assets/images/firma.jpeg',
+      dirname(__DIR__, 2) . '/src/assets/images/firma.png',
+      'src/assets/images/firma.jpg',
+      'src/assets/images/firma.jpeg',
+      'src/assets/images/firma.png',
+    ];
+    $rutaFirma = '';
+    foreach ($posiblesRutas as $r) {
+      if (file_exists($r)) {
+        $rutaFirma = $r;
+        break;
+      }
+    }
+
+    // Altura de filas para que la firma quede cómoda por encima de la línea
+    $sheet->getRowDimension(29)->setRowHeight(20);
+    $sheet->getRowDimension(30)->setRowHeight(20);
+    $sheet->getRowDimension(31)->setRowHeight(20);
+    $sheet->getRowDimension(32)->setRowHeight(20);
+
+    if (!empty($rutaFirma)) {
+      try {
+        $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        $drawing->setName('Firma y Sello');
+        $drawing->setDescription('Firma y Sello');
+        $drawing->setPath($rutaFirma);
+        $drawing->setCoordinates('B29');
+        $drawing->setOffsetX(88); // Centrado sobre el bloque B33:F33
+        $drawing->setOffsetY(2);
+        $drawing->setResizeProportional(false);
+        // Alto 2,66 cm (101 px) y Ancho 8,38 cm (317 px)
+        $drawing->setWidth((int) round((8.38 / 2.54) * 96));
+        $drawing->setHeight((int) round((2.66 / 2.54) * 96));
+        $drawing->setWorksheet($sheet);
+      } catch (Exception) {}
+    }
+
+    // Línea y texto para Firma y Sello del Agente de Retención
+    $sheet->mergeCells('B33:F33');
+    $sheet->setCellValue('B33', 'FIRMA Y SELLO DEL AGENTE DE RETENCION');
+    $sheet->getStyle('B33')->getFont()->setName('Arial')->setSize(8)->setBold(true);
+    $sheet->getStyle('B33')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('B33:F33')->getBorders()->getTop()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+    // Línea y texto para Recibido Por
+    $sheet->mergeCells('K33:O33');
+    $sheet->setCellValue('K33', 'RECIBIDO POR');
+    $sheet->getStyle('K33')->getFont()->setName('Arial')->setSize(8)->setBold(true);
+    $sheet->getStyle('K33')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+    $sheet->getStyle('K33:O33')->getBorders()->getTop()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+    if (ob_get_length()) ob_end_clean();
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment; filename="Comprobante_Retencion_IVA_' . $data['nro_comprobante'] . '.xlsx"');
+    header('Cache-Control: max-age=0');
+
+    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+    $writer->save('php://output');
+    exit();
+  }
 }
+
