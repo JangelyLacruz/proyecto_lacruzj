@@ -21,28 +21,28 @@ if (
 
   switch ($accion) {
     case 'listar':
-      $resultado = $objeto->ListarOrdenes($_POST);
+      $resultado = $objeto->listarOrdenes($_POST);
       break;
     case 'listarMetodosPago':
-      $resultado = $objeto->ListarMetodosPago($_POST);
+      $resultado = $objeto->listarMetodosPago($_POST);
       break;
     case 'obtenerUno':
-      $resultado = $objeto->ObtenerOrden($_POST);
+      $resultado = $objeto->obtenerOrden($_POST);
       break;
     case 'obtenerDetalle':
-      $resultado = $objeto->ObtenerDetalleOrden($_POST);
+      $resultado = $objeto->obtenerDetalleOrden($_POST);
       break;
     case 'registrar':
-      $resultado = $objeto->RegistrarOrden($_POST);
+      $resultado = $objeto->registrarOrden($_POST);
       break;
     case 'registrarPago':
-      $resultado = $objeto->RegistrarPago($_POST);
+      $resultado = $objeto->registrarPago($_POST);
       break;
     case 'despachar':
-      $resultado = $objeto->DespacharOrden($_POST);
+      $resultado = $objeto->despacharOrden($_POST);
       break;
     case 'anular':
-      $resultado = $objeto->AnularOrden($_POST);
+      $resultado = $objeto->anularOrden($_POST);
       break;
     case 'procesarPresupuesto':
       $resultado = $objeto->procesarPresupuesto($_POST);
@@ -50,9 +50,15 @@ if (
     case 'imprimirPlanilla':
       $resultado = $objeto->impresionPlanillaOEP($_POST);
       break;
+    case 'obtenerDatosRetencion':
+      $resultado = $objeto->obtenerDatosRetencion($_POST);
+      break;
+    case 'generarRetencionIVA':
+      $resultado = $objeto->generarRetencionIVA($_POST);
+      break;
   }
   
- $objeto->DECORE($resultado);
+  $objeto->DECORE($resultado);
   exit();
 
 } elseif ($_SERVER["REQUEST_METHOD"] === "GET") {

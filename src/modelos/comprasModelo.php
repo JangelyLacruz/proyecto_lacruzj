@@ -129,7 +129,8 @@ class comprasModelo extends conexion {
           'proveedorId' => $info['detalle_proveedorId'][$index] ?? '',
           'tipo'        => $info['detalle_tipo'][$index] ?? '',
           'id'          => $id,
-          'cantidad'    => $info['detalle_cantidad'][$index] ?? 1
+          'cantidad'    => $info['detalle_cantidad'][$index] ?? 1,
+          'precio'      => $info['detalle_precio'][$index] ?? 0
         ];
       }
     }
@@ -164,7 +165,7 @@ class comprasModelo extends conexion {
       ];
     }
 
-    // Validar tipo y cantidad de cada ítem
+    // Validar tipo, cantidad y normalizar precio de cada ítem
     foreach ($detalles as &$det) {
       if (!in_array($det['tipo'] ?? '', ['producto', 'materia_prima'])) {
         return [
@@ -180,6 +181,9 @@ class comprasModelo extends conexion {
         'camposVal' => ['cantidad_item' => 'cantidad']
       ]);
       if ($alerta !== false) return $alerta;
+
+      $precio = (float) str_replace(',', '.', (string)($det['precio'] ?? $det['costo_compra'] ?? $det['precio_compra'] ?? 0));
+      $det['precio'] = max(0, $precio);
     }
     unset($det);
 
@@ -205,7 +209,8 @@ class comprasModelo extends conexion {
           'proveedorId' => $info['detalle_proveedorId'][$index] ?? '',
           'tipo'        => $info['detalle_tipo'][$index] ?? '',
           'id'          => $id,
-          'cantidad'    => $info['detalle_cantidad'][$index] ?? 1
+          'cantidad'    => $info['detalle_cantidad'][$index] ?? 1,
+          'precio'      => $info['detalle_precio'][$index] ?? 0
         ];
       }
     }
@@ -266,6 +271,9 @@ class comprasModelo extends conexion {
         'camposVal' => ['cantidad_item' => 'cantidad']
       ]);
       if ($alerta !== false) return $alerta;
+
+      $precio = (float) str_replace(',', '.', (string)($det['precio'] ?? $det['costo_compra'] ?? $det['precio_compra'] ?? 0));
+      $det['precio'] = max(0, $precio);
     }
     unset($det);
 
@@ -335,6 +343,28 @@ class comprasModelo extends conexion {
     $this->id_compra = $id_compra;
     return $this->imprimirOrdenCompraP();
   }
+  public function imprimirPlanillaRetencion(array $info) {
+    $id_compra = $info['id_compra'] ?? '';
+    $infoVal = ['id_compra' => &$id_compra];
+    $alerta = $this->validarCompras('ver', [
+      'infoVal'   => &$infoVal,
+      'camposVal' => ['id_compra']
+    ]);
+    if ($alerta !== false) return $alerta;
+
+    $this->id_compra = $id_compra;
+    return $this->imprimirPlanillaRetencionP();
+  }
+  public function obtenerTasaDolar(): array {
+    $v = $this->validarCompras('ver');
+    if ($v) return $v;
+    $sql = "SELECT valor_moneda, simbolo_moneda FROM monedas WHERE (id_moneda = 1 OR simbolo_moneda = '$' OR nombre_moneda LIKE '%DOLAR%' OR nombre_moneda LIKE '%DÓLAR%') AND status = 1 ORDER BY id_moneda ASC LIMIT 1";
+    $stmt = $this->conectar()->prepare($sql);
+    $stmt->execute();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $tasa = $row ? (float) $row['valor_moneda'] : 1.0;
+    return ['tasa' => $tasa > 0 ? $tasa : 1.0, 'simbolo' => '$'];
+  }
 
   // Metodos privados (BD)
   private function seleccionarCompraP() {
@@ -389,6 +419,8 @@ class comprasModelo extends conexion {
                 det.cantidad_producto AS cantidad_raw,
                 CONCAT(det.cantidad_producto, ' ',
                     COALESCE(um.simbolo_unidad_medida, 'UNID')) AS cantidad,
+                COALESCE(det.precio_compra, 0.00) AS precio_unitario,
+                ROUND(det.cantidad_producto * COALESCE(det.precio_compra, 0.00), 2) AS subtotal,
                 um.id_unidad_medida,
                 um.nombre_unidad_medida
             FROM compras c
@@ -417,6 +449,8 @@ class comprasModelo extends conexion {
                 det.cantidad_materia_prima AS cantidad_raw,
                 CONCAT(det.cantidad_materia_prima, ' ',
                     COALESCE(um.simbolo_unidad_medida, 'UNID')) AS cantidad,
+                COALESCE(det.costo_compra, 0.00) AS precio_unitario,
+                ROUND(det.cantidad_materia_prima * COALESCE(det.costo_compra, 0.00), 2) AS subtotal,
                 um.id_unidad_medida,
                 um.nombre_unidad_medida
             FROM compras c
@@ -454,10 +488,10 @@ class comprasModelo extends conexion {
                  VALUES (:id, :rif, :cedula, :fecha, 1)'
       );
       $stInsert->execute([
-        ':id'     => $id_compra,
-        ':rif'    => $this->rif_proveedor,
-        ':cedula' => $_SESSION['cedula'],
-        ':fecha'  => $this->fecha_compra,
+        ':id'          => $id_compra,
+        ':rif'         => $this->rif_proveedor,
+        ':cedula'      => $_SESSION['cedula'] ?? '12345678',
+        ':fecha'       => $this->fecha_compra,
       ]);
 
       // 3. Agrupar items duplicados sumando cantidades
@@ -468,6 +502,9 @@ class comprasModelo extends conexion {
           $itemsAgrupados[$clave] = $det;
         } else {
           $itemsAgrupados[$clave]['cantidad'] += (float)$det['cantidad'];
+          if (!empty($det['precio'])) {
+            $itemsAgrupados[$clave]['precio'] = (float)$det['precio'];
+          }
         }
       }
 
@@ -476,24 +513,27 @@ class comprasModelo extends conexion {
         $tipo    = $item['tipo'];
         $id_item = $item['id'];
         $cant    = (float) $item['cantidad'];
+        $precio  = (float) ($item['precio'] ?? 0);
 
         if ($tipo === 'producto') {
           $cn->prepare(
-            'INSERT INTO productos_compras (id_compra, id_presentacion_producto, cantidad_producto, status)
-            VALUES (:compra, :item, :cant, 1)'
+            'INSERT INTO productos_compras (id_compra, id_presentacion_producto, cantidad_producto, precio_compra, status)
+            VALUES (:compra, :item, :cant, :precio, 1)'
           )->execute([
             ':compra' => $id_compra,
             ':item'   => $id_item,
-            ':cant'   => $cant
+            ':cant'   => $cant,
+            ':precio' => $precio
           ]);
         } elseif ($tipo === 'materia_prima') {
           $cn->prepare(
-            'INSERT INTO materias_primas_compras (id_compra, id_materia_prima, cantidad_materia_prima, status)
-                         VALUES (:compra, :item, :cant, 1)'
+            'INSERT INTO materias_primas_compras (id_compra, id_materia_prima, cantidad_materia_prima, costo_compra, status)
+                         VALUES (:compra, :item, :cant, :precio, 1)'
           )->execute([
             ':compra' => $id_compra,
             ':item'   => $id_item,
-            ':cant'   => $cant
+            ':cant'   => $cant,
+            ':precio' => $precio
           ]);
         }
       }
@@ -595,9 +635,9 @@ class comprasModelo extends conexion {
       $cn->prepare(
         'UPDATE compras SET rif_proveedor = :rif, fecha_compra = :fecha WHERE id_compra = :id'
       )->execute([
-        ':rif'   => $this->rif_proveedor,
-        ':fecha' => $this->fecha_compra,
-        ':id'    => $this->id_compra,
+        ':rif'         => $this->rif_proveedor,
+        ':fecha'       => $this->fecha_compra,
+        ':id'          => $this->id_compra,
       ]);
 
       // 4. Insertar nuevos ítems (en status 1 sin sumar al inventario aún)
@@ -605,19 +645,20 @@ class comprasModelo extends conexion {
         $tipo    = $det['tipo']     ?? '';
         $id_item = (string) ($det['id'] ?? '');
         $cant    = (float)  ($det['cantidad'] ?? 0);
+        $precio  = (float)  ($det['precio'] ?? 0);
 
         if (empty($id_item) || $cant <= 0) continue;
 
         if ($tipo === 'producto') {
           $cn->prepare(
-            'INSERT INTO productos_compras (id_compra, id_presentacion_producto, cantidad_producto, status)
-                         VALUES (:compra, :item, :cant, 1)'
-          )->execute([':compra' => $this->id_compra, ':item' => $id_item, ':cant' => $cant]);
+            'INSERT INTO productos_compras (id_compra, id_presentacion_producto, cantidad_producto, precio_compra, status)
+                         VALUES (:compra, :item, :cant, :precio, 1)'
+          )->execute([':compra' => $this->id_compra, ':item' => $id_item, ':cant' => $cant, ':precio' => $precio]);
         } elseif ($tipo === 'materia_prima') {
           $cn->prepare(
-            'INSERT INTO materias_primas_compras (id_compra, id_materia_prima, cantidad_materia_prima, status)
-                         VALUES (:compra, :item, :cant, 1)'
-          )->execute([':compra' => $this->id_compra, ':item' => $id_item, ':cant' => $cant]);
+            'INSERT INTO materias_primas_compras (id_compra, id_materia_prima, cantidad_materia_prima, costo_compra, status)
+                         VALUES (:compra, :item, :cant, :precio, 1)'
+          )->execute([':compra' => $this->id_compra, ':item' => $id_item, ':cant' => $cant, ':precio' => $precio]);
         }
       }
 
@@ -970,5 +1011,297 @@ class comprasModelo extends conexion {
       ],
       'infoBD' => $infoCeldas
     ]);
+  }
+  private function imprimirPlanillaRetencionP() {
+    $detalles = $this->seleccionarCompra(['id_compra' => $this->id_compra]);
+    if (empty($detalles)) {
+      return [
+        'tipo'   => 'simple',
+        'titulo' => 'No encontrada',
+        'texto'  => 'La compra solicitada no existe.',
+        'icono'  => 'warning'
+      ];
+    }
+
+    $cn = $this->conectar();
+    $stCab = $cn->prepare("
+      SELECT c.id_compra, c.fecha_compra, c.rif_proveedor,
+             p.razon_social_proveedor, p.direccion_proveedor, p.telefono_proveedor
+      FROM compras c
+      LEFT JOIN proveedores p ON c.rif_proveedor = p.rif_proveedor
+      WHERE c.id_compra = :id
+    ");
+    $stCab->execute([':id' => $this->id_compra]);
+    $compraInfo = $stCab->fetch(PDO::FETCH_ASSOC);
+
+    $rifProveedor = $compraInfo['rif_proveedor'] ?? ($detalles[0]['rif_proveedor'] ?? '');
+    $razonProveedor = $compraInfo['razon_social_proveedor'] ?? ($detalles[0]['PROVEEDOR'] ?? 'NO ESPECIFICADO');
+    $nroFactura = str_pad((string)$this->id_compra, 10, '0', STR_PAD_LEFT);
+    $nroControl = 'NA-' . str_pad((string)$this->id_compra, 8, '0', STR_PAD_LEFT);
+    $fechaFactura = !empty($compraInfo['fecha_compra']) ? date('d/m/Y', strtotime($compraInfo['fecha_compra'])) : date('d/m/Y');
+    $fechaEmision = !empty($compraInfo['fecha_compra']) ? substr($compraInfo['fecha_compra'], 0, 10) : date('Y-m-d');
+
+    // Cálculos de retención SENIAT
+    $baseImponible = 0.0;
+    foreach ($detalles as $det) {
+      $cant = (float) ($det['cantidad_raw'] ?? 0);
+      $precio = (float) ($det['precio_unitario'] ?? 0);
+      $baseImponible += ($cant * $precio);
+    }
+    $baseImponible = round($baseImponible, 2);
+    $alicuota = 16.00;
+    $impuestoIVA = round($baseImponible * ($alicuota / 100), 2);
+    $porcentajeRetencion = 75.00;
+    $ivaRetenido = round($impuestoIVA * ($porcentajeRetencion / 100), 2);
+    $totalCompra = round($baseImponible + $impuestoIVA, 2);
+    $montoPagar = round($totalCompra - $ivaRetenido, 2);
+
+    // Obtener o registrar en ordenes_retenciones_compras
+    $periodoFiscal = date('Y/m', strtotime($fechaEmision));
+    $prefijo = date('Ym', strtotime($fechaEmision));
+    $nroComprobante = $prefijo . str_pad((string)$this->id_compra, 8, '0', STR_PAD_LEFT);
+
+    try {
+      $stRet = $cn->prepare("SELECT * FROM ordenes_retenciones_compras WHERE id_compra = :id AND status = 1 LIMIT 1");
+      $stRet->execute([':id' => $this->id_compra]);
+      $retExistente = $stRet->fetch(PDO::FETCH_ASSOC);
+
+      if (empty($retExistente)) {
+        $idRetencion = 'RET-' . str_pad((string)$this->id_compra, 5, '0', STR_PAD_LEFT);
+        $stIns = $cn->prepare("
+          INSERT INTO ordenes_retenciones_compras (
+            id_retencion_compra, id_compra, status
+          ) VALUES (
+            :id_ret, :id_c, 1
+          )
+        ");
+        $stIns->execute([
+          ':id_ret' => $idRetencion,
+          ':id_c'   => $this->id_compra,
+        ]);
+      }
+    } catch (\Throwable $e) {
+      // Ignorar si ya está registrada o restricción
+    }
+
+    $bitacora = new bitacoraModelo();
+    $bitacora->registrarBitacora([
+      'modulo' => 'compras',
+      'accion' => 'Imprimir planilla de retención (' . $this->id_compra . ')',
+      'resultado' => 'Éxito',
+    ]);
+
+    // Crear PDF apaisado tipo SENIAT
+    $pdf = new pdfModel([
+      'tamanoPagina' => 'carta',
+      'orientacion'  => 'L',
+      'header'       => false,
+      'footer'       => false
+    ]);
+
+    $pdf->SetMargins(10, 10, 10);
+    $pdf->SetAutoPageBreak(false);
+    $pdf->AddPage('L');
+
+    // 1. TEXTO LEGAL SUPERIOR IZQUIERDA
+    $pdf->SetXY(10, 10);
+    $pdf->SetFont('Arial', '', 6.5);
+    $textoLegal = '(Ley del I.V.A. - Art. 11 " Serán responsables del pago del Impuesto en calidad de agentes de retención, los comprobantes o adquirientes de determinados bienes muebles y los receptores de ciertos servicios, a quienes la administración Tributaria designe como tal")';
+    $pdf->MultiCell(150, 3.2, $pdf->CSE($textoLegal), 0, 'L');
+
+    // 2. N° DE COMPROBANTE
+    $pdf->SetXY(165, 8);
+    $pdf->SetFont('Arial', 'B', 7.5);
+    $pdf->cell2(62, 5, 'N° DE COMPROBANTE', 1, 2, 'C');
+    $pdf->SetFont('Arial', 'B', 9.5);
+    $pdf->cell2(62, 7, $nroComprobante, 1, 0, 'C');
+
+    // 3. FECHA Y PERIODO FISCAL
+    $pdf->SetXY(230, 8);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->cell2(40, 4.5, 'FECHA', 1, 2, 'C');
+    $pdf->SetFont('Arial', 'B', 8);
+    $pdf->cell2(40, 5.5, $fechaFactura, 1, 2, 'C');
+
+    $pdf->SetXY(230, 24);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->cell2(40, 4.5, 'PERIODO FISCAL', 1, 2, 'C');
+    $pdf->SetFont('Arial', 'B', 8);
+    $pdf->cell2(40, 5.5, $periodoFiscal, 1, 0, 'C');
+
+    // 4. IDENTIFICACION FISCAL (CUADROS)
+    // Fila 1: Agente de Retención
+    $pdf->SetXY(10, 24);
+    $pdf->SetFont('Arial', '', 6.5);
+    $pdf->cell2(105, 4, $pdf->CSE('RAZON SOCIAL DEL AGENTE DE RETENCION'), 1, 0, 'L');
+    $pdf->SetX(118);
+    $pdf->cell2(109, 4, $pdf->CSE('REGISTRO DE INFORMACION FISCAL DEL AGENTE DE RETENCION'), 1, 1, 'L');
+
+    $pdf->SetXY(10, 28);
+    $pdf->SetFont('Arial', 'B', 8.5);
+    $pdf->cell2(105, 6, 'J.LACRUZ C.A.', 1, 0, 'C');
+    $pdf->SetX(118);
+    $pdf->cell2(109, 6, 'RIF J-41219270-1', 1, 1, 'C');
+
+    // Fila 2: Dirección Fiscal del Agente
+    $pdf->SetXY(10, 36);
+    $pdf->SetFont('Arial', '', 6.5);
+    $pdf->cell2(217, 3.5, $pdf->CSE('DIRECCION FISCAL DEL AGENTE DE RETENCION:'), 'LTR', 1, 'L');
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->cell2(217, 5.5, $pdf->CSE('CALLE SAN RAFAEL CON AV. 1 Y 2 LA MATA CABUDARE LOCAL SN. MUNICIPIO PALAVECINO EDO.LARA'), 'LBR', 1, 'L');
+
+    // Fila 3: Sujeto Retenido (Proveedor)
+    $pdf->SetXY(10, 47);
+    $pdf->SetFont('Arial', '', 6.5);
+    $pdf->cell2(105, 4, $pdf->CSE('NOMBRE Y RAZON SOCIAL DE SUJETO RETENIDO'), 1, 0, 'L');
+    $pdf->SetX(118);
+    $pdf->cell2(109, 4, $pdf->CSE('REGISTRO DE INFORMACION FISCAL DEL SUJETO RETENIDO (R.I.F)'), 1, 1, 'L');
+
+    $pdf->SetXY(10, 51);
+    $pdf->SetFont('Arial', 'B', 8.5);
+    $pdf->cell2(105, 6, $pdf->CSE($razonProveedor), 1, 0, 'C');
+    $pdf->SetX(118);
+    $pdf->cell2(109, 6, $pdf->CSE($rifProveedor), 1, 1, 'C');
+
+    // 5. TABLA PRINCIPAL
+    $yTabla = 62;
+    $cols = [
+      ['key' => 'oper',          'w' => 10, 'h1' => 'Oper.',             'h2' => 'Nº',            'align' => 'C'],
+      ['key' => 'fecha_fac',     'w' => 18, 'h1' => 'Fecha de',          'h2' => 'Factura',       'align' => 'C'],
+      ['key' => 'nro_fac',       'w' => 22, 'h1' => 'Numero de',         'h2' => 'Factura',       'align' => 'C'],
+      ['key' => 'nro_ctrl',      'w' => 22, 'h1' => 'Nº. Control',       'h2' => 'de Factura',    'align' => 'C'],
+      ['key' => 'nd',            'w' => 14, 'h1' => 'Número',            'h2' => 'ND',            'align' => 'C'],
+      ['key' => 'nc',            'w' => 14, 'h1' => 'Número',            'h2' => 'NC',            'align' => 'C'],
+      ['key' => 'tipo_tr',       'w' => 14, 'h1' => 'Tipo de',           'h2' => 'Transacc.',     'align' => 'C'],
+      ['key' => 'fac_afec',      'w' => 18, 'h1' => 'Nº Factura',        'h2' => 'Afectada',      'align' => 'C'],
+      ['key' => 'total_con_iva', 'w' => 25, 'h1' => 'Total Compras',     'h2' => 'Incluyendo IVA', 'align' => 'R'],
+      ['key' => 'sin_credito',   'w' => 21, 'h1' => 'Compras sin',       'h2' => 'Derecho Créd.', 'align' => 'R'],
+      ['key' => 'base_imp',      'w' => 22, 'h1' => 'Base',              'h2' => 'Imponible',     'align' => 'R'],
+      ['key' => 'alicuota',      'w' => 13, 'h1' => '%',                 'h2' => 'Alicuota',      'align' => 'C'],
+      ['key' => 'impuesto_iva',  'w' => 22, 'h1' => 'Impuesto',          'h2' => 'IVA',           'align' => 'R'],
+      ['key' => 'iva_retenido',  'w' => 25, 'h1' => 'IVA',               'h2' => 'Retenido',      'align' => 'R'],
+    ];
+
+    $xInicio = 10;
+    $xSuper = $xInicio;
+    for ($i = 0; $i < 10; $i++) {
+      $xSuper += $cols[$i]['w'];
+    }
+    $wSuper = $cols[10]['w'] + $cols[11]['w'] + $cols[12]['w'];
+
+    // Super-encabezado "COMPRAS INTERNAS O IMPORTACIONES"
+    $pdf->SetXY($xSuper, $yTabla);
+    $pdf->SetFont('Arial', 'B', 6.5);
+    $pdf->cell2($wSuper, 4.5, $pdf->CSE('COMPRAS INTERNAS O IMPORTACIONES'), 1, 0, 'C');
+
+    // Encabezados
+    $xPos = $xInicio;
+    foreach ($cols as $idx => $c) {
+      if ($idx >= 10 && $idx <= 12) {
+        $pdf->SetXY($xPos, $yTabla + 4.5);
+        $pdf->cell2($c['w'], 4, $pdf->CSE($c['h1']), 'LTR', 2, 'C');
+        $pdf->cell2($c['w'], 4.5, $pdf->CSE($c['h2']), 'LBR', 0, 'C');
+      } else {
+        $pdf->SetXY($xPos, $yTabla);
+        $pdf->cell2($c['w'], 6.5, $pdf->CSE($c['h1']), 'LTR', 2, 'C');
+        $pdf->cell2($c['w'], 6.5, $pdf->CSE($c['h2']), 'LBR', 0, 'C');
+      }
+      $xPos += $c['w'];
+    }
+
+    // Fila de datos
+    $yFila = $yTabla + 13;
+    $pdf->SetFont('Arial', '', 7);
+
+    $datosFila = [
+      'oper'          => '01',
+      'fecha_fac'     => $fechaFactura,
+      'nro_fac'       => $nroFactura,
+      'nro_ctrl'      => $nroControl,
+      'nd'            => '',
+      'nc'            => '',
+      'tipo_tr'       => '01',
+      'fac_afec'      => '',
+      'total_con_iva' => number_format($totalCompra, 2, ',', '.'),
+      'sin_credito'   => '0,00',
+      'base_imp'      => number_format($baseImponible, 2, ',', '.'),
+      'alicuota'      => number_format($alicuota, 0),
+      'impuesto_iva'  => number_format($impuestoIVA, 2, ',', '.'),
+      'iva_retenido'  => number_format($ivaRetenido, 2, ',', '.'),
+    ];
+
+    $pdf->SetXY($xInicio, $yFila);
+    foreach ($cols as $c) {
+      $pdf->cell2($c['w'], 6.5, $pdf->CSE($datosFila[$c['key']] ?? ''), 1, 0, $c['align']);
+    }
+    $yFila += 6.5;
+
+    // Filas vacías decorativas
+    for ($f = 0; $f < 2; $f++) {
+      $pdf->SetXY($xInicio, $yFila);
+      foreach ($cols as $c) {
+        $pdf->cell2($c['w'], 6, '', 1, 0, 'C');
+      }
+      $yFila += 6;
+    }
+
+    // FILA DE TOTALES
+    $pdf->SetXY($xInicio, $yFila);
+    $pdf->SetFont('Arial', 'B', 7);
+
+    $wTotalesIzq = 0;
+    for ($i = 0; $i < 8; $i++) $wTotalesIzq += $cols[$i]['w'];
+
+    $pdf->cell2($wTotalesIzq, 6.5, 'TOTALES', 1, 0, 'C');
+    $pdf->cell2($cols[8]['w'], 6.5, number_format($totalCompra, 2, ',', '.'), 1, 0, 'R');
+    $pdf->cell2($cols[9]['w'], 6.5, '0,00', 1, 0, 'R');
+    $pdf->cell2($cols[10]['w'], 6.5, number_format($baseImponible, 2, ',', '.'), 1, 0, 'R');
+    $pdf->cell2($cols[11]['w'], 6.5, '', 1, 0, 'C');
+    $pdf->cell2($cols[12]['w'], 6.5, number_format($impuestoIVA, 2, ',', '.'), 1, 0, 'R');
+    $pdf->cell2($cols[13]['w'], 6.5, number_format($ivaRetenido, 2, ',', '.'), 1, 1, 'R');
+
+    $yFila += 6.5;
+
+    // MONTO A PAGAR
+    $pdf->SetXY($xInicio, $yFila + 2);
+    $pdf->SetFont('Arial', 'BI', 8);
+    $pdf->SetX($xSuper - 20);
+    $pdf->cell2($wSuper + 20, 6, $pdf->CSE('MONTO A PAGAR.......................................'), 0, 0, 'R');
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->cell2($cols[13]['w'], 6, number_format($montoPagar, 2, ',', '.'), 'B', 1, 'R');
+
+    // FIRMAS Y SELLOS
+    $yFirmas = $yFila + 22;
+
+    $rutaLogo = 'src/assets/images/logo2.png';
+    if (!file_exists($rutaLogo)) {
+      $rutaLogo = 'src/assets/images/logo.png';
+    }
+    if (file_exists($rutaLogo)) {
+      $pdf->Image($rutaLogo, 22, $yFirmas - 16, 18, 14);
+    }
+    $pdf->SetXY(42, $yFirmas - 14);
+    $pdf->SetFont('Arial', 'B', 9);
+    $pdf->cell2(60, 4, 'J. LACRUZ C.A.', 0, 1, 'L');
+    $pdf->SetX(42);
+    $pdf->SetFont('Arial', '', 6.5);
+    $pdf->cell2(60, 3.5, 'Multiservicios Generales', 0, 1, 'L');
+    $pdf->SetX(42);
+    $pdf->SetFont('Arial', 'B', 7);
+    $pdf->cell2(60, 3.5, 'Rif.: J-412192701', 0, 1, 'L');
+
+    $pdf->SetXY(15, $yFirmas + 2);
+    $pdf->SetFont('Arial', '', 7);
+    $pdf->cell2(95, 4, '________________________________________________', 0, 2, 'C');
+    $pdf->SetFont('Arial', 'B', 7.5);
+    $pdf->cell2(95, 4, $pdf->CSE('FIRMA Y SELLO DEL AGENTE DE RETENCION'), 0, 0, 'C');
+
+    $pdf->SetXY(160, $yFirmas + 2);
+    $pdf->SetFont('Arial', '', 7);
+    $pdf->cell2(95, 4, '________________________________________________', 0, 2, 'C');
+    $pdf->SetFont('Arial', 'B', 7.5);
+    $pdf->cell2(95, 4, $pdf->CSE('RECIBIDO POR'), 0, 0, 'C');
+
+    return $pdf;
   }
 }

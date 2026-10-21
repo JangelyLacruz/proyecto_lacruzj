@@ -34,6 +34,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["accion"]) && isset($_S
     case 'imprimir':
       $resultado = $objeto->imprimirOrdenCompra($_POST);
       break;
+    case 'imprimirPlanillaRetencion':
+      $resultado = $objeto->imprimirPlanillaRetencion($_POST);
+      break;
+    case 'obtenerTasaDolar':
+      $resultado = $objeto->obtenerTasaDolar();
+      break;
     case 'eliminar':
       $resultado = $objeto->eliminarCompra($_POST);
       break;

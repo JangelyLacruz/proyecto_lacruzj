@@ -1,6 +1,6 @@
 // Importaciones
 import {
-  enviarFormulario, listarDataTable, pedirDatosAjax, reiniciarDataModuloSS, rutaAbsoluta
+  enviarFormulario, listarDataTable, pedirDatosAjax, reiniciarDataModuloSS, rutaAbsoluta, cargarPrecioDolar
 } from '/proyecto-lacruz-j/src/assets/js/modulos/global.js';
 import { driverAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js";
 
@@ -75,8 +75,169 @@ let itemsCache = {
   'producto': null
 };
 let itemsCompra = []; // items temporales para la recepcion
+let tasaDolar = 1.0; // Tasa de cambio oficial en pantalla (BCV / Dólar API)
 
 // Funciones del modulo
+
+// Obtener la tasa de cambio del dólar mostrada actualmente en la página
+function obtenerTasaDolarEnPantalla() {
+  // 1. Del texto mostrado en la barra superior del sistema (.precio_dolar)
+  let textoHeader = $('.precio_dolar').first().text().trim().replace(/\s+/g, '').replace(',', '.');
+  let tasa = parseFloat(textoHeader);
+  if (!isNaN(tasa) && tasa > 1.0) {
+    tasaDolar = tasa;
+    return tasa;
+  }
+
+  // 2. Del caché de sesión 'infoDolarWS' guardado por global.js
+  try {
+    let ws = JSON.parse(sessionStorage.getItem('infoDolarWS') || '{}');
+    if (ws && ws.precio) {
+      let p = parseFloat(String(ws.precio).replace(',', '.'));
+      if (!isNaN(p) && p > 1.0) {
+        tasaDolar = p;
+        return p;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Del input oculto .precioDolar si estuviera presente
+  let inputVal = parseFloat($('.precioDolar').val());
+  if (!isNaN(inputVal) && inputVal > 1.0) {
+    tasaDolar = inputVal;
+    return inputVal;
+  }
+
+  return tasaDolar > 1.0 ? tasaDolar : 1.0;
+}
+
+// Cargar y asegurar la tasa de cambio mostrada en la página
+async function cargarTasaDolar() {
+  try {
+    let tasa = obtenerTasaDolarEnPantalla();
+    if (tasa <= 1.0 && typeof cargarPrecioDolar === 'function') {
+      try {
+        await cargarPrecioDolar();
+        tasa = obtenerTasaDolarEnPantalla();
+      } catch (err) {}
+    }
+
+    if (tasa <= 1.0) {
+      try {
+        let res = await pedirDatosAjax({
+          modulo: 'compras',
+          noGuardarLocal: true,
+          datosPe: { accion: 'obtenerTasaDolar' }
+        });
+        if (res && res.tasa && parseFloat(res.tasa) > 1.0) {
+          tasa = parseFloat(res.tasa);
+        }
+      } catch (err2) {}
+    }
+
+    if (tasa > 1.0) {
+      tasaDolar = tasa;
+    }
+
+    // Recalcular filas abiertas y total general
+    $('.fila-compra').each(function () {
+      recalcularFila($(this));
+    });
+    actualizarGranTotalCompra();
+  } catch (e) {
+    console.error("Error al cargar tasa dólar:", e);
+  }
+}
+
+// Recalcular subtotal y conversión de una fila específica
+function recalcularFila(fila) {
+  let tasaActual = obtenerTasaDolarEnPantalla();
+  if (tasaActual > 1.0) tasaDolar = tasaActual;
+
+  let cantidad = parseFloat(fila.find('.inputCantidadFila').val()) || 0;
+  let precioInput = parseFloat(fila.find('.inputPrecioFila').val()) || 0;
+  if (cantidad > 9999999) cantidad = 9999999;
+  if (precioInput > 999999999.99) precioInput = 999999999.99;
+  let moneda = fila.find('.inputMonedaFila').val() || 'BS';
+
+  let precioBs = 0;
+  let precioUsd = 0;
+  let equivTexto = '';
+  let tooltip = '';
+
+  if (moneda === '$') {
+    precioBs = precioInput * tasaDolar;
+    let totalBs = precioBs * cantidad;
+
+    if (precioInput > 0) {
+      if (cantidad > 1) {
+        equivTexto = `≈ ${precioBs.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs (Tot: ${totalBs.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs)`;
+      } else {
+        equivTexto = `≈ ${precioBs.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs`;
+      }
+    } else {
+      equivTexto = `≈ 0.00 Bs`;
+    }
+
+    tooltip = `Precio en $: ${precioInput.toFixed(2)} $ | Equivalente: ${precioBs.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs (Tasa: ${tasaDolar.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs/$)`;
+    fila.find('.texto-equiv-bs')
+      .removeClass('text-primary')
+      .addClass('text-success en-dolar')
+      .text(equivTexto)
+      .attr('title', tooltip);
+  } else {
+    precioBs = precioInput;
+    precioUsd = tasaDolar > 0 ? (precioInput / tasaDolar) : 0;
+    let totalUsd = precioUsd * cantidad;
+
+    if (precioInput > 0) {
+      if (cantidad > 1) {
+        equivTexto = `≈ ${precioUsd.toFixed(2)} $ (Tot: ${totalUsd.toFixed(2)} $)`;
+      } else {
+        equivTexto = `≈ ${precioUsd.toFixed(2)} $`;
+      }
+    } else {
+      equivTexto = `≈ 0.00 $`;
+    }
+
+    tooltip = `Precio en Bs: ${precioBs.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs | Equivalente: ${precioUsd.toFixed(2)} $ (Tasa: ${tasaDolar.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs/$)`;
+    fila.find('.texto-equiv-bs')
+      .removeClass('text-success en-dolar')
+      .addClass('text-primary')
+      .text(equivTexto)
+      .attr('title', tooltip);
+  }
+
+  fila.find('.inputPrecioFila').attr('title', tooltip);
+  fila.find('.inputPrecioBsFila').val(precioBs.toFixed(2));
+
+  actualizarGranTotalCompra();
+}
+
+function actualizarGranTotalCompra() {
+  let tasaActual = obtenerTasaDolarEnPantalla();
+  if (tasaActual > 1.0) tasaDolar = tasaActual;
+
+  let totalBs = 0;
+  $('.fila-compra').each(function () {
+    let cant = parseFloat($(this).find('.inputCantidadFila').val()) || 0;
+    let pBs = parseFloat($(this).find('.inputPrecioBsFila').val()) || 0;
+    if (cant > 9999999) cant = 9999999;
+    if (pBs > 999999999.99) pBs = 999999999.99;
+    totalBs += (cant * pBs);
+  });
+
+  if (!isFinite(totalBs) || totalBs > 999999999999) {
+    totalBs = 999999999999;
+  }
+
+  let totalUsd = tasaDolar > 0 ? (totalBs / tasaDolar) : 0;
+  let strBs = totalBs.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Bs';
+  let strUsd = '(' + totalUsd.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' $)';
+
+  $('#totalEstimadoCompraBs').text(strBs).attr('title', strBs);
+  $('#totalEstimadoCompraUsd').text(strUsd).attr('title', strUsd);
+}
 
 // Carga inicial de proveedores para cachear las opciones
 async function cargarOpcionesProveedores() {
@@ -217,6 +378,15 @@ async function agregarFila() {
     '<input type="number" class="form-control inputCantidadFila"',
     ' step="0.01" min="0.01" value="1">',
     '</div>',
+    '<div>',
+    '<div class="input-group input-group-sm input-group-precio">',
+    '<button type="button" class="btn btnMonedaFila" data-moneda="BS" title="Clic para alternar entre Bs y $">Bs</button>',
+    '<input type="number" class="form-control inputPrecioFila text-end" step="0.01" min="0" placeholder="0.00" value="0.00">',
+    '</div>',
+    '<div class="texto-equiv-bs text-end" title="Conversión de moneda">≈ 0.00 $</div>',
+    '<input type="hidden" class="inputMonedaFila" value="BS">',
+    '<input type="hidden" class="inputPrecioBsFila" value="0">',
+    '</div>',
     '<div class="text-center">',
     '<button type="button" class="btn-borrar btnEliminarFila" title="Eliminar línea">',
     '<span style="font-size:1.5rem;font-weight:bold;line-height:1;">\u00d7</span>',
@@ -230,8 +400,8 @@ async function agregarFila() {
 
   contenedor.append(nuevaFila);
 
-  // Heredar el proveedor de la primera fila si ya hay alguno seleccionado
-  let proveedorActual = $('.selectProveedorFila').not(nuevaFila.find('.selectProveedorFila')).first().val();
+  // Heredar el proveedor de la primera fila si ya hay alguno seleccionado, o del select superior
+  let proveedorActual = $('.selectProveedorFila').not(nuevaFila.find('.selectProveedorFila')).first().val() || $('.selectProveedorAct').val();
   if (proveedorActual) {
     nuevaFila.find('.selectProveedorFila').val(proveedorActual);
   }
@@ -242,6 +412,7 @@ async function agregarFila() {
 
   actualizarContador();
   actualizarBloqueoProveedor();
+  recalcularFila(nuevaFila);
 
   // Auto-scroll al fondo del contenedor correcto
   if (contenedor.length) {
@@ -272,6 +443,7 @@ async function actualizarTablaItems() {
     // Pre-seleccionar Proveedor
     let pId = String(item.proveedorId || '').trim();
     let provOptions = proveedoresOptionsCache.replace(`value="${pId}"`, `value="${pId}" selected`);
+    let precioVal = parseFloat(item.precio || 0).toFixed(2);
 
     let filaHtml = `
             <div class="grid-compras-row fila-compra">
@@ -309,6 +481,17 @@ async function actualizarTablaItems() {
                 <div>
                     <input type="number" class="form-control inputCantidadFila" step="0.01" min="0.01" value="${item.cantidad}">
                 </div>
+
+                <!-- Precio -->
+                <div>
+                    <div class="input-group input-group-sm input-group-precio">
+                        <button type="button" class="btn btnMonedaFila" data-moneda="BS" title="Clic para alternar entre Bs y $">Bs</button>
+                        <input type="number" class="form-control inputPrecioFila text-end" step="0.01" min="0" placeholder="0.00" value="${precioVal}">
+                    </div>
+                    <div class="texto-equiv-bs text-end" title="Conversión de moneda">≈ 0.00 $</div>
+                    <input type="hidden" class="inputMonedaFila" value="BS">
+                    <input type="hidden" class="inputPrecioBsFila" value="${precioVal}">
+                </div>
                 
                 <!-- Acciones -->
                 <div class="text-center">
@@ -322,9 +505,14 @@ async function actualizarTablaItems() {
     let nuevaFila = $(filaHtml);
     contenedor.append(nuevaFila);
 
-    // Setear proveedor usando .val() después de append (más robusto que string replace)
+    // Setear proveedor asegurando que la opción exista
     if (pId) {
-      nuevaFila.find('.selectProveedorFila').val(pId);
+      let selectProv = nuevaFila.find('.selectProveedorFila');
+      if (selectProv.find(`option[value="${pId}"]`).length === 0) {
+        let nombreProv = item.proveedorNombre || pId;
+        selectProv.append(`<option value="${pId}">${nombreProv}</option>`);
+      }
+      selectProv.val(pId);
     }
 
     // Cargar opciones del articulo
@@ -334,9 +522,12 @@ async function actualizarTablaItems() {
     // Pasamos el ID para que venga con 'selected' desde el principio
     let opciones = await obtenerOpcionesItems(item.tipo, aId);
     selectArticulo.html(opciones);
+
+    recalcularFila(nuevaFila);
   }
 
   actualizarContador();
+  actualizarGranTotalCompra();
 
   // Auto-scroll al fondo
   let scrollContainer = $('#contenedorItems');
@@ -397,26 +588,46 @@ async function cargarDatosCompra(id, modo = 'editar') {
       form.find('input[name="fecha_compra"]').val(fechaFormat);
 
       modal.find('.modo-edicion').removeClass('d-none').addClass('d-flex');
-      if (!proveedoresOptionsCache) await cargarOpcionesProveedores();
+      await cargarOpcionesProveedores();
+
+      let rifTarget = String(header.rif_proveedor || '').trim();
+      let provNombre = header.PROVEEDOR || rifTarget;
+      if (rifTarget && !proveedoresOptionsCache.includes(`value="${rifTarget}"`)) {
+        proveedoresOptionsCache += `<option value="${rifTarget}">${provNombre}</option>`;
+      }
+
       modal.find('.selectProveedorAct')
         .prop('disabled', false)
         .html(proveedoresOptionsCache)
-        .val(header.rif_proveedor);
+        .val(rifTarget);
 
       itemsCompra = [];
       respuesta.forEach(item => {
         itemsCompra.push({
-          proveedorId: item.rif_proveedor,
+          proveedorId: item.rif_proveedor || rifTarget,
+          proveedorNombre: item.PROVEEDOR || provNombre,
           tipo: item.TIPO.toLowerCase(),
           id: item.id_item,
           nombre: item.ARTICULO,
           cantidad: parseFloat(item.cantidad_raw),
+          precio: parseFloat(item.precio_unitario || 0),
           id_unidad_medida: item.id_unidad_medida,
           nombre_unidad: item.nombre_unidad_medida || 'UNID'
         });
       });
 
+      await cargarTasaDolar();
       await actualizarTablaItems();
+
+      // En modo edición asegurar que los selects de proveedor de cada fila tengan el RIF seleccionado
+      if (rifTarget) {
+        $('.selectProveedorFila').each(function () {
+          if ($(this).find(`option[value="${rifTarget}"]`).length === 0) {
+            $(this).append(`<option value="${rifTarget}">${provNombre}</option>`);
+          }
+          $(this).val(rifTarget);
+        });
+      }
 
       // En modo edición se pueden cambiar tipo y artículo de cada fila
       // y agregar/eliminar filas igual que en registro
@@ -459,6 +670,7 @@ function resetearFormularioCompra() {
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   form.find('input[name="fecha_compra"]').val(now.toISOString().slice(0, 16));
 
+  cargarTasaDolar();
   agregarFila();
 }
 
@@ -478,6 +690,9 @@ async function verDetallesCompra(idCompra) {
     let header = respuesta[0];
 
     $('#verIdCompra').text(header.id_compra || '-');
+    $('#verProveedorCompra').text(header.PROVEEDOR || '-');
+    $('#verNroFacturaCompra').text(header.nro_factura || '-');
+    $('#verNroControlCompra').text(header.nro_control || '-');
 
     let fechaFormat = header.fecha_compra ?
       new Date(header.fecha_compra.replace(' ', 'T')).toLocaleString('es-ES', {
@@ -494,42 +709,53 @@ async function verDetallesCompra(idCompra) {
     }
 
     $('#btnImprimirModalVer').data('id', header.id_compra);
+    $('#btnPlanillaRetencionModalVer').data('id', header.id_compra);
 
     let tbody = $('#verItemsBody');
     tbody.empty();
 
+    let totalBaseBs = 0;
     respuesta.forEach(item => {
+      let cant = parseFloat(item.cantidad_raw) || 0;
+      let precio = parseFloat(item.precio_unitario) || 0;
+      let subtotal = cant * precio;
+      totalBaseBs += subtotal;
+
       let tipoLabel = item.TIPO === 'materia_prima' ? 'Materia Prima' : 'Producto';
       let inicial = (item.PROVEEDOR || '-').charAt(0).toUpperCase();
 
       let row = `
-                <div class="grid-compras-row" style="background-color: white;">
-                    <div>
-                        <div class="d-flex align-items-center gap-2 h-100 px-1">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold text-white"
-                                 style="width:26px;height:26px;font-size:.7rem;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
-                                ${inicial}
-                            </div>
-                            <span style="font-size:.82rem;">${item.PROVEEDOR || '-'}</span>
-                        </div>
+        <div class="grid-compras-ver-row" style="background-color: white;">
+            <div>
+                <div class="d-flex align-items-center gap-2 h-100 px-1">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 fw-bold text-white"
+                         style="width:26px;height:26px;font-size:.7rem;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                        ${inicial}
                     </div>
-                    <div>
-                        <span class="badge rounded-pill px-2 py-1"
-                              style="font-size:.75rem;background:${tipoLabel === 'Producto' ? 'linear-gradient(135deg,#10b981,#34d399)' : 'linear-gradient(135deg,#8b5cf6,#a78bfa)'}">
-                            ${tipoLabel}
-                        </span>
-                    </div>
-                    <div style="font-size:.85rem;font-weight:500;">${item.ARTICULO || '-'}</div>
-                    <div>
-                        <span class="badge bg-light text-dark border" style="font-size:.8rem;">
-                            ${item.nombre_unidad_medida || 'UNID'}
-                        </span>
-                    </div>
-                    <div>
-                        <span class="fw-bold text-dark" style="font-size:.9rem;">${parseFloat(item.cantidad_raw).toFixed(2)}</span>
-                    </div>
+                    <span style="font-size:.82rem;">${item.PROVEEDOR || '-'}</span>
                 </div>
-            `;
+            </div>
+            <div>
+                <span class="badge rounded-pill px-2 py-1"
+                      style="font-size:.75rem;background:${tipoLabel === 'Producto' ? 'linear-gradient(135deg,#10b981,#34d399)' : 'linear-gradient(135deg,#8b5cf6,#a78bfa)'}">
+                    ${tipoLabel}
+                </span>
+            </div>
+            <div style="font-size:.85rem;font-weight:500;">${item.ARTICULO || '-'}</div>
+            <div>
+                <span class="badge bg-light text-dark border" style="font-size:.8rem;">
+                    ${item.nombre_unidad_medida || 'UNID'}
+                </span>
+            </div>
+            <div>
+                <span class="fw-bold text-dark" style="font-size:.9rem;">${cant.toFixed(2)}</span>
+            </div>
+            <div class="text-end pe-2">
+                <span class="fw-bold text-primary" style="font-size:.85rem;">${precio.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs</span>
+                <span class="text-muted d-block small" style="font-size:.72rem;">≈ ${(tasaDolar > 0 ? (precio / tasaDolar).toFixed(2) : '0.00')} $</span>
+            </div>
+        </div>
+      `;
       tbody.append(row);
     });
 
@@ -660,6 +886,14 @@ $(async function () {
                 </a>
             </li>`;
 
+      // Imprimir planilla de retención SENIAT
+      boton += `
+            <li class="list-inline-item align-bottom" data-bs-toggle="tooltip" title="Planilla de Retención SENIAT">
+                <a href="#" value="${id}" class="botonPlanillaRetencion avtar avtar-xs btn-link-success btn-pc-default">
+                    <i class="fi fi-rs-document-signed fs-3 iconoCentrado text-success"></i>
+                </a>
+            </li>`;
+
       boton += `
             <li class="list-inline-item align-bottom" data-bs-toggle="tooltip" title="Ver Detalles">
                 <a href="#" value="${id}" class="botonVer avtar avtar-xs btn-link-info btn-pc-default">
@@ -672,12 +906,14 @@ $(async function () {
   });
 
   cargarOpcionesProveedores();
+  cargarTasaDolar();
 });
 
 // Eventos del Modal
 $(document).on('show.bs.modal', '.modalRegistrar', async function () {
   let form = $(this).find('form');
   let accion = form.find('input[name="accion"]').val();
+  await cargarTasaDolar();
 
   if (accion !== 'actualizar') {
     itemsCache = { 'materia_prima': null, 'producto': null };
@@ -789,6 +1025,7 @@ $(document).on('click', '.btnEliminarFila', function () {
     $(this).closest('.fila-compra').remove();
     actualizarContador();
     actualizarBloqueoProveedor();
+    recalcularTotalesGenerales();
   } else {
     let fila = $(this).closest('.fila-compra');
     fila.find('select').each(function () {
@@ -804,6 +1041,8 @@ $(document).on('click', '.btnEliminarFila', function () {
     fila.find('.inputUnidadFila').val('');
     fila.find('.inputUnidadIdFila').val('');
     fila.find('.inputCantidadFila').val('1');
+    fila.find('.inputPrecioFila').val('0.00');
+    recalcularFila(fila);
     // Con solo 1 fila, habilitar proveedor
     actualizarBloqueoProveedor();
   }
@@ -815,15 +1054,26 @@ $(document).on('submit', '.formularioAjax', async function (e) {
 
   let detalles = [];
   let itemsInvalidos = 0;
+  let provCabecera = $('#selectProveedorEdicion').val() || $('.selectProveedorAct').val();
+  let tasaActual = obtenerTasaDolarEnPantalla();
+  if (tasaActual > 1.0) tasaDolar = tasaActual;
 
   $('.fila-compra').each(function () {
     let fila = $(this);
-    let proveedorId = fila.find('.selectProveedorFila').val();
+    let proveedorId = fila.find('.selectProveedorFila').val() || provCabecera;
     let tipo = fila.find('.selectTipoFila').val();
     let itemId = fila.find('.selectArticuloFila').val();
     let itemNombre = fila.find('.selectArticuloFila option:selected').text();
     let unidadId = fila.find('.inputUnidadIdFila').val();
-    let cantidad = parseFloat(fila.find('.inputCantidadFila').val());
+    let cantidad = parseFloat(fila.find('.inputCantidadFila').val()) || 0;
+    
+    // Obtener precio y moneda directamente de los inputs
+    let precioInput = parseFloat(fila.find('.inputPrecioFila').val()) || 0;
+    let moneda = fila.find('.inputMonedaFila').val() || 'BS';
+
+    let precioBs = (moneda === '$') ? (precioInput * tasaDolar) : precioInput;
+    precioBs = Math.round(precioBs * 100) / 100;
+    fila.find('.inputPrecioBsFila').val(precioBs.toFixed(2));
 
     if (!itemId) {
       itemsInvalidos++;
@@ -846,6 +1096,7 @@ $(document).on('submit', '.formularioAjax', async function (e) {
       id: itemId,
       nombre: itemNombre,
       cantidad: cantidad,
+      precio: precioBs,
       id_unidad_medida: unidadId
     });
   });
@@ -884,6 +1135,7 @@ $(document).on('submit', '.formularioAjax', async function (e) {
   if (respuesta && respuesta.icono === 'success') {
     $('#contenedorItems').empty();
     agregarFila(); // Agregar una fila vacía para la siguiente carga
+    actualizarGranTotalCompra();
   }
 });
 // Evento para cargar datos en el modal de registro (Edición)
@@ -938,8 +1190,12 @@ $('.modalRegistrar').on('hidden.bs.modal', function () {
 });
 
 // Validación en tiempo real: campo cantidad de cada fila
-$(document).on('input', '.inputCantidadFila', function () {
+$(document).on('input keyup paste change', '.inputCantidadFila', function () {
   let val = parseFloat($(this).val());
+  if (val > 9999999) {
+    val = 9999999;
+    $(this).val(val);
+  }
   let invalido = isNaN(val) || val <= 0;
   $(this).toggleClass('is-invalid', invalido);
   if (invalido) {
@@ -950,12 +1206,92 @@ $(document).on('input', '.inputCantidadFila', function () {
   } else {
     $(this).next('.invalid-feedback').remove();
   }
+  recalcularFila($(this).closest('.fila-compra'));
 });
 
-// Validación en tiempo real: proveedor requerido
-$(document).on('change', '.selectProveedorFila', function () {
-  let invalido = !$(this).val();
+// Validación y recálculo en tiempo real: campo precio de cada fila
+$(document).on('input keyup paste change', '.inputPrecioFila', function () {
+  let val = parseFloat($(this).val());
+  if (val > 999999999.99) {
+    val = 999999999.99;
+    $(this).val(val);
+  }
+  let invalido = isNaN(val) || val < 0;
   $(this).toggleClass('is-invalid', invalido);
+  recalcularFila($(this).closest('.fila-compra'));
+});
+
+// Alternar moneda entre Bolívares y Dólares con conversión automática
+$(document).on('click', '.btnMonedaFila', function (e) {
+  e.preventDefault();
+  let btn = $(this);
+  let fila = btn.closest('.fila-compra');
+  let inputMoneda = fila.find('.inputMonedaFila');
+  let monedaActual = inputMoneda.val() || 'BS';
+
+  let inputPrecio = fila.find('.inputPrecioFila');
+  let precioActual = parseFloat(inputPrecio.val()) || 0;
+
+  // Asegurar que usamos la tasa en pantalla más reciente
+  let tasaActual = obtenerTasaDolarEnPantalla();
+  if (tasaActual > 1.0) tasaDolar = tasaActual;
+
+  if (monedaActual === 'BS') {
+    // Pasar a $
+    inputMoneda.val('$');
+    btn.addClass('moneda-dolar')
+       .attr('data-moneda', '$')
+       .text('$');
+    if (precioActual > 0 && tasaDolar > 0) {
+      inputPrecio.val((precioActual / tasaDolar).toFixed(2));
+    }
+  } else {
+    // Pasar a BS
+    inputMoneda.val('BS');
+    btn.removeClass('moneda-dolar')
+       .attr('data-moneda', 'BS')
+       .text('Bs');
+    if (precioActual > 0 && tasaDolar > 0) {
+      inputPrecio.val((precioActual * tasaDolar).toFixed(2));
+    }
+  }
+
+  recalcularFila(fila);
+});
+
+// Sincronización y validación del proveedor en cabecera y filas
+$(document).on('change', '.selectProveedorAct', function () {
+  let pVal = $(this).val();
+  let pText = $(this).find('option:selected').text();
+  if (pVal) {
+    $('.selectProveedorFila').each(function () {
+      if ($(this).find(`option[value="${pVal}"]`).length === 0) {
+        $(this).append(`<option value="${pVal}">${pText}</option>`);
+      }
+      $(this).val(pVal).removeClass('is-invalid');
+    });
+  }
+});
+
+// Validación en tiempo real: proveedor requerido y sincronización
+$(document).on('change', '.selectProveedorFila', function () {
+  let pVal = $(this).val();
+  let pText = $(this).find('option:selected').text();
+  let invalido = !pVal;
+  $(this).toggleClass('is-invalid', invalido);
+  if (pVal) {
+    let act = $('.selectProveedorAct');
+    if (act.find(`option[value="${pVal}"]`).length === 0) {
+      act.append(`<option value="${pVal}">${pText}</option>`);
+    }
+    act.val(pVal);
+    // Si hay más de una fila o para mantener coherencia en la compra
+    $('.selectProveedorFila').each(function () {
+      if (!$(this).val()) {
+        $(this).val(pVal);
+      }
+    });
+  }
 });
 
 // Validación en tiempo real: artículo requerido
@@ -1013,46 +1349,144 @@ $(document).on("click", "#btnImprimirModalVer", function (e) {
   }
 });
 
+// Evento para imprimir planilla de retención desde tabla
+$(document).on("click", ".botonPlanillaRetencion", function (e) {
+  e.preventDefault();
+  let id = $(this).attr("value");
+  imprimirPlanillaRetencion(id);
+});
+
+// Evento para imprimir planilla de retención desde modal de detalles
+$(document).on("click", "#btnPlanillaRetencionModalVer", function (e) {
+  e.preventDefault();
+  let id = $(this).data('id');
+  if (id) {
+    imprimirPlanillaRetencion(id);
+  }
+});
+
 async function imprimirOrden(id) {
   try {
-    const respuesta = await pedirDatosAjax({
-      modulo: 'compras',
-      noGuardarLocal: true,
-      datosPe: {
-        accion: 'imprimir',
-        id_compra: id
+    let formData = new FormData();
+    formData.append('accion', 'imprimir');
+    formData.append('id_compra', id);
+
+    const response = await fetch('?modulo=compras', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-TOKEN-CSRF': $('meta[name="TOKEN_CSRF"]').attr("content")
       }
     });
 
-    if (respuesta && respuesta.icono === 'error') {
-      Swal.fire({
-        icon: respuesta.icono,
-        title: respuesta.titulo || 'Error',
-        text: respuesta.texto || 'No se pudo generar la orden de recepción.'
-      });
-    }
+    const clonada = response.clone();
+    try {
+      const res = await response.json();
+      if (res && (res.tipo || res.icono)) {
+        Swal.fire({
+          icon: res.icono || 'error',
+          title: res.titulo || 'Error',
+          text: res.texto || 'No se pudo generar la orden de recepción.'
+        });
+        return;
+      }
+    } catch (e) {}
+
+    let blob = await clonada.blob();
+    let url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
   } catch (error) {
     console.error('Error al generar la orden de recepción:', error);
+    Swal.fire('Error', 'No se pudo generar la orden de recepción.', 'error');
+  }
+}
+
+async function imprimirPlanillaRetencion(id) {
+  try {
+    let formData = new FormData();
+    formData.append('accion', 'imprimirPlanillaRetencion');
+    formData.append('id_compra', id);
+
+    const response = await fetch('?modulo=compras', {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-TOKEN-CSRF': $('meta[name="TOKEN_CSRF"]').attr("content")
+      }
+    });
+
+    const clonada = response.clone();
+    try {
+      const res = await response.json();
+      if (res && (res.tipo || res.icono)) {
+        Swal.fire({
+          icon: res.icono || 'error',
+          title: res.titulo || 'Error',
+          text: res.texto || 'No se pudo generar la planilla de retención.'
+        });
+        return;
+      }
+    } catch (e) {}
+
+    let blob = await clonada.blob();
+    let url = window.URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  } catch (error) {
+    console.error('Error al generar la planilla de retención:', error);
+    Swal.fire('Error', 'No se pudo generar la planilla de retención.', 'error');
   }
 }
 
 // Evento para abrir modal de registro rápido de proveedor
 $(document).on("click", "#btnModalNuevoProveedor", function (e) {
   e.preventDefault();
-  $('#modalRegistrarProveedorRapido').modal('show');
+  e.stopPropagation();
+
+  // Limpiar campos anteriores
+  let form = $('#formRegistrarProveedorRapido');
+  if (form.length) {
+    form[0].reset();
+    form.find('.is-invalid, .error').removeClass('is-invalid error');
+  }
+
+  let modalEl = document.getElementById('modalRegistrarProveedorRapido');
+  let modalProv = bootstrap.Modal.getOrCreateInstance(modalEl);
+  modalProv.show();
+});
+
+// Cerrar específicamente el modal de proveedor rápido sin tocar el de compras
+$(document).on("click", "#btnCerrarProveedorRapido, #btnCancelarProveedorRapido", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  let modalEl = document.getElementById('modalRegistrarProveedorRapido');
+  let modalProv = bootstrap.Modal.getInstance(modalEl);
+  if (modalProv) {
+    modalProv.hide();
+  } else {
+    $('#modalRegistrarProveedorRapido').modal('hide');
+  }
 });
 
 // Manejo de modal apilado para que aparezca por encima de modalRegistrar
 $(document).on('show.bs.modal', '#modalRegistrarProveedorRapido', function () {
-  $(this).css('z-index', 1070);
+  $(this).css('z-index', 1065);
   setTimeout(function () {
-    $('.modal-backdrop').not('.modal-stack').last().css('z-index', 1065).addClass('modal-stack');
+    $('.modal-backdrop').not('.modal-stack').last().css('z-index', 1060).addClass('modal-stack modal-backdrop-proveedor');
   }, 10);
 });
 
+// Al cerrarse el modal de proveedor rápido, asegurar que modalRegistrar siga abierto y activo
 $(document).on('hidden.bs.modal', '#modalRegistrarProveedorRapido', function () {
-  if ($('.modal.show').length > 0) {
+  $('.modal-backdrop-proveedor').remove();
+
+  if ($('.modalRegistrar').hasClass('show') || $('.modalRegistrar').is(':visible')) {
     $('body').addClass('modal-open');
+    $('.modalRegistrar').css('overflow-y', 'auto').focus();
+    if ($('.modal-backdrop').length === 0) {
+      $('<div class="modal-backdrop fade show"></div>').appendTo('body');
+    }
   }
 });
 
@@ -1068,8 +1502,13 @@ $(document).on("submit", "#formRegistrarProveedorRapido", async function (e) {
   let correo = $(form).find('input[name="correo_proveedor"]').val().trim();
   let direccion = $(form).find('textarea[name="direccion_proveedor"]').val().trim();
 
-  if (!rifNum || !razon || !telNum || !correo) {
-    Swal.fire('Campos obligatorios', 'Por favor complete todos los campos requeridos del proveedor.', 'warning');
+  if (!rifNum || !razon || !telNum || !correo || !direccion) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Campos requeridos',
+      text: 'Por favor complete todos los campos obligatorios del proveedor.',
+      target: document.getElementById('modalRegistrarProveedorRapido')
+    });
     return;
   }
 
@@ -1089,26 +1528,54 @@ $(document).on("submit", "#formRegistrarProveedorRapido", async function (e) {
   });
 
   if (respuesta && respuesta.icono === 'success') {
+    let rifCompleto = rifPrefijo + rifNum;
+
+    // 1. Cerrar solo el modal de proveedor
+    let modalEl = document.getElementById('modalRegistrarProveedorRapido');
+    let modalProv = bootstrap.Modal.getInstance(modalEl);
+    if (modalProv) modalProv.hide();
+    else $('#modalRegistrarProveedorRapido').modal('hide');
+
+    form.reset();
+
+    // 2. Recargar lista de proveedores en caché
+    await cargarOpcionesProveedores();
+
+    // 3. Garantizar que la nueva opción exista y seleccionarla en cabecera y filas
+    let nuevaOpcion = `<option value="${rifCompleto}">${razon}</option>`;
+    if (!$('#selectProveedorEdicion').find(`option[value="${rifCompleto}"]`).length) {
+      $('#selectProveedorEdicion').append(nuevaOpcion);
+      proveedoresOptionsCache += nuevaOpcion;
+    }
+    $('#selectProveedorEdicion').val(rifCompleto);
+
+    $('.selectProveedorFila').each(function () {
+      if (!$(this).find(`option[value="${rifCompleto}"]`).length) {
+        $(this).append(nuevaOpcion);
+      }
+      $(this).val(rifCompleto).removeClass('is-invalid');
+    });
+
+    // 4. Asegurar que el modal de compras siga abierto y scrollable
+    $('body').addClass('modal-open');
+    $('.modalRegistrar').css('overflow-y', 'auto').focus();
+    if ($('.modal-backdrop').length === 0) {
+      $('<div class="modal-backdrop fade show"></div>').appendTo('body');
+    }
+
     Swal.fire({
       icon: 'success',
       title: 'Proveedor Registrado',
-      text: 'El proveedor ha sido registrado exitosamente y asignado a esta recepción.'
+      text: 'El proveedor ha sido registrado y seleccionado en la compra.',
+      timer: 2200,
+      showConfirmButton: false
     });
-
-    form.reset();
-    $('#modalRegistrarProveedorRapido').modal('hide');
-
-    // Recargar proveedores cacheados
-    await cargarOpcionesProveedores();
-
-    let rifCompleto = rifPrefijo + rifNum;
-    $('.selectProveedorFila').val(rifCompleto);
-    $('.selectProveedorAct').val(rifCompleto);
   } else {
     Swal.fire({
       icon: (respuesta && respuesta.icono) || 'error',
       title: (respuesta && respuesta.titulo) || 'Error',
-      text: (respuesta && respuesta.texto) || 'No se pudo registrar el proveedor.'
+      text: (respuesta && respuesta.texto) || 'No se pudo registrar el proveedor.',
+      target: document.getElementById('modalRegistrarProveedorRapido')
     });
   }
 });

@@ -718,3 +718,153 @@ echo $componente->listaDataTable($instruccionesLista);
   </div>
 </div>
 
+<!-- ================================================================
+     Modal para Generar Planilla de Retención IVA (Excel)
+     ================================================================ -->
+<div class="modal fade" id="modalRetencionIVA" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #0d6efd, #0099ff);">
+        <h5 class="modal-title d-flex align-items-center gap-2">
+          <i class="fi fi-rs-document-signed"></i>
+          Comprobante de Retención IVA
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body p-4">
+        <form id="formRetencionIVA" autocomplete="off">
+          <input type="hidden" id="retIdOrden" name="id_orden_entrega_presupuesto">
+
+          <!-- Tarjeta de Información General -->
+          <div class="p-3 mb-3 rounded bg-light border">
+            <div class="row g-2 align-items-center">
+              <div class="col-md-6">
+                <span class="text-muted small d-block">Cliente / Razón Social:</span>
+                <strong id="retClienteNombre" class="text-dark fs-6">-</strong>
+              </div>
+              <div class="col-md-3">
+                <span class="text-muted small d-block">R.I.F. / Cédula:</span>
+                <span id="retClienteRif" class="badge bg-secondary">-</span>
+              </div>
+              <div class="col-md-3 text-md-end">
+                <span class="text-muted small d-block">Orden de Entrega:</span>
+                <span id="retOrdenBadge" class="badge bg-primary fs-6">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Campos del Comprobante y Factura -->
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="inputRetNroFactura" class="form-label fw-semibold">
+                N° de Factura <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fi fi-rs-receipt"></i></span>
+                <input type="text" class="form-control" id="inputRetNroFactura" name="nro_factura" 
+                  maxlength="7" placeholder="0010016" required>
+              </div>
+              <small class="text-muted">Máx. 7 caracteres</small>
+            </div>
+
+            <div class="col-md-4">
+              <label for="inputRetNroControl" class="form-label fw-semibold">
+                N° de Control de Factura <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fi fi-rs-barcode"></i></span>
+                <input type="text" class="form-control" id="inputRetNroControl" name="nro_control" 
+                  maxlength="10" placeholder="Z7C7003196" required>
+              </div>
+              <small class="text-muted">Máx. 10 caracteres</small>
+            </div>
+
+            <div class="col-md-4">
+              <label for="inputRetNroComprobante" class="form-label fw-semibold">
+                N° de Comprobante <span class="text-danger">*</span>
+              </label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fi fi-rs-shield-check"></i></span>
+                <input type="text" class="form-control" id="inputRetNroComprobante" name="nro_comprobante" 
+                  maxlength="14" placeholder="20260900000086" required>
+              </div>
+              <small class="text-muted">14 dígitos (AAAAMM + Correlativo)</small>
+            </div>
+
+            <div class="col-md-4">
+              <label for="inputRetFecha" class="form-label fw-semibold">
+                Fecha del Comprobante <span class="text-danger">*</span>
+              </label>
+              <input type="date" class="form-control" id="inputRetFecha" name="fecha_comprobante" required>
+            </div>
+
+            <div class="col-md-4">
+              <label for="selectRetPorcentaje" class="form-label fw-semibold">
+                % Retención IVA <span class="text-danger">*</span>
+              </label>
+              <select class="form-select" id="selectRetPorcentaje" name="porcentaje_retencion" required>
+                <option value="75" selected>75% (Retención Estándar)</option>
+                <option value="100">100% (Retención Total)</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="inputRetTasaCambio" class="form-label fw-semibold">
+                Tasa de Cambio (Bs/$)
+              </label>
+              <input type="number" step="0.0001" min="0.0001" class="form-control" 
+                id="inputRetTasaCambio" name="tasa_cambio">
+            </div>
+          </div>
+
+          <!-- Resumen de Totales y Retención -->
+          <div class="mt-4 p-3 rounded" style="background-color: #f8f9fa; border-left: 4px solid #0d6efd;">
+            <h6 class="fw-bold mb-3 text-primary d-flex align-items-center">
+              <i class="fi fi-rs-calculator me-2"></i>Resumen de Retención de IVA (en Bs)
+            </h6>
+            <div class="row text-center g-2">
+              <div class="col-6 col-md-3">
+                <div class="p-2 border rounded bg-white">
+                  <small class="text-muted d-block">Base Imponible</small>
+                  <strong class="fs-6" id="resRetBaseImponible">Bs 0,00</strong>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="p-2 border rounded bg-white">
+                  <small class="text-muted d-block">IVA (<span id="resRetAlicuota">16</span>%)</small>
+                  <strong class="fs-6" id="resRetMontoIva">Bs 0,00</strong>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="p-2 border rounded bg-white border-success">
+                  <small class="text-success fw-bold d-block">IVA Retenido (<span id="resRetPorcBadge">75</span>%)</small>
+                  <strong class="fs-6 text-success" id="resRetMontoRetenido">Bs 0,00</strong>
+                </div>
+              </div>
+              <div class="col-6 col-md-3">
+                <div class="p-2 border rounded bg-white border-primary">
+                  <small class="text-primary fw-bold d-block">Monto a Pagar</small>
+                  <strong class="fs-6 text-primary" id="resRetMontoAPagar">Bs 0,00</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer bg-light justify-content-between">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fi fi-rs-cross-small me-1"></i>Cerrar
+        </button>
+        <button type="button" class="btn btn-success px-4" id="btnGenerarRetencionIVA">
+          <i class="fi fi-rs-file-excel me-1"></i>Generar retención IVA
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+

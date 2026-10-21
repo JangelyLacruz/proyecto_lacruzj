@@ -62,7 +62,7 @@ const regexNombrePer = '^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ]{3,30}$';
 const minRegexNombrePer = '3';
 const maxRegexNombrePer = '50';
 
-const regexDescripcion = '^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ0-9\\$\\(\\)\\,\\.\\/\\!¡\\?¿%:=#<>\\s\\n\\r\\-\\_]{3,255}$';
+const regexDescripcion = '^[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ0-9\\$\\(\\)\\,\\.\\/\\!¡\\?%:=#<>\\s\\n\\r\\-\\_]{3,255}$';
 const minRegexDescripcion = '3';
 const maxRegexDescripcion = '255';
 
@@ -126,9 +126,10 @@ const regexReferencia = '^\d{4,6}$';
 const minRegexReferencia = '4';
 const maxRegexReferencia = '6';
 
-const regexNumControlFactura = '^[A-Z0-9\-]{0,10}$';
+const regexNumControlFactura = '^[A-Z0-9\-]{0,11}$';
 const minRegexNumControlFactura = '0';
-const maxRegexNumControlFactura = '10';
+const maxRegexNumControlFactura = '11';
+
 // #endregion [ EXPRESIONES REGULARES - ATOMOS ]
 
 // #region [ MOLÉCULAS - VALIDACIONES ]

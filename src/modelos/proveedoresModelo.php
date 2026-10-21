@@ -10,12 +10,17 @@ class proveedoresModelo extends conexion {
   private string $telefonoProveedor = '';
   private string $correoProveedor = '';
   private string $direccionProveedor = '';
+  private string $nroControlFactura = '';
 
   public function validarProveedores(string $permiso, array &$info, $requerido = []) {
     $objAcceso = new accesosModelo();
     $v = $objAcceso->validarPermisos('proveedores', $permiso);
     if ($v) return $v;
 
+    if (isset($info['nro_control_factura']) && is_string($info['nro_control_factura'])) {
+      $info['nro_control_factura'] = mb_strtoupper(mb_substr(trim($info['nro_control_factura']), 0, 11));
+    }
+    
     $esquemaProveedores = [
       'tipo' => 'arrayA',
       'propiedades' => [
@@ -33,6 +38,12 @@ class proveedoresModelo extends conexion {
           "nombreBD" => "razon_social_proveedor",
           "tablaBD" => "proveedores",
           "requerido" => true,
+        ],
+        'nro_control_factura' => [
+          ...molNumControlFactura,
+          "nombreAlerta" => "número de control de factura",
+          "nombreBD" => "nro_control_factura",
+          "tablaBD" => 'nros_control_retenciones',
         ],
         'telefono_proveedor' => [
           ...molTelefono,
@@ -88,15 +99,21 @@ class proveedoresModelo extends conexion {
   }
   public function registrarProveedores(array $info) {
     $info['esR'] = true;
+    $permiso = isset($info['vieneDelModuloUsuarios']) ? '' : 'registrar';
+    $this->nroControlFactura = $info['nro_control_factura'] ?? '';
 
-    $v = $this->validarProveedores('registrar', $info, [
+     $camposAValidar = [
       'rif_proveedor',
       'razon_social_proveedor',
-      'telefono_proveedor',
-      'correo_proveedor',
-      'direccion_proveedor',
-    ]);
-    if ($v) return $v;
+      'direccion_proveedor'
+    ];
+    if (trim($this->nroControlFactura) !== '') {
+      $camposAValidar[] = 'nro_control_factura';
+    }
+    
+    $v = $this->validarProveedores($permiso, $info, $camposAValidar);
+    
+    if ($v !== false) return $v;
 
     $this->rifProveedor = $info['rif_proveedor'];
     $this->razonSocialProveedor = $info['razon_social_proveedor'];
@@ -107,16 +124,21 @@ class proveedoresModelo extends conexion {
     return $this->registrarProveedoresP();
   }
   public function actualizarProveedores(array $info) {
-    $v = $this->validarProveedores('actualizar', $info, [
+     $this->nroControlFactura = $info['nro_control_factura'] ?? '';
+      $camposAValidar = [
+        'rif_proveedor',
+        'razon_social_proveedor',
+        'direccion_proveedor'
+      ];
 
-      'rif_proveedor' => 'rif_proveedor_act',
-      'razon_social_proveedor',
-      'telefono_proveedor',
-      'correo_proveedor',
-      'direccion_proveedor',
-    ]);
+    if (trim($this->nroControlFactura) !== '') {
+      $camposAValidar[] = 'nro_control_factura';
+    }
+
+    $v = $this->validarProveedores('actualizar', $info, $camposAValidar);
 
     if ($v) return $v;
+
     $this->rifProveedor = $info['rif_proveedor'];
     $this->razonSocialProveedor = $info['razon_social_proveedor'];
     $this->telefonoProveedor = $info['telefono_proveedor'];
@@ -139,21 +161,27 @@ class proveedoresModelo extends conexion {
     if ($this->rifProveedor == null || $this->rifProveedor == "") {
       $resultado = $this->seleccionarDatos2([
         'campos' => '
-          rif_proveedor, razon_social_proveedor, 
-          telefono_proveedor, correo_proveedor, direccion_proveedor
+          p.rif_proveedor, p.razon_social_proveedor, 
+          p.telefono_proveedor, p.correo_proveedor, p.direccion_proveedor, ncr.nro_control_factura
         ',
-        'tabla' => 'proveedores',
+        'tabla' => 'proveedores AS p
+        LEFT JOIN nros_control_retenciones AS ncr ON p.rif_proveedor = ncr.rif_proveedor',
       ]);
       return $resultado->fetchAll();
     } else {
       return $this->seleccionarDatos2([
         'campos' => '
-          rif_proveedor, razon_social_proveedor, 
-          telefono_proveedor, correo_proveedor, direccion_proveedor
+          p.rif_proveedor,
+          p.razon_social_proveedor, 
+          p.telefono_proveedor, 
+          p.correo_proveedor, 
+          p.direccion_proveedor,
+          ncr.nro_control_factura
         ',
-        'tabla' => 'proveedores',
+        'tabla' => 'proveedores AS p
+        LEFT JOIN nros_control_retenciones AS ncr ON p.rif_proveedor = ncr.rif_proveedor',
         'WHERE' => [
-          "rif_proveedor" => $this->rifProveedor,
+          "p.rif_proveedor" => $this->rifProveedor,
         ]
       ])->fetch();
     }
@@ -173,24 +201,35 @@ class proveedoresModelo extends conexion {
       ]
     ]);
 
-    if ($ultimoID !== false && $ultimoID > 0) {
-      $alerta = [
-        "tipo" => "limpiarYcerrar",
-        "titulo" => "Proveedor registrado",
-        "texto" => "El proveedor ha sido registrado exitosamente",
-        "icono" => "success",
-      ];
-      $this->commit();
-    } else {
-      $alerta = [
+    if ($ultimoID === false && $ultimoID <= 0) {
+      return [
         "tipo" => "simple",
         "titulo" => "Proveedor no registrado",
         "texto" => "El proveedor no ha sido registrado exitosamente",
         "icono" => "error",
       ];
     }
-    return $alerta;
-  }
+    if (!empty($this->nroControlFactura)) {
+      $this->guardarDatos2([
+        "tabla" => 'nros_control_retenciones',
+        'datos' => [
+          "rif_proveedor" => $this->rifProveedor,
+          "nro_control_factura" => $this->nroControlFactura
+        ],
+        'WHERE' => [
+          'rif_proveedor' => $this->rifProveedor
+        ]
+      ]);
+    } 
+      if (!isset($info['sinCommit'])) $this->commit();
+      return [
+        "tipo" => "limpiarYcerrar",
+        "titulo" => "Proveedor registrado",
+        "texto" => "El proveedor ha sido registrado exitosamente",
+        "icono" => "success",
+      ];
+    }
+    
   private function actualizarProveedoresP() {
     $resultado = $this->actualizarDatos2([
       "tabla" => "proveedores",
@@ -206,40 +245,70 @@ class proveedoresModelo extends conexion {
       ]
     ]);
 
-    if ($resultado == false || $resultado <= 0) {
-      $alerta = [
+    $resultadoControl = false;
+    if (!empty($this->nroControlFactura)) {
+      // Verificar si ya existe un registro para este RIF en la tabla de control
+      $existeControl = $this->seleccionarDatos2([
+        'campos' => 'rif_proveedor',
+        'tabla' => 'nros_control_retenciones',
+        'WHERE' => [
+          "rif_proveedor" => $this->rifProveedor,
+        ]
+      ])->fetch();
+
+      if ($existeControl) {
+        // Si existe, actualizar
+      $resControl = $this->actualizarDatos2([
+          "tabla" => "nros_control_retenciones",
+          "datos" => [
+            "nro_control_factura" => $this->nroControlFactura
+          ],
+          "WHERE" => [
+            "rif_proveedor" => $this->rifProveedor
+          ]
+        ]);
+        if ($resControl !== false && $resControl > 0) $resultadoControl = true;
+      } else {
+        // Si no existe previo, registrarlo mediante guardarDatos2
+        $resControl = $this->guardarDatos2([
+          "tabla" => "nros_control_retenciones",
+          "datos" => [
+            "rif_proveedor" => $this->rifProveedor,
+            "nro_control_factura" => $this->nroControlFactura
+          ],
+          "WHERE" => [
+            "rif_proveedor" => $this->rifProveedor
+          ]
+        ]);
+        if ($resControl !== false && $resControl > 0) $resultadoControl = true;
+      }
+    }
+
+      if (($resultado == false || $resultado <= 0) && !$resultadoControl) {
+      return [
         "tipo" => "simple",
         "titulo" => "Proveedor no actualizado",
         "texto" => "El proveedor no ha sido actualizado exitosamente",
         "icono" => "warning",
       ];
-    } else {
-      $alerta = [
+    } 
+      if (!isset($info['sinCommit'])) $this->commit();
+        return [
         "tipo" => "limpiarYcerrar",
         "titulo" => "Proveedor actualizado",
         "texto" => "El proveedor ha sido actualizado exitosamente",
         "icono" => "success",
       ];
-      $this->commit();
     }
-    return $alerta;
-  }
-  private function eliminarProveedoresP() {
+    
+  private function eliminarProveedoresP(array $info) {
     $eliminarProveedor = $this->eliminarDatos2([
       'tabla' => 'proveedores',
       'WHERE' => [
         'rif_proveedor' => $this->rifProveedor
       ]
     ]);
-    if ($eliminarProveedor == 1) {
-      $alerta = [
-        "tipo" => "simple",
-        "titulo" => "Proveedor eliminado",
-        "texto" => "El proveedor ha sido eliminado exitosamente",
-        "icono" => "success",
-      ];
-      $this->commit();
-    } else {
+    if ($eliminarProveedor <= 0) {
       $alerta = [
         "tipo" => "simple",
         "titulo" => "Proveedor no encontrado",
@@ -247,6 +316,12 @@ class proveedoresModelo extends conexion {
         "icono" => "error",
       ];
     }
-    return $alerta;
+      if (!isset($info['sinCommit'])) $this->commit();
+      return [
+        "tipo" => "simple",
+        "titulo" => "Proveedor eliminado",
+        "texto" => "El proveedor ha sido eliminado exitosamente",
+        "icono" => "success",
+      ];
   }
 }

@@ -41,15 +41,23 @@ export function initExportarDB() {
             'BD': nombre
           }
         })
+      if (r) {
+      let rutaLimpia = typeof r === 'string' ? r.replace(/\\/g, '') : r;
+      let partes = rutaLimpia.split('/');
+      let nombreArchivo = partes[partes.length - 1];
+
+      // Convertir la ruta absoluta local en una URL relativa pública accesible por el navegador
+      let urlDescarga = rutaAbsoluta + rutaLimpia;
+
         setTimeout(() => { }, 1500)
         const enlace = document.createElement('a');
-        enlace.href = r;
+        enlace.href = urlDescarga;
         console.log(r.split())
-        let nombreArchivo = r.split()[r.split().length - 1]
         enlace.download = nombreArchivo;
         document.body.appendChild(enlace);
         enlace.click();
         document.body.removeChild(enlace);
+      }
       } catch (error) {
         console.error('Error al exportar ' + nombre + ':', error);
       }

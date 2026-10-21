@@ -1,35 +1,38 @@
 {
-  "name": "carlos/lacruz",
-  "description": "proyecto universitario",
-  "autoload": {
-    "psr-4": {
-      "src\\": "src/"
+    "name": "carlos/lacruz",
+    "description": "proyecto universitario",
+    "autoload": {
+        "psr-4": {
+            "src\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "ANDERSON",
+            "email": "andersonfreitez6@gmail.com"
+        }
+    ],
+    "require": {
+        "setasign/fpdf": "^1.8",
+        "endroid/qr-code": "^6.0",
+        "phpfastcache/phpfastcache": "^9.2",
+        "phpmailer/phpmailer": "^7.1",
+        "phpoffice/phpspreadsheet": "^5.10"
+    },
+    "scripts": {
+        "tpu": "vendor/bin/phpunit -c src/tests/phpunit/config/phpunit.xml --colors=always",
+        "tjm": "powershell -Command \"Remove-Item -Path 'src/tests/jmetter/resultados.jtl', 'src/tests/jmetter/jmeter.log', 'src/tests/jmetter/reporte_final' -Recurse -Force -ErrorAction SilentlyContinue; New-Item -Path 'src/tests/jmetter/reporte_final' -ItemType Directory -Force\"    && \"C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat\" -n -t src/tests/jmetter/test_de_carga.jmx -l src/tests/jmetter/resultados.jtl -j src/tests/jmetter/jmeter.log -e -o src/tests/jmetter/reporte_final",
+        "tjmci": "rm -f src/tests/jmetter/resultados.jtl src/tests/jmetter/jmeter.log && rm -rf src/tests/jmetter/reporte_final && mkdir -p src/tests/jmetter/reporte_final && jmeter -n -t src/tests/jmetter/test_productos_jmetter.jmx -l src/tests/jmetter/resultados.jtl -j src/tests/jmetter/jmeter.log -e -o src/tests/jmetter/reporte_final -Jhost=127.0.0.1 -Jport=8000",
+        "toz": "java -Xmx512m -jar \"C:\\Program Files\\ZAP\\Zed Attack Proxy\\zap-2.17.0.jar\" -cmd -quickurl http://localhost/THE-VINA-FAST-FOOD/ -quickout \"C:\\xampp\\htdocs\\THE-VINA-FAST-FOOD\\app\\tests\\owasp_zap\\reporte.html\"",
+        "tsqlmap": "python C:/SQLMAP/sqlmap.py -u \"http://localhost/proyecto-lacruz-j/usuarios/login\" --data=\"usuario_usuario=Ander123&contrasena1_usuario=David01\" --level=3 --risk=2 --banner --batch",
+        "minTrait": "php vendor/hidden/php/ofuscador.php src/modelos/traitModelo.php vendor/hidden/php/sinOf/",
+        "resTrait": "move /Y vendor\\hidden\\php\\sinOf\\traitModelo.php src\\modelos\\"
+    },
+    "require-dev": {
+        "pmdunggh/yakpro-po": "^1.0",
+        "phpunit/phpunit": "^10.5",
+        "codeception/codeception": "^5.3",
+        "codeception/module-phpbrowser": "*",
+        "codeception/module-asserts": "*"
     }
-  },
-  "authors": [
-    {
-      "name": "ANDERSON",
-      "email": "andersonfreitez6@gmail.com"
-    }
-  ],
-  "require": {
-    "setasign/fpdf": "^1.8",
-    "endroid/qr-code": "^6.0",
-    "phpfastcache/phpfastcache": "^9.2",
-    "phpmailer/phpmailer": "^7.1",
-    "phpoffice/phpspreadsheet": "^5.10"
-  },
-  "scripts": {
-    "tpu": "vendor/bin/phpunit -c src/tests/phpunit/config/phpunit.xml --colors=always",
-    "tjm": "powershell -Command \"Remove-Item -Path 'src/tests/jmetter/resultados.jtl', 'src/tests/jmetter/jmeter.log', 'src/tests/jmetter/reporte_final' -Recurse -Force -ErrorAction SilentlyContinue; New-Item -Path 'src/tests/jmetter/reporte_final' -ItemType Directory -Force\"    && \"C:\\apache-jmeter-5.6.3\\bin\\jmeter.bat\" -n -t src/tests/jmetter/test_de_carga.jmx -l src/tests/jmetter/resultados.jtl -j src/tests/jmetter/jmeter.log -e -o src/tests/jmetter/reporte_final",
-    "tjmci": "rm -f src/tests/jmetter/resultados.jtl src/tests/jmetter/jmeter.log && rm -rf src/tests/jmetter/reporte_final && mkdir -p src/tests/jmetter/reporte_final && jmeter -n -t src/tests/jmetter/test_productos_jmetter.jmx -l src/tests/jmetter/resultados.jtl -j src/tests/jmetter/jmeter.log -e -o src/tests/jmetter/reporte_final -Jhost=127.0.0.1 -Jport=8000",
-    "toz": "java -Xmx512m -jar \"C:\\Program Files\\ZAP\\Zed Attack Proxy\\zap-2.17.0.jar\" -cmd -quickurl http://localhost/THE-VINA-FAST-FOOD/ -quickout \"C:\\xampp\\htdocs\\THE-VINA-FAST-FOOD\\app\\tests\\owasp_zap\\reporte.html\"",
-    "tsqlmap": "python C:/SQLMAP/sqlmap.py -u \"http://localhost/proyecto-lacruz-j/usuarios/login\" --data=\"usuario_usuario=Ander123&contrasena1_usuario=David01\" --level=3 --risk=2 --banner --batch",
-    "minTrait": "php vendor/hidden/php/ofuscador.php src/modelos/traitModelo.php vendor/hidden/php/sinOf/",
-    "resTrait":"move /Y vendor\\hidden\\php\\sinOf\\traitModelo.php src\\modelos\\"
-  },
-  "require-dev": {
-    "pmdunggh/yakpro-po": "^1.0",
-    "phpunit/phpunit": "^10.5"
-  }
 }
