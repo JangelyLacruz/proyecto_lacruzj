@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="TOKEN_CSRF" content="<?php echo ($_SESSION['TOKEN_CSRF'] ?? ''); ?>">
   <title>J. LACRUZ C.A.</title>
-  <link rel="shortcut icon" href="/proyecto-lacruz-j/src/assets/images/logo2.png" type="image/x-icon">
+  <link rel="shortcut icon" href="/proyecto-lacruz-j/src/assets/images/favicon.ico" type="image/x-icon">
   <link rel='stylesheet' href="/proyecto-lacruz-j/src/assets/css/plugins/bootstrap.min.css">
   <link rel="stylesheet" href="/proyecto-lacruz-j/src/assets/css/plugins/select2.min.css">
   <link rel="stylesheet" href="/proyecto-lacruz-j/src/assets/css/plugins/select2-bootstrap-5-theme.min.css">

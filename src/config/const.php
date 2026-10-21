@@ -6,11 +6,12 @@ const DB_SERVER = "localhost";
 const DB_NAME = "proyecto_lacruz";
 const DB_USER = "root";
 const DB_PASS = "";
-const DIR_FOTOS = "src/assets/fotosModulos/";
 
 // #endregion [ CONSTANTES DE LA BD ]
 
 // #region [ CONSTANTES DE LA APP ]
+
+const DIR_FOTOS = "src/assets/fotosModulos/";
 
 $PROTOCOLO = 'http://';
 if (
@@ -26,6 +27,8 @@ const coorJLACRUZ = ['latitud' => 10.063276, 'longitud' => -69.31708];
 const APP_NAME = "MULTISERVICIOS JLACRUZ C.A.";
 const APP_SESSION_NAME = "JLACRUZ";
 date_default_timezone_set("America/Caracas");
+
+const DIR_IMG = "src/assets/images/";
 
 // #endregion [ CONSTANTES DE LA APP ]
 

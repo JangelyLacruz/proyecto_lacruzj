@@ -881,44 +881,50 @@ trait traitModelo {
     return $fecha;
   }
   public function redireccionarUsuario($sinRedireccion = null) {
-    $objPermisos = new accesosModelo();
-    $urlRedireccion = 'usuarios/login';
-    $_SESSION['vistaActual'] = 'usuarios';
-    if (isset($_SESSION['cedula']) && isset($_GET['views']) && $_GET['views'] != []) {
+    if (!isset($_GET['views']) || empty($_GET['views'])) {
+      $_SESSION['url1'] = "landing";
+      require_once "src/controladores/othersControlador.php";; 
+      $_SESSION['vistaActual'] = 'landing';
+    } else {
+      $objPermisos = new accesosModelo();
+      $urlRedireccion = 'usuarios/login';
+      $_SESSION['vistaActual'] = 'usuarios';
+      if (isset($_SESSION['cedula'])) {
 
-      $coincidioConUna = false;
-      $permisosRedi = [
-        'reportes' => 'ver reportes',
-        'ventas' => 'ver',
-        'pedidos' => 'ver',
-      ];
-      foreach ($permisosRedi as $modulo => $permiso) {
-        if (!isset($objPermisos->validarPermisos($modulo, $permiso)['icono'])) {
-          $urlRedireccion = $modulo . '/';
-          $_SESSION['vistaActual'] = $modulo;
-          $coincidioConUna = true;
-          break;
+        $coincidioConUna = false;
+        $permisosRedi = [
+          'reportes' => 'ver reportes',
+          'ventas' => 'ver',
+          'pedidos' => 'ver',
+        ];
+        foreach ($permisosRedi as $modulo => $permiso) {
+          if (!isset($objPermisos->validarPermisos($modulo, $permiso)['icono'])) {
+            $urlRedireccion = $modulo . '/';
+            $_SESSION['vistaActual'] = $modulo;
+            $coincidioConUna = true;
+            break;
+          }
+        }
+        if (!$coincidioConUna) {
+          $urlRedireccion = 'others/home';
+          $_SESSION['vistaActual'] = 'home';
         }
       }
-      if (!$coincidioConUna) {
-        $urlRedireccion = 'others/home';
-        $_SESSION['vistaActual'] = 'home';
-      }
-    }
-    http_response_code(403);
-    ob_end_clean();
-    if ($sinRedireccion) return APP_URL . $urlRedireccion;
+      http_response_code(403);
+      ob_end_clean();
+      if ($sinRedireccion) return APP_URL . $urlRedireccion;
 
-    if ($_SERVER['HTTP_X_ES_AJAX'] ?? false) {
-      echo json_encode([
-        'tipo' => 'simple',
-        'titulo' => 'Petición rechazada',
-        'texto' => 'La petición no pudo llegar a la su destino debido a la falta de permisos',
-        'icono' => 'error'
-      ]);
-      exit();
+      if ($_SERVER['HTTP_X_ES_AJAX'] ?? false) {
+        echo json_encode([
+          'tipo' => 'simple',
+          'titulo' => 'Petición rechazada',
+          'texto' => 'La petición no pudo llegar a la su destino debido a la falta de permisos',
+          'icono' => 'error'
+        ]);
+        exit();
+      }
+      header("Location: " . APP_URL . $urlRedireccion);
     }
-    header("Location: " . APP_URL . $urlRedireccion);
   }
   public function hacerPeticionesAPIs(array $instruccionesPe) {
 

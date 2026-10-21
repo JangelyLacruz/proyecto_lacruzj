@@ -4,6 +4,7 @@ import {
   listarDataTable, cargarInputsActualizarQNR, extraerDatosAjax,
   pedirDatosAjax, validarEnTiempoReal
 } from '/proyecto-lacruz-j/src/assets/js/modulos/global.js';
+
 import { driverAyuda } from "/proyecto-lacruz-j/src/assets/js/configs/configDriver.js"
 
 //#endregion [ IMPORTACIONES ] FIN

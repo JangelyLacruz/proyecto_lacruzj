@@ -72,7 +72,6 @@ async function inicializarModulo() {
   // Agregamos la clase 'noRepetir' al campo de nombre para activar la validación de unicidad
   $('input[name="nombre_banco"]').addClass('noRepetir');
 }
-
 function submitFormularioAjax(e) {
   e.preventDefault();
   enviarFormulario({
@@ -80,7 +79,6 @@ function submitFormularioAjax(e) {
     'modulo': 'bancos',
   });
 }
-
 function clickBotonEliminar(e) {
   e.preventDefault();
   eliminarRegistro({
@@ -89,7 +87,6 @@ function clickBotonEliminar(e) {
     modulo: 'bancos',
   });
 }
-
 async function clickBotonEditar(e) {
   e.preventDefault();
   const modalTarget = $(this).attr('data-bs-target');
@@ -106,11 +103,10 @@ async function clickBotonEditar(e) {
   cargarInputsActualizarQNR.call(form);
   cargarInputsActualizarQNR.call($($(this).attr('data-bs-target')).find('form'));
 }
-
 function inputValidarTiempoReal() {
   validarEnTiempoReal(this, 'bancos');
 }
-//#region [ FUNCIONES PROPIAS DEL MODULO ] FIN
+//#endregion [ FUNCIONES PROPIAS DEL MODULO ] FIN
 
 //#region [DELEGACIÓN DE EVENTOS] COMIENZO
 $(document).on('DOMContentLoaded', async function (e) {

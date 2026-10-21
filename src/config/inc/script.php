@@ -35,12 +35,14 @@ $archivoModulo = $directorioJs . $nombreModulo . $versionJs;
 ?>
 <script type="module" nonce="<?php echo $_SESSION['nonce']; ?>" src="<?php echo $archivoModulo ?>"></script>
 <?php if ($_SESSION['vistaActual'] == 'reportes'): ?>
-<script type="module" nonce="<?php echo $_SESSION['nonce']; ?>" src="<?php echo $directorioJs . 'reportesEstadisticos.js'; ?>"></script>
+  <script type="module" nonce="<?php echo $_SESSION['nonce']; ?>" src="<?php echo $directorioJs . 'reportesEstadisticos.js'; ?>"></script>
 <?php endif; ?>
 
 <!-- CHAT BOT -->
 <?php
+
 use src\modelos\accesosModelo;
+
 $objAcceso = new accesosModelo();
 if ($_SESSION['vistaActual'] != 'login' && !$objAcceso->validarPermisos('chatbot', 'ver chatbot')): ?>
   <!-- Chatbot Toggle Button -->

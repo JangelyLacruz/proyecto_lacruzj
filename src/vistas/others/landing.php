@@ -1,0 +1,832 @@
+  <link rel="stylesheet" href="/proyecto-lacruz-j/src/assets/css/landing.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Barra de navegacion -->
+  <nav id="navbar">
+    <a href="#inicio" class="nav-logo">
+      <img src="<?php echo DIR_IMG ?>favicon.ico" alt="J. LACRUZ C.A. Multiservicios logo" class="nav-logo-img" />
+      <div class="nav-brand">J. LACRUZ C.A.<span>MULTISERVICIOS</span></div>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#inicio">Inicio</a></li>
+      <li><a href="#quienes">Quiénes Somos</a></li>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#catalogo">Catálogo &amp; Pedidos</a></li>
+      <li><a href="#clientes">Clientes</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <!-- Telefono directo -->
+      <a href="tel:04245085666" class="nav-phone-btn d-none d-xl-flex" title="Llamar o WhatsApp">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+          <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+        </svg>
+        <span>0424-5085666</span>
+      </a>
+
+      <!-- Carrito -->
+      <button class="nav-btn-carrito" id="btnAbrirCarritoNav" title="Ver carrito de pedidos" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span class="badge-carrito-nav d-none" id="badgeCarritoNav">0</span>
+      </button>
+
+      <!-- Zona de Usuario en Navbar -->
+      <div id="navUserZone" class="d-none d-lg-flex align-items-center gap-2">
+        <a href="usuarios/login" id="navBtnLogin" class="nav-btn-sistema" title="Acceso al Sistema">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+          </svg>
+          <span>INICIAR SESIÓN / REGISTRARSE</span>
+        </a>
+        <div id="navUserLogged" class="d-none align-items-center gap-2">
+          <button class="btn btn-outline-light btn-sm rounded-pill fw-bold px-3 d-flex align-items-center gap-1 shadow-sm" id="btnMisPedidosNav" data-bs-toggle="modal" data-bs-target="#modalMisPedidos">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
+            <span>Mis Pedidos</span>
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-primary btn-sm rounded-pill fw-bold dropdown-toggle px-3 d-flex align-items-center gap-1 shadow-sm" type="button" id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+              <span id="navNombreCliente">Cliente</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="dropdownUser">
+              <li>
+                <h6 class="dropdown-header">Portal de Clientes</h6>
+              </li>
+              <li><button class="dropdown-item" type="button" data-bs-toggle="modal" data-bs-target="#modalMisPedidos">📦 Estado de mis Pedidos</button></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><button class="dropdown-item text-danger fw-bold" type="button" id="btnCerrarSesionNav">🚪 Cerrar Sesión</button></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toggleMenu hamburger" id="hamburgerBtn" title="Abrir menú">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- Menu desplegable para pantallas moviles -->
+  <div class="mobile-menu" id="mobileMenu">
+    <ul>
+      <li><a class="toggleMenu" href="#inicio">Inicio</a></li>
+      <li><a class="toggleMenu" href="#quienes">Quiénes Somos</a></li>
+      <li><a class="toggleMenu" href="#servicios">Servicios</a></li>
+      <li><a class="toggleMenu" href="#catalogo">Catálogo &amp; Pedidos</a></li>
+      <li><a class="toggleMenu" href="#clientes">Clientes</a></li>
+      <li><a class="toggleMenu" href="#contacto">Contacto</a></li>
+      <li id="mobileUserGuest">
+        <a href="usuarios/login" class="toggleMenu mobile-login-link">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="me-1">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+          </svg>
+          INICIAR SESIÓN / REGISTRARSE
+        </a>
+      </li>
+      <li id="mobileUserLogged" class="d-none">
+        <div class="px-3 py-2 border-bottom text-white fw-bold">
+          Hola, <span id="mobileNombreCliente">Cliente</span>
+        </div>
+        <a class="toggleMenu aMisPedidos text-white py-2 d-block" href="javascript:void(0)">
+          📦 Mis Pedidos
+        </a>
+        <a href="javascript:void(0)" id="btnCerrarSesionMobile" class="text-danger py-2 d-block fw-bold">
+          🚪 Cerrar Sesión
+        </a>
+      </li>
+      <li>
+        <a href="tel:04245085666">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" class="me-1">
+            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+          </svg>
+          0424-5085666
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Seccion principal o Hero -->
+  <section class="hero" id="inicio">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-logo-icon h-a h-a1" style="margin-bottom:1rem">
+        <img src="<?php echo DIR_IMG ?>favicon.ico" alt="J. LACRUZ C.A. Multiservicios logo" />
+      </div>
+      <span class="hero-tag h-a h-a2">2024 · Venezuela</span>
+      <h1 class="h-a h-a3">J. LACRUZ<br><em>C.A.</em></h1>
+      <p class="hero-sub h-a h-a4">Multiservicios · Soluciones Integrales</p>
+      <p class="hero-desc h-a h-a5">
+        Especialistas en gestión integral de infraestructuras, suministro de agua potable y productos de limpieza profesional. Garantizamos ambientes limpios, seguros y plenamente operativos.
+      </p>
+      <div class="hero-icons h-a h-a6">
+        <div class="hero-icon-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z" />
+          </svg>
+          <span>Mantenimiento</span>
+        </div>
+        <div class="hero-icon-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 008 20c4 0 4-2 8-2s4 2 8 2v-2c-4 0-4-2-8-2-1 0-1.72.1-2.34.2C14.07 13.42 15.58 11 17 8z" />
+          </svg>
+          <span>Jardinería</span>
+        </div>
+        <div class="hero-icon-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" />
+          </svg>
+          <span>Limpieza</span>
+        </div>
+        <div class="hero-icon-item">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" />
+          </svg>
+          <span>Agua Potable</span>
+        </div>
+      </div>
+      <div class="hero-cta-group h-a h-a7">
+        <a href="#catalogo" class="btn-primary">Ver Catálogo &amp; Pedidos</a>
+        <a href="#contacto" class="btn-outline">Solicitar Presupuesto</a>
+      </div>
+    </div>
+
+    <!-- Ticker informativo -->
+    <div class="hero-ticker">
+      <div class="ticker-track">
+        <span>Gestión de Infraestructuras</span>
+        <span>Suministro de Agua Potable en Camiones Cisterna</span>
+        <span>Productos de Limpieza Industrial &amp; Institucional</span>
+        <span>Mantenimiento Preventivo y Correctivo</span>
+        <span>Atención a Empresas y Particulares</span>
+        <span>Gestión de Infraestructuras</span>
+        <span>Suministro de Agua Potable en Camiones Cisterna</span>
+        <span>Productos de Limpieza Industrial &amp; Institucional</span>
+        <span>Mantenimiento Preventivo y Correctivo</span>
+        <span>Atención a Empresas y Particulares</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quienes somos -->
+  <section class="quienes" id="quienes">
+    <div class="quienes-bg"></div>
+    <div class="quienes-overlay"></div>
+    <div class="quienes-content" data-anim="fade-up">
+      <img src="<?php echo DIR_IMG ?>logo-footer.png" alt="J. LACRUZ C.A. logo" class="section-logo mb-3" />
+      <span class="section-eyebrow">Sobre Nosotros</span>
+      <h2>Excelencia Operativa &amp; Compromiso Institucional</h2>
+      <p>
+        En <strong>J. LACRUZ C.A.</strong> brindamos servicios integrales de mantenimiento, limpieza corporativa y distribución de agua potable con camiones cisterna equipados. Contamos con personal capacitado, insumos de alta concentración y estándares de calidad orientados a mantener sus instalaciones en óptimas condiciones.
+      </p>
+    </div>
+  </section>
+
+  <!-- Servicios principales -->
+  <section class="servicios" id="servicios">
+    <div class="container-fluid">
+      <div class="section-header text-center mx-auto">
+        <span class="section-eyebrow" data-anim="fade-right">Nuestras Soluciones</span>
+        <h2 data-anim="fade-up" data-delay="1">Servicios Especializados</h2>
+        <p data-anim="fade-up" data-delay="2">Diseñados para cubrir las exigencias operativas de empresas, comercios y conjuntos residenciales.</p>
+        <div class="section-line" data-anim="zoom-in" data-delay="3"></div>
+      </div>
+
+      <!-- Carrusel de servicios dinámico desde la BD -->
+      <div class="carousel-outer" id="carouselOuter" data-anim="fade-up" data-delay="2">
+        <div class="carousel-track" id="carouselTrack">
+          <!-- Los servicios se cargan dinámicamente desde la Base de Datos del sistema -->
+          <div class="text-center py-5 w-100 text-muted" id="serviciosLoadingState">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 small fw-bold">Cargando servicios especializados...</p>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+  </section>
+
+  <!-- Catalogo e-commerce -->
+  <section class="catalogo" id="catalogo">
+    <div class="container">
+      <div class="section-header text-center mx-auto mb-4">
+        <span class="section-eyebrow" data-anim="fade-right">Venta al Mayor y Detal</span>
+        <h2 class="text-center" data-anim="fade-up" data-delay="1">Catálogo de Productos</h2>
+        <p class="text-center mx-auto" data-anim="fade-up" data-delay="2">
+          Explora nuestra selección de productos de alta concentración y calidad para limpieza institucional y del hogar.
+        </p>
+        <div class="section-line" data-anim="zoom-in" data-delay="3"></div>
+      </div>
+
+
+
+      <!-- Busqueda y carrito -->
+      <div class="row justify-content-center align-items-center g-3 mb-4" data-anim="fade-up" data-delay="1">
+        <div class="col-md-7 col-lg-8">
+          <div class="position-relative">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" id="buscadorCatalogoPagina" class="form-control rounded-pill ps-5 py-2 shadow-sm" placeholder="Buscar producto o presentación (ej: Cloro, Galón, Litro)...">
+          </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+          <button class="btn btn-dark w-100 rounded-pill py-2 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm" data-bs-toggle="offcanvas" data-bs-target="#cartOffcanvas">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span>Ver Carrito</span>
+            <span class="badge bg-warning text-dark ms-1 nroItemsPedido d-none">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros de categorias (ocultos para no mostrar clasificaciones internas de fabricacion) -->
+      <div class="d-none" id="filtrosCategorias"></div>
+
+      <!-- Contenedor del catalogo -->
+      <div class="container text-center" data-anim="fade-up" data-delay="3">
+        <div id="catalogoLoadingState" class="text-center py-5">
+          <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Cargando catálogo...</span>
+          </div>
+          <p class="text-muted mt-3 fw-bold">Cargando catálogo del sistema...</p>
+        </div>
+
+        <!-- Tarjetas dinámicas de productos y servicios -->
+        <div class="row g-4 justify-content-center d-none" id="catalogoGridWrapper">
+        </div>
+
+        <div id="catalogoVacioState" class="text-center py-5 d-none bg-white rounded shadow-sm p-4 mx-auto" style="max-width:500px">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted opacity-50 mb-2">
+            <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+            <line x1="12" y1="22.08" x2="12" y2="12" />
+          </svg>
+          <h5 class="fw-bold text-dark mt-2">No hay elementos disponibles</h5>
+          <p class="text-muted small mb-0">No se encontraron productos o servicios coincidentes.</p>
+        </div>
+      </div>
+
+      <!-- Banner del portal -->
+      <div class="mt-5" data-anim="zoom-in" data-delay="3">
+        <div class="ecommerce-banner text-center mx-auto" style="max-width:900px">
+          <div class="ecommerce-banner-content">
+            <div class="ecommerce-badge">Sistema ERP &amp; Delivery Conectado</div>
+            <h3>¿Desea realizar compras institucionales o al mayor?</h3>
+            <p>
+              Inicie sesión en nuestro <strong>Portal de Clientes</strong> para gestionar presupuestos en tiempo real, solicitar despachos con ruta de entrega y seleccionar su método de pago.
+            </p>
+            <div class="ecommerce-banner-btns justify-content-center">
+              <a href="usuarios/login" class="btn-primary">INICIAR SESIÓN / REGISTRARSE</a>
+              <a href="#contacto" class="btn-outline">Solicitar Asesoría</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Clientes -->
+  <section class="clientes" id="clientes">
+    <div class="section-header text-center mx-auto">
+      <span class="section-eyebrow" style="color:var(--blue)" data-anim="fade-right">Empresas que confían en nosotros</span>
+      <h2 data-anim="fade-up" data-delay="1">Clientes que Respaldan<br>Nuestra Experiencia</h2>
+      <div class="section-line" data-anim="zoom-in" data-delay="2"></div>
+    </div>
+    <div class="clientes-grid" data-anim="fade-up" data-delay="3">
+      <div class="cliente-card">
+        <div class="cliente-logo-wrap">
+          <img src="<?php echo DIR_IMG ?>cantv.svg" alt="CANTV">
+        </div>
+        <span class="cliente-name">CANTV</span>
+      </div>
+      <div class="cliente-card">
+        <div class="cliente-logo-wrap">
+          <img src="<?php echo DIR_IMG ?>regional.svg" alt="Cervecería Regional">
+        </div>
+        <span class="cliente-name">Cervecería Regional</span>
+      </div>
+      <div class="cliente-card">
+        <div class="cliente-logo-wrap">
+          <img src="<?php echo DIR_IMG ?>palavecino.svg" alt="Alcaldía de Palavecino">
+        </div>
+        <span class="cliente-name">Alcaldía de Palavecino</span>
+      </div>
+      <div class="cliente-card">
+        <div class="cliente-logo-wrap">
+          <img src="<?php echo DIR_IMG ?>marpat.svg" alt="Grupo Marpat">
+        </div>
+        <span class="cliente-name">Grupo Marpat</span>
+      </div>
+      <div class="cliente-card">
+        <div class="cliente-logo-wrap">
+          <img src="<?php echo DIR_IMG ?>mb_zoluciones.svg" alt="MB Zoluciones">
+        </div>
+        <span class="cliente-name">MB Zoluciones C.A.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contacto -->
+  <section class="contacto" id="contacto">
+    <div class="container">
+      <div class="section-header text-center mx-auto mb-5">
+        <span class="section-eyebrow text-white opacity-75" data-anim="fade-right">Contacto Directo</span>
+        <h2 class="text-white fw-bold" data-anim="fade-up" data-delay="1">Estamos Listos para Ser Su Aliado Estratégico</h2>
+        <p class="text-white opacity-75 max-w-600 mx-auto" data-anim="fade-up" data-delay="2">
+          Comuníquese directamente con nuestro equipo técnico y operativo para solicitar información o presupuestos.
+        </p>
+        <div class="section-line bg-white" data-anim="zoom-in" data-delay="3"></div>
+      </div>
+
+      <div class="row g-4 align-items-stretch" data-anim="fade-up" data-delay="2">
+        <div class="col-lg-5">
+          <div class="contacto-card-info h-100 p-4 p-md-5 d-flex flex-column justify-content-between">
+            <div>
+              <h4 class="fw-bold text-white mb-4">Información de Atención</h4>
+
+              <div class="contacto-item-box mb-3">
+                <div class="contacto-icon-circle">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
+                  </svg>
+                </div>
+                <div>
+                  <small class="text-white opacity-75 d-block">Teléfono / WhatsApp</small>
+                  <strong class="text-white fs-6">0424-5085666</strong>
+                </div>
+              </div>
+
+              <div class="contacto-item-box mb-3">
+                <div class="contacto-icon-circle">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                  </svg>
+                </div>
+                <div>
+                  <small class="text-white opacity-75 d-block">Correo Electrónico</small>
+                  <strong class="text-white fs-6">jlacruzca@gmail.com</strong>
+                </div>
+              </div>
+
+              <div class="contacto-item-box mb-3">
+                <div class="contacto-icon-circle">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                  </svg>
+                </div>
+                <div>
+                  <small class="text-white opacity-75 d-block">Ubicación Principal</small>
+                  <strong class="text-white fs-6">Barquisimeto, Estado Lara, Venezuela</strong>
+                </div>
+              </div>
+
+              <div class="contacto-item-box mb-3">
+                <div class="contacto-icon-circle">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
+                  </svg>
+                </div>
+                <div>
+                  <small class="text-white opacity-75 d-block">Registro Fiscal</small>
+                  <strong class="text-white fs-6">RIF J-504221190</strong>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-top border-white-15">
+              <a href="https://api.whatsapp.com/send?phone=584245085666" target="_blank" class="btn btn-light w-100 rounded-pill py-3 fw-bold text-primary shadow d-flex align-items-center justify-content-center gap-2">
+                <span>Contactar por WhatsApp Directo</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+                </svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="contacto-card-form h-100 p-4 p-md-5">
+            <h4 class="fw-bold text-white mb-2">Envíenos un Mensaje</h4>
+            <p class="text-white opacity-75 small mb-4">Complete los datos a continuación y nos comunicaremos a la brevedad.</p>
+
+            <form id="formContactoPagina" novalidate>
+              <div class="mb-3">
+                <label class="form-label text-white small fw-bold">Nombre Completo</label>
+                <input type="text" class="form-control form-control-lg bg-white-10 text-white border-white-20 rounded-3" id="contactoNombre" placeholder="Ej: Juan Pérez" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-white small fw-bold">Teléfono / WhatsApp</label>
+                <input type="tel" class="form-control form-control-lg bg-white-10 text-white border-white-20 rounded-3" id="contactoTelefono" placeholder="Ej: 0424-1234567" required>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label text-white small fw-bold">Mensaje o Requerimiento</label>
+                <textarea class="form-control form-control-lg bg-white-10 text-white border-white-20 rounded-3" id="contactoMensaje" rows="4" placeholder="Cuéntenos qué servicios o productos requiere..." required></textarea>
+              </div>
+
+              <button type="button" class="enviarContactoWA btn btn-primary btn-lg w-100 rounded-pill py-3 fw-bold shadow">
+                Enviar por WhatsApp
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mapa interactivo de ubicacion -->
+      <div class="row mt-5" data-anim="fade-up" data-delay="3">
+        <div class="col-12">
+          <div class="contacto-card-form p-3 p-md-4 text-center position-relative">
+            <div class="d-flex justify-content-between align-items-center mb-3 px-2 flex-wrap gap-2">
+              <span class="text-white fw-bold d-flex align-items-center gap-2">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                </svg>
+                <span>Ubicación Interactiva de J. LACRUZ C.A.</span>
+              </span>
+              <a href="https://maps.app.goo.gl/ei45ghyYmUALrw3y9" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1">
+                <span>Abrir en Google Maps</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                  <polyline points="15 3 21 3 21 9" />
+                  <line x1="10" y1="14" x2="21" y2="3" />
+                </svg>
+              </a>
+            </div>
+            <div id="mapaContacto" style="height:320px; border-radius:12px; z-index:1;" class="shadow-sm"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pie de pagina -->
+  <footer>
+    <div class="footer-logo">
+      <img src="<?php echo DIR_IMG ?>favicon.ico" alt="J. LACRUZ C.A. Multiservicios logo" class="footer-logo-img" />
+      <div class="footer-brand">
+        J. LACRUZ C.A.<span>Multiservicios &amp; Suministros</span>
+      </div>
+    </div>
+    <p class="footer-copy">
+      © 2024-2026 J. LACRUZ C.A. · RIF J-504221190 · Barquisimeto, Venezuela · 0424-5085666
+    </p>
+
+    <!-- Variables de entorno del chatbot -->
+    <input type="hidden" id="chatbot_secret_key" value="">
+    <input type="hidden" id="chatbot_microservice_url" value="">
+  </footer>
+
+  <!-- Asistente flotante -->
+  <button id="chatbot-toggle-btn" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center p-0" style="position:fixed;bottom:20px;right:20px;width:60px;height:60px;z-index:1050;background-color:#0d6efd;border:2px solid #ffffff;" title="Asistente MicroBot AI">
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"></path>
+      <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+    </svg>
+  </button>
+
+  <!-- Ventana desplegable del chat -->
+  <div id="chatbot-window" class="d-none shadow-lg border bg-white" style="position:fixed;bottom:85px;right:20px;width:360px;max-width:calc(100vw - 40px);height:450px;max-height:calc(100vh - 160px);z-index:1050;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white flex-shrink-0">
+      <div class="d-flex align-items-center">
+        <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center me-3 p-1" style="width:40px;height:40px;background-color:#0d6efd !important;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"></path>
+            <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
+          </svg>
+        </div>
+        <div>
+          <h6 class="m-0 fw-bold text-dark" style="font-size:15px">MicroBot AI</h6>
+          <small class="text-success d-flex align-items-center" style="font-size:12px">
+            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#198754;margin-right:4px"></span>
+            En línea
+          </small>
+        </div>
+      </div>
+      <button id="chatbot-close-btn" class="btn-close" aria-label="Cerrar" style="font-size:14px"></button>
+    </div>
+
+    <!-- Mensajes del chat -->
+    <div id="chatbot-messages" class="flex-grow-1 p-3 overflow-auto" style="background-color:#f8f9fa">
+      <div class="text-center mb-3">
+        <small class="text-muted" style="font-size:11px">HOY</small>
+      </div>
+      <div class="d-flex mb-3">
+        <div class="bot-msg-bubble bg-white border p-3 shadow-sm">
+          ¡Hola! Soy tu asistente de MicroBot. Puedo ayudarte a recomendar productos o realizar presupuestos. ¿En qué puedo apoyarte hoy?
+          <div class="text-end text-muted mt-1" style="font-size:0.65rem" id="chatbotHoraInicio"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sugerencias -->
+    <div id="chatbot-suggestions" class="px-3 py-2 bg-white d-flex overflow-auto flex-shrink-0" style="white-space:nowrap;border-top:1px solid #dee2e6">
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3" data-sugerenciaChatBot="Soporte técnico" >Soporte técnico</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3" data-sugerenciaChatBot="Quiero un presupuesto">Presupuesto</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill px-3" data-sugerenciaChatBot="Cotizar botellones de agua">Agua Potable</button>
+    </div>
+
+    <!-- Entrada del usuario -->
+    <div class="px-3 pt-2 pb-1 bg-white flex-shrink-0">
+      <form id="chatbot-form" class="d-flex position-relative">
+        <input type="text" id="chatbot-input" class="form-control rounded-pill ps-3 pe-5 py-2" placeholder="Escribe tu mensaje..." required autocomplete="off" style="border:1px solid #dee2e6;font-size:14px">
+        <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center position-absolute" style="width:36px;height:36px;right:4px;top:4px;background-color:#0d6efd;border:none">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="white">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          </svg>
+        </button>
+      </form>
+      <div class="text-center mt-2 mb-1">
+        <small class="text-muted" style="font-size:10px">Desarrollado por MicroBot AI Engine</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel del carrito -->
+  <div class="panelCotizacionPedido offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
+    <div class="offcanvas-header bg-light border-bottom">
+      <h5 class="offcanvas-title fw-bold text-dark d-flex align-items-center" id="cartOffcanvasLabel">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffc107" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <span>Pedido Actual</span>
+      </h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+      <div class="bg-white p-3 border-bottom d-flex justify-content-between align-items-center shadow-sm">
+        <span class="text-muted small fw-bold">MOSTRAR TOTAL EN:</span>
+        <div data-nro_btn="1" class="botonera btn-group btn-group-sm rounded-pill shadow-sm" role="group">
+          <button type="button" class="btnTipoPago btn btn-dark text-white active fw-bold px-3" data-tipo_pago="bs">Bs</button>
+          <button type="button" class="btnTipoPago btn btn-outline-secondary text-dark px-3 border-0 bg-light" data-tipo_pago="usd">USD</button>
+        </div>
+      </div>
+      <div class="divItemsPedido cart-items flex-grow-1 overflow-auto p-3">
+        <div class="carritoVacio d-flex flex-column align-items-center justify-content-center text-center py-5 px-3" style="min-height:200px">
+          <svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="#4e54c8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mb-3 opacity-25">
+            <circle cx="9" cy="21" r="1" />
+            <circle cx="20" cy="21" r="1" />
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+          </svg>
+          <h6 class="fw-bold text-dark mb-1">Tu pedido está vacío</h6>
+          <p class="text-muted small mb-0">Agrega productos del catálogo para comenzar tu pedido.</p>
+        </div>
+
+        <!-- Elemento de producto en el carrito -->
+        <div class="moldeItemPedido d-none card border-0 shadow-sm mb-3 position-relative">
+          <button class="btnEliItemPedido btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 rounded-circle" title="Eliminar del pedido">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+          <div class="card-body p-3">
+            <div class="d-flex mb-3 align-items-center">
+              <img src="<?php echo DIR_IMG ?>aseo-limpieza.jpg" class="rounded border imagenItemPedido" style="width:60px;height:60px;object-fit:cover;flex-shrink:0" onerror="this.src='<?php echo DIR_IMG ?>logo-footer.png'">
+              <div class="ms-3 pe-4 flex-grow-1">
+                <h6 class="mb-1 fw-bold text-dark text-truncate nombreItem" style="max-width:150px">Producto</h6>
+                <div class="d-flex flex-column lh-sm">
+                  <small class="text-muted">
+                    <span class="fw-bold">Base: </span>
+                    <span class="precioBaseItem">0.00</span>
+                    <span class="signoPrecio">Bs</span>
+                  </small>
+                  <small class="text-success">
+                    <span class="fw-bold">Mayor (-10%): </span>
+                    <span class="precioMayorItem">0.00</span>
+                    <span class="signoPrecio">Bs</span>
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center bg-light rounded p-2">
+              <div class="d-flex align-items-center bg-white rounded border border-light shadow-sm px-1">
+                <button class="btn btn-sm text-muted p-1 px-2 btnResItemPedido"> - </button>
+                <span class="fw-bold mx-2 cantidadItemCarrito">1</span>
+                <button class="btn btn-sm text-muted p-1 px-2 btnSumItemPedido"> + </button>
+              </div>
+              <div class="text-end divSubTotalItemPedido">
+                <small class="text-muted d-block lh-1">Subtotal</small>
+                <span class="fw-bold text-dark fs-6 lh-1 d-flex">
+                  <div class="subTotalBase precioDescuento me-3">
+                    <span class="cantidadSubTotalBase">0.00</span>
+                    <span class="signoPrecio">Bs</span>
+                  </div>
+                  <div class="subTotalDescuento">
+                    <span class="cantidadSubTotalDescuento">0.00</span>
+                    <span class="signoPrecio">Bs</span>
+                  </div>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="depositoDetallesPedido"></div>
+      </div>
+      <div class="contenedorTotalPagar bg-white p-4 border-top shadow-lg">
+        <div class="descuentoPedidoPorMayor d-none d-flex justify-content-between mb-2">
+          <span class="text-muted">Descuento por Mayor:</span>
+          <div class="d-flex">
+            <span class="cantidadDescuentoPedidoPorMayor pe-1 text-success fw-bold">0.00</span>
+            <span class="signoPrecio text-success fw-bold">Bs</span>
+          </div>
+        </div>
+        <div class="totalesPedido d-flex justify-content-between align-items-center mb-4">
+          <span class="fs-5 fw-bold text-dark">TOTAL:</span>
+          <div class="text-end">
+            <span class="d-flex lh-1">
+              <div class="totalBase precioDescuento fs-5 me-3">
+                <span class="cantidadTotalBase">0.00</span>
+                <span class="signoPrecio">Bs</span>
+              </div>
+              <div class="totalDescuento fw-bold text-dark fs-4">
+                <span class="cantidadTotalDescuento">0.00</span>
+                <span class="signoPrecio">Bs</span>
+              </div>
+            </span>
+          </div>
+        </div>
+        <div id="contenedorBotonCart">
+          <!-- Si no ha iniciado sesión -->
+          <a href="usuarios/login" id="btnCartLogin" class="btn btn-dark w-100 rounded-pill py-3 fw-bold shadow d-flex justify-content-center align-items-center gap-2">
+            <span>INICIAR SESIÓN / REGISTRARSE</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z" />
+            </svg>
+          </a>
+          <!-- Si es cliente autenticado -->
+          <button id="btnCartProcesar" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow d-none justify-content-center align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalCheckoutPedido">
+            <span>PROCESAR MI PEDIDO</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+        <small class="text-muted d-block text-center mt-2" style="font-size:0.75rem" id="cartFooterHelp">
+          Tu carrito se conservará cuando inicies sesión
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Checkout / Confirmar Pedido -->
+  <div class="modal fade" id="modalCheckoutPedido" tabindex="-1" aria-labelledby="modalCheckoutPedidoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content border-0 shadow-lg" style="border-radius:1rem; overflow:hidden;">
+        <div class="modal-header bg-primary text-white py-3">
+          <h5 class="modal-title fw-bold d-flex align-items-center gap-2 text-white" id="modalCheckoutPedidoLabel">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <path d="M16 10a4 4 0 0 1-8 0"></path>
+            </svg>
+            Finalizar y Confirmar Pedido
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-4">
+          <form id="formCheckoutPedido">
+            <!-- Datos del Cliente -->
+            <div class="alert alert-light border d-flex align-items-center gap-3 mb-4 rounded-3 p-3">
+              <div class="bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+              </div>
+              <div>
+                <strong class="d-block text-dark" id="checkoutClienteNombre">Cliente</strong>
+                <small class="text-muted" id="checkoutClienteCedula">Cédula: -</small>
+              </div>
+            </div>
+
+            <!-- Tipo de Entrega -->
+            <h6 class="fw-bold text-dark mb-3">1. Modalidad de Entrega</h6>
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <div class="card p-3 border-2 h-100 cursor-pointer" id="cardOptDelivery" style="cursor:pointer; border-color: var(--blue);">
+                  <div class="form-check d-flex align-items-center gap-2 mb-1">
+                    <input class="form-check-input" type="radio" name="tipo_entrega" id="optDelivery" value="delivery" checked>
+                    <label class="form-check-label fw-bold text-dark" for="optDelivery">🛵 Delivery a Domicilio</label>
+                  </div>
+                  <small class="text-muted ps-4">Despacho con nuestros repartidores o fletes a tu dirección exacta.</small>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card p-3 border-2 h-100 cursor-pointer" id="cardOptRetiro" style="cursor:pointer;">
+                  <div class="form-check d-flex align-items-center gap-2 mb-1">
+                    <input class="form-check-input" type="radio" name="tipo_entrega" id="optRetiro" value="retiro">
+                    <label class="form-check-label fw-bold text-dark" for="optRetiro">🏢 Retiro en Sede</label>
+                  </div>
+                  <small class="text-muted ps-4">Retiro personal en nuestra sede (Carrera 28 entre calles 41 y 42, Barquisimeto).</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campos de Delivery -->
+            <div id="seccionCamposDelivery" class="mb-4">
+              <label for="checkoutDireccion" class="form-label fw-bold small text-muted">Dirección de Entrega / Destino <span class="text-danger">*</span></label>
+              <textarea class="form-control rounded-3" id="checkoutDireccion" rows="2" placeholder="Ej: Av. Venezuela con calle 30, Edificio Los Robles, Apto 4-B. Punto de referencia: al lado de la panadería..." required></textarea>
+            </div>
+
+            <!-- Método de Pago -->
+            <h6 class="fw-bold text-dark mb-3">2. Método de Pago Acordado</h6>
+            <div class="row g-2 mb-4">
+              <div class="col-sm-4">
+                <label class="card p-2 text-center h-100" style="cursor:pointer;">
+                  <input class="form-check-input mx-auto mb-1" type="radio" name="metodo_pago" value="Pago Móvil / Transferencia" checked>
+                  <span class="small fw-bold">Pago Móvil / Transf.</span>
+                </label>
+              </div>
+              <div class="col-sm-4">
+                <label class="card p-2 text-center h-100" style="cursor:pointer;">
+                  <input class="form-check-input mx-auto mb-1" type="radio" name="metodo_pago" value="Efectivo Divisas / Bs">
+                  <span class="small fw-bold">Efectivo ($ / Bs)</span>
+                </label>
+              </div>
+              <div class="col-sm-4">
+                <label class="card p-2 text-center h-100" style="cursor:pointer;">
+                  <input class="form-check-input mx-auto mb-1" type="radio" name="metodo_pago" value="Punto de Venta / Biopago">
+                  <span class="small fw-bold">Punto / Biopago</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="mb-4">
+              <label for="checkoutObservaciones" class="form-label fw-bold small text-muted">Instrucciones u Observaciones (Opcional)</label>
+              <input type="text" class="form-control rounded-3" id="checkoutObservaciones" placeholder="Ej: Entregar en horario de la mañana, llamar al timbre...">
+            </div>
+
+            <!-- Resumen Total y Enviar -->
+            <div class="bg-light p-3 rounded-3 mb-2 d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+              <div>
+                <span class="text-muted small d-block">Total a Pagar Estimado</span>
+                <strong class="fs-4 text-primary" id="checkoutTotalUSD">$0.00</strong>
+                <small class="text-muted d-block" id="checkoutTotalBs">/ 0.00 Bs</small>
+              </div>
+              <button type="submit" id="btnConfirmarPedidoWeb" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow">
+                Confirmar y Enviar Pedido
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Mis Pedidos y Seguimiento -->
+  <div class="modal fade" id="modalMisPedidos" tabindex="-1" aria-labelledby="modalMisPedidosLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+      <div class="modal-content border-0 shadow-lg" style="border-radius:1rem; overflow:hidden;">
+        <div class="modal-header text-white py-3" style="background-color:#0a1628;">
+          <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2" id="modalMisPedidosLabel">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+              <line x1="12" y1="22.08" x2="12" y2="12" />
+            </svg>
+            Mis Pedidos &amp; Estado en Tiempo Real
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body p-4 bg-light">
+          <div id="misPedidosLoading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="text-muted small mt-2">Consultando tus pedidos...</p>
+          </div>
+          <div id="misPedidosVacio" class="text-center py-5 d-none bg-white rounded-3 shadow-sm p-4">
+            <div class="mb-3 fs-1 opacity-50">📦</div>
+            <h6 class="fw-bold text-dark">No tienes pedidos registrados aún</h6>
+            <p class="text-muted small mb-0">Agrega productos o servicios a tu carrito para realizar tu primer pedido.</p>
+          </div>
+          <div id="misPedidosLista" class="d-none d-flex flex-column gap-3">
+          </div>
+        </div>
+        <div class="modal-footer bg-white border-0 py-2">
+          <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>

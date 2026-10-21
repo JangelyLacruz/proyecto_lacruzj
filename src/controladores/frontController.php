@@ -64,13 +64,12 @@ class frontController extends conexion {
     ];
     $this->vistasEstaticas = [
       'home',
-      '404'
+      '404',
     ];
 
     $metodo = $_SERVER["REQUEST_METHOD"];
     $this->transformarCuerpoAPost();
     $accion = $_POST['accion'] ?? $_POST['reporte'] ?? '';
-
 
     if (isset($_GET["views"]) && $_GET["views"] != "") {
       $this->url = explode("/", $_GET['views']);
