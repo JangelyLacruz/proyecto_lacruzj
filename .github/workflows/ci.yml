@@ -47,6 +47,9 @@ jobs:
       - name: Instalar dependencias
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: Grant Execute Permissions to Codeception
+        run: chmod +x vendor/bin/codecept
+
       - name: Levantar servidor web integrado de PHP en segundo plano
         run: |
           php -S 127.0.0.1:8000 -t . &
