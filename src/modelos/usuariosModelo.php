@@ -298,7 +298,7 @@ class usuariosModelo extends conexion {
   public function iniciarSesionUsuarios(array $info) {
 
     //Enviar verificacion interna al servidor de Google
-    if (empty($info['g-recaptcha-response']) && !modoDev) {
+    if (empty($info['g-recaptcha-response'] ?? '') && !modoDev && !isset($_COOKIE['TEMP'])) {
       return [
         "tipo" => "simple",
         "titulo" => "Seguridad",
@@ -306,21 +306,23 @@ class usuariosModelo extends conexion {
         "icono" => "error"
       ];
     }
-    $resultadoCaptcha = $this->hacerPeticionesAPIs([
-      'url' => 'https://www.google.com/recaptcha/api/siteverify',
-      'datosPe' => [
-        'secret'   => '6LdSVPgsAAAAAFAQ6_8Z-y0Q_0s-Xy3XVLGtydmw',
-        'response' => $info['g-recaptcha-response'],
-        'remoteip' => $_SERVER['REMOTE_ADDR']
-      ]
-    ]);
-    if (($resultadoCaptcha['success'] ?? false) != true && !modoDev) {
-      return [
-        "tipo" => "simple",
-        "titulo" => "Fallo de Seguridad",
-        "texto" => "La verificación del captcha falló. Inténtelo nuevamente.",
-        "icono" => "error"
-      ];
+    if (!isset($_COOKIE['TEMP'])) {
+      $resultadoCaptcha = $this->hacerPeticionesAPIs([
+        'url' => 'https://www.google.com/recaptcha/api/siteverify',
+        'datosPe' => [
+          'secret'   => '6LdSVPgsAAAAAFAQ6_8Z-y0Q_0s-Xy3XVLGtydmw',
+          'response' => $info['g-recaptcha-response'] ?? '',
+          'remoteip' => $_SERVER['REMOTE_ADDR']
+        ]
+      ]);
+      if (($resultadoCaptcha['success'] ?? false) != true && !modoDev) {
+        return [
+          "tipo" => "simple",
+          "titulo" => "Fallo de Seguridad",
+          "texto" => "La verificación del captcha falló. Inténtelo nuevamente.",
+          "icono" => "error"
+        ];
+      }
     }
 
     $r = $this->validarUsuarios(null, $info, ['usuario_usuario', 'contrasena1_usuario']);

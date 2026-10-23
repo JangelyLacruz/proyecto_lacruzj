@@ -126,14 +126,14 @@ echo $componente->listaDataTable($instruccionesLista);
                 <input type="text" class="form-control" name="direccion_usuario" minlength="<?php echo minRegexDescripcion ?>" maxlength="<?php echo maxRegexDescripcion ?>" pattern="<?php echo regexDescripcion ?>" required>
               </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 grupoContrasena">
               <label for="clave" class="form-label">Contraseña</label>
               <div class="input-group">
                 <span class="input-group-text"><i class="btnMostrarOcultarContrasena fi fi-rs-eye"></i></span>
                 <input type="password" class="form-control" name="contrasena1_usuario" id="contrasena1_usuario" pattern="<?php echo regexContrasena ?>" minlength="<?php echo minRegexContrasena ?>" maxlength="<?php echo maxRegexContrasena ?>" required placeholder="Mínimo 8 caracteres">
               </div>
             </div>
-            <div class="col-md-6 mb-3">
+            <div class="col-md-6 mb-3 grupoConfirmarContrasena">
               <label for="confirmar_clave" class="form-label">Confirmar Contraseña </label>
               <div class="input-group">
                 <span class="input-group-text"><i class="btnMostrarOcultarContrasena fi fi-rs-eye"></i></span>

@@ -295,7 +295,7 @@ class componentesModelo extends conexion {
     $sidebarHTML = '
       <div class="sidebar noselec">
         <div class="iconoNombre d-flex flex-column align-items-center justify-content-center text-center mt-2 px-3 w-100">
-          <img src="' . APP_URL . 'src/assets/images/logo2.png" class="navbar-logo rounded m-0" alt="logo">
+          <img src="' . APP_URL . 'src/assets/images/logo.png" class="navbar-logo rounded m-0" alt="logo">
           <a class="navbar-brand m-0 text-dark fw-bolder fs-4 text-decoration-none w-100" href="#">J.LACRUZ C.A.</a>
         </div>
         <nav>
