@@ -18,7 +18,7 @@ modules:
               - "--disable-gpu"
               - "--no-sandbox"
               # comentar/descomentar para que ChromeDriver se ejecute sin IG
-              # - "--headless=new"
+              - "--headless=new"
     - Asserts
     - \Tests\Support\Helper\Acceptance
     # - PhpBrowser:
