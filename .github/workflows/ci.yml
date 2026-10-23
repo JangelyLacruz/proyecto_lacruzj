@@ -55,14 +55,14 @@ jobs:
           php -S 127.0.0.1:8000 -t . &
           sleep 2
 
-
       - name: Setup ChromeDriver
         uses: nanasess/setup-chromedriver@v3
 
       - name: Start ChromeDriver Server
         run: |
-          chromedriver --url-base=wd/hub &
-        
+          PORT=9515
+          chromedriver --port=$PORT --url-base=wd/hub &
+          echo "CHROMEDRIVER_PORT=$PORT" >> $GITHUB_ENV
       - name: Ejecutar pruebas
         run: composer tceI
 

@@ -10,7 +10,7 @@ modules:
         url: "http://localhost/proyecto-lacruz-j"
         browser: chrome
         path: ''
-        port: 9515
+        port: '%CHROMEDRIVER_PORT%'
         window_size: 1280x800
         capabilities:
           goog:chromeOptions:
