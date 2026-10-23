@@ -54,7 +54,7 @@ jobs:
 
       - name: Ejecutar pruebas de humo
         # Filtra únicamente los tests marcados con el grupo @smoke
-        run: vendor/bin/codecept run tests/Acceptance/interfaz --steps
+        run: composer tceI
 
       - name: Guardar evidencias si falla la prueba
         if: failure()
