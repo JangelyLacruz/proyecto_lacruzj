@@ -1,4 +1,4 @@
-name: Smoke Tests
+name: tests
 
 # Se dispara en cada push o Pull Request hacia las ramas principales
 on:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   smoke:
-    name: Run Smoke Tests
+    name: Run Tests
     runs-on: ubuntu-latest
 
     # Servicio de base de datos efímero para validar arranque y conectividad
@@ -55,8 +55,15 @@ jobs:
           php -S 127.0.0.1:8000 -t . &
           sleep 2
 
-      - name: Ejecutar pruebas de humo
-        # Filtra únicamente los tests marcados con el grupo @smoke
+
+      - name: Setup ChromeDriver
+        uses: nanasess/setup-chromedriver@v3
+
+      - name: Start ChromeDriver Server
+        run: |
+          chromedriver --url-base=wd/hub &
+        
+      - name: Ejecutar pruebas
         run: composer tceI
 
       - name: Guardar evidencias si falla la prueba
