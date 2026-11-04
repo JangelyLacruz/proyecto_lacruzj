@@ -3,13 +3,15 @@
 declare(strict_types=1);
 
 namespace Tests\Acceptance\humo;
+
 use Tests\Support\AcceptanceTester;
 
 final class pruebasDeHumoGeneralesCest {
 
   public function _before(AcceptanceTester $I): void {
+
     if ($I->loadSessionSnapshot('sesion_iniciada')) return;
-    
+
     $I->resetCookie('TEMP');
     $I->amOnPage('/');
     $I->setCookie('TEMP', 'true');
@@ -263,5 +265,8 @@ final class pruebasDeHumoGeneralesCest {
     $I->dontSee('Fatal error');
     $I->dontSee('Warning');
     $I->wait(0.5);
+  }
+  public function _afterClass(AcceptanceTester $I): void {
+    $I->resetCookie('TEMP');
   }
 }

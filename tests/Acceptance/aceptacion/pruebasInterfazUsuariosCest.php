@@ -93,4 +93,7 @@ final class pruebasInterfazUsuariosCest {
     $I->click('.swal2-confirm.swal2-styled');
     $I->waitForElementVisible('.swal2-icon.swal2-success.swal2-icon-show', 10);
   }
+  public function _afterClass(AcceptanceTester $I): void {
+    $I->resetCookie('TEMP');
+  }
 }

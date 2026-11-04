@@ -48,8 +48,9 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mbstring, json, pdo, pdo_mysql
+          extensions: mbstring, json, pdo, pdo_mysql, curl, openssl
           tools: composer
+          coverage: xdebug
 
       - name: Configurar Apache para las pruebas
         run: | 

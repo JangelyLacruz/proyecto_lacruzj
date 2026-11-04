@@ -90,8 +90,8 @@ final class pruebasUsuariosCest {
     $I->waitForElementNotVisible('#chatbot-window', 5);
   }
   /**
-  * @depends verificarElementosLandingPage
-  */
+   * @depends verificarElementosLandingPage
+   */
   public function verificarBotonesYFormulariosDelModuloUsuarios(AcceptanceTester $I): void {
     $I->amOnPage('/');
     $I->resetCookie('JLACRUZ');
@@ -180,5 +180,8 @@ final class pruebasUsuariosCest {
     $I->waitForElementVisible('.modalDatosUsuarios', 10);
     $I->click('.modalDatosUsuarios .modal-footer button[data-bs-dismiss="modal"]');
     $I->waitForElementNotVisible('.modalDatosUsuarios', 10);
+  }
+  public function _afterClass(AcceptanceTester $I): void {
+    $I->resetCookie('TEMP');
   }
 }
