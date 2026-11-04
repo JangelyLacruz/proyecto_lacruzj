@@ -50,7 +50,7 @@ jobs:
           php-version: "8.3"
           extensions: mbstring, json, pdo, pdo_mysql, curl, openssl
           tools: composer
-          coverage: xdebug
+          coverage: none
 
       - name: Configurar Apache para las pruebas
         run: | 

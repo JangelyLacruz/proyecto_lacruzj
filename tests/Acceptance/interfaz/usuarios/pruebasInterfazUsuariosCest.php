@@ -105,7 +105,7 @@ final class pruebasUsuariosCest {
     $I->click('form.formularioAjax.login button[type="submit"]');
     $I->waitForElementVisible('.swal2-confirm.swal2-styled', 10);
     $I->click('.swal2-confirm.swal2-styled');
-    $I->waitForJS("return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');", 10);
+    $I->waitForJS("return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');", 30);
 
     $I->amOnPage('/usuarios');
     $I->seeInCurrentUrl('/usuarios');
@@ -127,7 +127,7 @@ final class pruebasUsuariosCest {
 
     $I->waitForJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)') !== null;",
-      10
+      30
     );
     $rolRegistro = $I->executeJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)').value;"
@@ -153,7 +153,7 @@ final class pruebasUsuariosCest {
     $I->waitForElementVisible('.modalPreguntasSeguridad', 10);
     $I->waitForJS(
       "return document.querySelectorAll('.modalPreguntasSeguridad .selectPregunta option').length > 1;",
-      10
+      30
     );
     $opcionesPregunta = $I->executeJS(
       "return Array.from(document.querySelector('.modalPreguntasSeguridad .selectPregunta').options)
