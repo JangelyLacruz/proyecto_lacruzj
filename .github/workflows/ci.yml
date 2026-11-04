@@ -14,7 +14,7 @@ concurrency:
 jobs:
   Pruebas_codeception:
     runs-on: ubuntu-latest
-    
+        
     services:
       mysql:
         image: mysql:8.0
@@ -32,6 +32,17 @@ jobs:
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
+
+      - name: Preparar bases de datos para pruebas
+        env:
+          MYSQL_PWD: root_password
+        run: |
+          mysql -h 127.0.0.1 -u root -e "CREATE DATABASE IF NOT EXISTS proyecto_lacruz"
+          mysql -h 127.0.0.1 -u root proyecto_lacruz < src/config/connect/proyecto_lacruz.sql
+          mysql -h 127.0.0.1 -u root < src/config/connect/proyecto_lacruz_seguridad.sql
+          mysql -h 127.0.0.1 -u root -e "SHOW DATABASES;"
+          mysql -h 127.0.0.1 -u root -N -e "SHOW TABLES FROM proyecto_lacruz_seguridad LIKE 'accesos';"
+          mysql -h 127.0.0.1 -u root -e "SELECT COUNT(*) FROM proyecto_lacruz_seguridad.accesos;"
 
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
@@ -57,6 +68,12 @@ jobs:
         uses: nanasess/setup-chromedriver@v3
 
       - name: Ejecutar pruebas
+        env:
+          DB_HOST: 127.0.0.1
+          DB_NAME: proyecto_lacruz
+          DB_USER: root
+          DB_PASS: root_password
+
         run: |
           chromedriver --port=9515 > /tmp/chromedriver.log 2>&1 &
           CHROMEDRIVER_PID=$!

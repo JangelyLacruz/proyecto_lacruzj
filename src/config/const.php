@@ -2,10 +2,10 @@
 
 // #region [ CONSTANTES DE LA BD ]
 
-const DB_SERVER = "localhost";
-const DB_NAME = "proyecto_lacruz";
-const DB_USER = "root";
-const DB_PASS = "";
+define('DB_SERVER', getenv('DB_HOST') ?: 'localhost');
+define('DB_NAME', getenv('DB_NAME') ?: 'proyecto_lacruz');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: '');
 
 // #endregion [ CONSTANTES DE LA BD ]
 

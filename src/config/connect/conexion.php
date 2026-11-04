@@ -76,14 +76,16 @@ class conexion {
         $conexionElegida->exec("SET CHARACTER SET utf8");
       } catch (PDOException $e) {
         $_SESSION['codigoRequest'] = 500;
-        throw new PDOException("Error al establecer la conexión con la base de datos: " . $e->getMessage(), " Código de error: " . $e->getCode());
+        throw new PDOException(
+          "Error al establecer la conexión con la base de datos: " . $e->getMessage(), 
+          (int)$e->getCode());
       }
     }
     if (!$conexionElegida->inTransaction()) {
-      try {
+    try {
         $conexionElegida->beginTransaction();
       } catch (PDOException $e) {
-        throw new PDOException("Error al iniciar la transacción: " . $e->getMessage(), " Este es el código: " . $e->getCode());
+        throw new PDOException("Error al iniciar la transacción: " . $e->getMessage(),(int)$e->getCode());
       }
     }
 
@@ -104,7 +106,8 @@ class conexion {
       try {
         self::$conexion->commit();
       } catch (PDOException $e) {
-        throw new PDOException("Error al confirmar la transacción (COMMIT): " . $e->getMessage(), (int)$e->getCode());
+        throw new PDOException(
+          "Error al confirmar la transacción (COMMIT): " . $e->getMessage(), (int)$e->getCode());
       }
     }
     //verificamos que la conexión esté abierta y esté en una transacción
@@ -117,7 +120,8 @@ class conexion {
       try {
         self::$conexion2->commit();
       } catch (PDOException $e) {
-        throw new PDOException("Error al confirmar la transacción (COMMIT): " . $e->getMessage(), (int)$e->getCode());
+        throw new PDOException("Error al confirmar la transacción (COMMIT): " . $e->getMessage(),
+        (int)$e->getCode());
       }
     }
   }
