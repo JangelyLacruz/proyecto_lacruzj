@@ -6,7 +6,7 @@ namespace Tests\Acceptance\humo;
 
 use Tests\Support\AcceptanceTester;
 
-final class pruebasInterfazUsuariosCest {
+final class pruebasUsuariosCest {
   public function verificarElementosLandingPage(AcceptanceTester $I): void {
     $I->amOnPage('/');
     $I->seeInCurrentUrl('/');

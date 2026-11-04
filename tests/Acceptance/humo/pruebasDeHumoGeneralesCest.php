@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 namespace Tests\Acceptance\humo;
-
 use Tests\Support\AcceptanceTester;
 
 final class pruebasDeHumoGeneralesCest {
 
   public function _before(AcceptanceTester $I): void {
     if ($I->loadSessionSnapshot('sesion_iniciada')) return;
-
+    
+    $I->resetCookie('TEMP');
     $I->amOnPage('/');
     $I->setCookie('TEMP', 'true');
     $I->amOnPage('/usuarios/login');
@@ -265,4 +265,3 @@ final class pruebasDeHumoGeneralesCest {
     $I->wait(0.5);
   }
 }
-  
