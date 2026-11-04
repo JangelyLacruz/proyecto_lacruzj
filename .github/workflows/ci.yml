@@ -33,11 +33,6 @@ jobs:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
 
-      - name: Preparar ruta de la aplicación para CI
-        run: |
-          mkdir -p /tmp/www
-          ln -s "$GITHUB_WORKSPACE" /tmp/www/proyecto-lacruz-j
-
       - name: Preparar bases de datos para pruebas
         env:
           MYSQL_PWD: root_password
@@ -69,14 +64,9 @@ jobs:
           sudo tee /etc/apache2/sites-available/ci.conf > /dev/null <<EOF
           <VirtualHost *:8000>
               ServerName 127.0.0.1
-              DocumentRoot /tmp/www
+              DocumentRoot "$GITHUB_WORKSPACE"
               DirectoryIndex index.php
-
-              <Directory /tmp/www>
-                  Options FollowSymLinks
-                  AllowOverride All
-                  Require all granted
-              </Directory>
+              Alias /proyecto-lacruz-j/ "$GITHUB_WORKSPACE/"
 
               <Directory "$GITHUB_WORKSPACE">
                   Options FollowSymLinks
