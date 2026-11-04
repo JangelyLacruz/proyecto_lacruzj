@@ -156,6 +156,13 @@ jobs:
           done
 
           composer tceI -- --env ci
+      
+      - name: Mostrar log de errores de Apache y PHP
+        if: failure()
+        run: |
+          echo "==================== LOG DE ERRORES APACHE / PHP ===================="
+          sudo cat /var/log/apache2/ci-error.log || sudo cat /var/log/apache2/error.log
+          echo "====================================================================="
 
       - name: Guardar evidencias si falla la prueba
         if: failure()
