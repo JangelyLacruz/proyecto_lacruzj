@@ -53,36 +53,46 @@ jobs:
       - name: Dar permisos de ejecucion a codeception
         run: chmod +x vendor/bin/codecept
 
-      - name: Levantar servidor web integrado de PHP
-        run: |
-          php -S 127.0.0.1:8000 -t . &
-          sleep 2
-
       - name: Iniciar chromedriver
         uses: nanasess/setup-chromedriver@v3
 
-      - name: iniciar servidor chromedriver
+      - name: Ejecutar pruebas
         run: |
-          PORT=9515
-          chromedriver --port=$PORT --url-base=wd/hub &
-          echo "CHROMEDRIVER_PORT=$PORT" >> $GITHUB_ENV
+          chromedriver --port=9515 > /tmp/chromedriver.log 2>&1 &
+          CHROMEDRIVER_PID=$!
+          php -S 127.0.0.1:8000 -t . > /tmp/php-server.log 2>&1 &
+          PHP_SERVER_PID=$!
+          trap 'kill "$CHROMEDRIVER_PID" "$PHP_SERVER_PID" 2>/dev/null || true' EXIT
 
-      - name: Esperar a que chromedriver este listo
-        run: |
           for attempt in {1..30}; do
-            if curl --silent --fail "http://127.0.0.1:${CHROMEDRIVER_PORT}/wd/hub/status" \
+            if curl --silent --fail http://127.0.0.1:9515/status \
               | jq --exit-status '.value.ready == true' >/dev/null; then
               echo "ChromeDriver esta listo."
-              exit 0
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "ChromeDriver no estuvo listo en 30 segundos." >&2
+              cat /tmp/chromedriver.log
+              exit 1
             fi
             echo "Esperando a ChromeDriver (${attempt}/30)..."
             sleep 1
           done
-          echo "ChromeDriver no estuvo listo en 30 segundos." >&2
-          exit 1
 
-      - name: Ejecutar pruebas
-        run: composer tceI
+          for attempt in {1..30}; do
+            if curl --silent --output /dev/null http://127.0.0.1:8000; then
+              echo "Servidor PHP esta listo."
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              echo "El servidor PHP no estuvo listo en 30 segundos." >&2
+              cat /tmp/php-server.log
+              exit 1
+            fi
+            sleep 1
+          done
+
+          composer tceI -- --env ci
 
       - name: Guardar evidencias si falla la prueba
         if: failure()

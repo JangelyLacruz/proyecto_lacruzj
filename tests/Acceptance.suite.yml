@@ -27,3 +27,15 @@ step_decorators:
   - Codeception\Step\ConditionalAssertion
   - Codeception\Step\TryTo
   - Codeception\Step\Retry
+env:
+  ci:
+    modules:
+      config:
+        WebDriver:
+          url: "http://127.0.0.1:8000"
+          capabilities:
+            goog:chromeOptions:
+              args:
+                - "--disable-gpu"
+                - "--no-sandbox"
+                - "--headless=new"
