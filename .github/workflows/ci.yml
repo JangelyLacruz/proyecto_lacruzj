@@ -1,18 +1,20 @@
-name: tests
+name: despliegue y pruebas
 
-# Se dispara en cada push o Pull Request hacia las ramas principales
+# Se dispara en cada push o Pull Request hacia la rama de deploy
 on:
   push:
     branches: [deploy]
   pull_request:
     branches: [deploy]
 
-jobs:
-  smoke:
-    name: Run Tests
-    runs-on: ubuntu-latest
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
-    # Servicio de base de datos efímero para validar arranque y conectividad
+jobs:
+  Pruebas_codeception:
+    runs-on: ubuntu-latest
+    
     services:
       mysql:
         image: mysql:8.0
@@ -26,6 +28,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v4
@@ -47,24 +50,38 @@ jobs:
       - name: Instalar dependencias
         run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Grant Execute Permissions to Codeception
+      - name: Dar permisos de ejecucion a codeception
         run: chmod +x vendor/bin/codecept
 
-      - name: Levantar servidor web integrado de PHP en segundo plano
+      - name: Levantar servidor web integrado de PHP
         run: |
           php -S 127.0.0.1:8000 -t . &
           sleep 2
 
-      - name: Setup ChromeDriver
+      - name: Iniciar chromedriver
         uses: nanasess/setup-chromedriver@v3
 
-      - name: Start ChromeDriver Server
+      - name: iniciar servidor chromedriver
         run: |
           PORT=9515
           chromedriver --port=$PORT --url-base=wd/hub &
           echo "CHROMEDRIVER_PORT=$PORT" >> $GITHUB_ENV
+
+      - name: Esperar a que chromedriver este listo
+        run: |
+          for attempt in {1..30}; do
+            if curl --silent --fail "http://127.0.0.1:${CHROMEDRIVER_PORT}/wd/hub/status" \
+              | jq --exit-status '.value.ready == true' >/dev/null; then
+              echo "ChromeDriver esta listo."
+              exit 0
+            fi
+            echo "Esperando a ChromeDriver (${attempt}/30)..."
+            sleep 1
+          done
+          echo "ChromeDriver no estuvo listo en 30 segundos." >&2
+          exit 1
+
       - name: Ejecutar pruebas
-          
         run: composer tceI
 
       - name: Guardar evidencias si falla la prueba
