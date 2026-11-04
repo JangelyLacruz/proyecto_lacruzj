@@ -78,9 +78,10 @@ final class pruebasUsuariosCest {
     $I->seeInField('#buscadorCatalogoPagina', 'Cloro');
 
     $I->click('#btnAbrirCarritoNav');
-    $I->waitForElementVisible('#cartOffcanvas', 5);
+    $I->waitForElementClickable('#cartOffcanvas [data-bs-dismiss="offcanvas"]', 20);
     $I->click('#cartOffcanvas [data-bs-dismiss="offcanvas"]');
 
+    $I->waitForElementClickable('#chatbot-toggle-btn', 20);
     $I->click('#chatbot-toggle-btn');
     $I->waitForElementVisible('#chatbot-window', 5);
     $I->seeElement('#chatbot-suggestions .btnSugerenciaChatBot');
