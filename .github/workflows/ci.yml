@@ -57,6 +57,9 @@ jobs:
           sudo apt-get install -y apache2 libapache2-mod-php8.3
           sudo a2enmod rewrite php8.3 env
 
+          echo "export APACHE_RUN_USER=$(id -un)" | sudo tee -a /etc/apache2/envvars
+          echo "export APACHE_RUN_GROUP=$(id -gn)" | sudo tee -a /etc/apache2/envvars
+
           if ! grep -qE '^[[:space:]]*Listen 8000$' /etc/apache2/ports.conf; then
             echo "Listen 8000" | sudo tee -a /etc/apache2/ports.conf
           fi
