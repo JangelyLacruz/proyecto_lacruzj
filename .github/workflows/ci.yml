@@ -60,7 +60,7 @@ jobs:
           echo "=== 7. Comprobando existencia del usuario de prueba Ander123 ==="
           # Ajusta la consulta según el nombre exacto de tu tabla de usuarios (ej. usuarios o accesos)
           mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "
-            SELECT * FROM accesos WHERE usuario_usuario = 'Ander123';
+            SELECT * FROM usuarios WHERE usuario_usuario = 'Ander123';
           " || echo "ADVERTENCIA: No se encontró Ander123 en accesos"
 
           echo "=== 8. Conteo de registros clave ==="
