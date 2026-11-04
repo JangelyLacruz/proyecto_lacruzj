@@ -106,7 +106,10 @@ final class pruebasUsuariosCest {
     $I->click('form.formularioAjax.login button[type="submit"]');
     $I->waitForElementVisible('.swal2-confirm.swal2-styled', 10);
     $I->click('.swal2-confirm.swal2-styled');
-    $I->waitForJS("return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');", 30);
+    $I->waitForJS(
+      "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
+      30
+    );
 
     $I->amOnPage('/usuarios');
     $I->seeInCurrentUrl('/usuarios');

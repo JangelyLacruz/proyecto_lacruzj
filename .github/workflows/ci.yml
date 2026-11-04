@@ -37,33 +37,16 @@ jobs:
         env:
           MYSQL_PWD: root_password
         run: |
-          set -e  # Hace que el paso falle de inmediato si cualquier comando falla
-
-          echo "=== 1. Configurando parámetros de MySQL ==="
+          set -e
           mysql -h 127.0.0.1 -u root -e "SET GLOBAL log_bin_trust_function_creators = 1;"
-
-          echo "=== 2. Importando base de datos principal (proyecto_lacruz) ==="
           mysql -h 127.0.0.1 -u root proyecto_lacruz < src/config/connect/proyecto_lacruz.sql
-
-          echo "=== 3. Importando base de datos de seguridad (proyecto_lacruz_seguridad) ==="
           mysql -h 127.0.0.1 -u root < src/config/connect/proyecto_lacruz_seguridad.sql
-
-          echo "=== 4. Validando bases de datos existentes ==="
           mysql -h 127.0.0.1 -u root -t -e "SHOW DATABASES;"
-
-          echo "=== 5. Comprobando tablas de proyecto_lacruz ==="
           mysql -h 127.0.0.1 -u root proyecto_lacruz -t -e "SHOW TABLES;"
-
-          echo "=== 6. Comprobando tablas de proyecto_lacruz_seguridad ==="
           mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "SHOW TABLES;"
-
-          echo "=== 7. Comprobando existencia del usuario de prueba Ander123 ==="
-          # Ajusta la consulta según el nombre exacto de tu tabla de usuarios (ej. usuarios o accesos)
           mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "
             SELECT * FROM usuarios WHERE usuario_usuario = 'Ander123';
           " || echo "ADVERTENCIA: No se encontró Ander123 en accesos"
-
-          echo "=== 8. Conteo de registros clave ==="
           mysql -h 127.0.0.1 -u root -t -e "
             SELECT 'proyecto_lacruz_seguridad.accesos' AS Tabla, COUNT(*) AS Total FROM proyecto_lacruz_seguridad.accesos;
           "

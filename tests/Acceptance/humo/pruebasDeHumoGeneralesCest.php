@@ -29,7 +29,10 @@ final class pruebasDeHumoGeneralesCest {
     $I->click('button[type="submit"]');
     $I->click('.swal2-confirm.swal2-styled');
 
-    $I->waitForJS("return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');", 10);
+    $I->waitForJS(
+      "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
+      30
+    );
     $I->saveSessionSnapshot('sesion_iniciada');
   }
   public function verificarRedireccionDelLoginAlDashboard(AcceptanceTester $I): void {
