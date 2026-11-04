@@ -64,6 +64,7 @@ jobs:
           chromedriver --port=$PORT --url-base=wd/hub &
           echo "CHROMEDRIVER_PORT=$PORT" >> $GITHUB_ENV
       - name: Ejecutar pruebas
+          
         run: composer tceI
 
       - name: Guardar evidencias si falla la prueba

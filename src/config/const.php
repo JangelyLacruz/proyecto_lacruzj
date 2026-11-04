@@ -225,7 +225,6 @@ define('molBooleanoInt', [
   "maxL" => maxRegexValorBoleano,
   "regex" => regexValorBoleano,
 ]);
-
 define('molCuerpoCorreo', [
   'tipo' => 'string',
   "minL" => minRegexCuerpoCorreo,
