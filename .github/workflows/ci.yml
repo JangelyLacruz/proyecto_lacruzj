@@ -42,7 +42,6 @@ jobs:
         env:
           MYSQL_PWD: root_password
         run: |
-          mysql -h 127.0.0.1 -u root -e "CREATE DATABASE IF NOT EXISTS proyecto_lacruz"
           mysql -h 127.0.0.1 -u root proyecto_lacruz < src/config/connect/proyecto_lacruz.sql
           mysql -h 127.0.0.1 -u root < src/config/connect/proyecto_lacruz_seguridad.sql
           mysql -h 127.0.0.1 -u root -e "SHOW DATABASES;"
