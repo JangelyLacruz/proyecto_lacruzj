@@ -56,6 +56,47 @@ jobs:
           extensions: mbstring, json, pdo, pdo_mysql
           tools: composer
 
+      - name: Configurar Apache para las pruebas
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apache2 libapache2-mod-php8.2
+          sudo a2enmod rewrite php8.2 env
+
+          if ! grep -qE '^[[:space:]]*Listen 8000$' /etc/apache2/ports.conf; then
+            echo "Listen 8000" | sudo tee -a /etc/apache2/ports.conf
+          fi
+
+          sudo tee /etc/apache2/sites-available/ci.conf > /dev/null <<EOF
+          <VirtualHost *:8000>
+              ServerName 127.0.0.1
+              DocumentRoot /tmp/www
+              DirectoryIndex index.php
+
+              <Directory /tmp/www>
+                  Options FollowSymLinks
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+
+              <Directory "$GITHUB_WORKSPACE">
+                  Options FollowSymLinks
+                  AllowOverride All
+                  Require all granted
+              </Directory>
+
+              SetEnv DB_HOST 127.0.0.1
+              SetEnv DB_NAME proyecto_lacruz
+              SetEnv DB_USER root
+              SetEnv DB_PASS root_password
+
+              ErrorLog \${APACHE_LOG_DIR}/ci-error.log
+              CustomLog \${APACHE_LOG_DIR}/ci-access.log combined
+          </VirtualHost>
+          EOF
+
+          sudo a2ensite ci.conf
+          sudo apache2ctl configtest
+
       - name: Cachear dependencias de Composer
         uses: actions/cache@v4
         with:
@@ -83,10 +124,8 @@ jobs:
           chromedriver --port=9515 > /tmp/chromedriver.log 2>&1 &
           CHROMEDRIVER_PID=$!
 
-          php -S 127.0.0.1:8000 -t /tmp/www > /tmp/php-server.log 2>&1 &
-          
-          PHP_SERVER_PID=$!
-          trap 'kill "$CHROMEDRIVER_PID" "$PHP_SERVER_PID" 2>/dev/null || true' EXIT
+          sudo service apache2 restart
+          trap 'kill "$CHROMEDRIVER_PID" 2>/dev/null || true; sudo service apache2 stop' EXIT
 
           for attempt in {1..30}; do
             if curl --silent --fail http://127.0.0.1:9515/status \
@@ -105,12 +144,12 @@ jobs:
 
           for attempt in {1..30}; do
             if curl --silent --output /dev/null --fail http://127.0.0.1:8000/proyecto-lacruz-j/; then
-              echo "Servidor PHP esta listo."
+              echo "Apache esta listo."
               break
             fi
             if [ "$attempt" -eq 30 ]; then
-              echo "El servidor PHP no estuvo listo en 30 segundos." >&2
-              cat /tmp/php-server.log
+              echo "Apache no estuvo listo en 30 segundos." >&2
+              sudo cat /var/log/apache2/ci-error.log
               exit 1
             fi
             sleep 1
