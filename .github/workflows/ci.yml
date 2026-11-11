@@ -50,6 +50,7 @@ jobs:
           mysql -h 127.0.0.1 -u root -t -e "
             SELECT 'proyecto_lacruz_seguridad.accesos' AS Tabla, COUNT(*) AS Total FROM proyecto_lacruz_seguridad.accesos;
           "
+      
       - name: Configurar PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -57,6 +58,11 @@ jobs:
           extensions: mbstring, json, pdo, pdo_mysql, curl, openssl
           tools: composer
           coverage: none
+
+      - name: Preparar directorio de cache y permisos
+        run: |
+          mkdir -p src/config/connect/cache
+          chmod -R 775 src/config/connect/cache
 
       - name: Configurar Apache para las pruebas
         run: | 
