@@ -22,7 +22,7 @@ final class pruebasInterfazUsuariosCest {
     $I->click('.swal2-confirm.swal2-styled');
     $I->waitForJS(
       "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
-      30
+      10
     );
 
     $I->amOnPage('/usuarios');
@@ -45,7 +45,7 @@ final class pruebasInterfazUsuariosCest {
 
     $I->waitForJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)') !== null;",
-      30
+      10
     );
     $rolRegistro = $I->executeJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)').value;"
@@ -71,7 +71,7 @@ final class pruebasInterfazUsuariosCest {
     $I->waitForElementVisible('.modalPreguntasSeguridad', 10);
     $I->waitForJS(
       "return document.querySelectorAll('.modalPreguntasSeguridad .selectPregunta option').length > 1;",
-      30
+      10
     );
     $opcionesPregunta = $I->executeJS(
       "return Array.from(document.querySelector('.modalPreguntasSeguridad .selectPregunta').options)
