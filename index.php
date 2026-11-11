@@ -19,7 +19,7 @@ try {
 
 
     $texto +=
-      ' | titulo: ' . ($d['titulo'] ?? '') .
+      // ' | titulo: ' . ($d['titulo'] ?? '') .
       // ' | linea: ' . ($d['linea'] ?? '') .
       ' | código de error: ' . ($d['código de error'] ?? '') .
       ' | mensaje de error: ' . ($d['mensaje de error'] ?? '') .
