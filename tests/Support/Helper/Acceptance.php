@@ -15,4 +15,13 @@ class Acceptance extends \Codeception\Module {
     $cargo = $webdriver->executeJS($js);
     $this->assertTrue($cargo, "La imagen con selector '{$selectorCss}' no cargó o está rota.");
   }
+  public function abjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo): void {
+    $cleanPath = ltrim($rutaRelativaArchivo, '/\\');
+    $fullPath = \ROOT_PATH . DIRECTORY_SEPARATOR . str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $cleanPath);
+    if (!file_exists($fullPath)) $this->fail("El archivo a adjuntar no existe en la ruta: {$fullPath}");
+    $codeceptionPath = '../../../' . str_replace('\\', '/', $cleanPath);
+    /** @var \Codeception\Module\WebDriver $webDriver */
+    $webDriver = $this->getModule('WebDriver');
+    $webDriver->attachFile($selectorCss, $codeceptionPath);
+  }
 }

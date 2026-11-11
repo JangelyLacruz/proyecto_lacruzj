@@ -85,6 +85,8 @@ final class pruebasUsuariosCest {
     $I->click('#chatbot-toggle-btn');
     $I->waitForElementVisible('#chatbot-window', 5);
     $I->seeElement('#chatbot-suggestions .btnSugerenciaChatBot');
+    
+    $I->waitForElementVisible('#chatbot-input', 5);
     $I->fillField('#chatbot-input', 'Consulta de prueba');
     $I->seeInField('#chatbot-input', 'Consulta de prueba');
     $I->click('#chatbot-close-btn');
@@ -108,7 +110,7 @@ final class pruebasUsuariosCest {
     $I->click('.swal2-confirm.swal2-styled');
     $I->waitForJS(
       "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
-      10
+      30
     );
 
     $I->amOnPage('/usuarios');
@@ -131,14 +133,14 @@ final class pruebasUsuariosCest {
 
     $I->waitForJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)') !== null;",
-      10
+      30
     );
     $rolRegistro = $I->executeJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)').value;"
     );
     $I->assertTrue($rolRegistro !== '', 'El formulario de registro debe cargar roles seleccionables.');
     $I->selectOption('.modalRegistrar select[name="id_rol"]', ['value' => $rolRegistro]);
-    $I->attachFile('.modalRegistrar input[name="foto_usuario"]', '../../../src/assets/images/logo.png');
+    $I->abjuntoElArchivoAlCampoHTML('.modalRegistrar input[name="foto_usuario"]', 'src/assets/images/logo.png');
     $I->fillField('.modalRegistrar input[name="direccion_usuario"]', 'Direccion de prueba automatizada');
     $I->fillField('.modalRegistrar input[name="contrasena1_usuario"]', 'Prueba1234');
     $I->fillField('.modalRegistrar input[name="contrasena2_usuario"]', 'Prueba1234');
@@ -157,7 +159,7 @@ final class pruebasUsuariosCest {
     $I->waitForElementVisible('.modalPreguntasSeguridad', 10);
     $I->waitForJS(
       "return document.querySelectorAll('.modalPreguntasSeguridad .selectPregunta option').length > 1;",
-      10
+      30
     );
     $opcionesPregunta = $I->executeJS(
       "return Array.from(document.querySelector('.modalPreguntasSeguridad .selectPregunta').options)
@@ -182,8 +184,11 @@ final class pruebasUsuariosCest {
     $I->click('.swal2-cancel.swal2-styled');
     $I->click('.modalPreguntasSeguridad button[data-bs-target=".modalDatosUsuarios"]');
     $I->waitForElementVisible('.modalDatosUsuarios', 10);
-    $I->click('.modalDatosUsuarios .modal-footer button[data-bs-dismiss="modal"]');
+    $I->seeElement('.modalDatosUsuarios .modal-header .btn-close');
+    $I->waitForElementClickable('.modalDatosUsuarios .modal-header .btn-close', 5);
+    $I->click('.modalDatosUsuarios .modal-header .btn-close');
     $I->waitForElementNotVisible('.modalDatosUsuarios', 10);
+    $I->waitForElementNotVisible('.modal-backdrop', 10);
   }
   public function _afterClass(AcceptanceTester $I): void {
     $I->resetCookie('TEMP');

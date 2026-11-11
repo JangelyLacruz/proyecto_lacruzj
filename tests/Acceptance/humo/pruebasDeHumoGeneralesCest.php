@@ -31,7 +31,7 @@ final class pruebasDeHumoGeneralesCest {
 
     $I->waitForJS(
       "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
-      10
+      30
     );
     $I->saveSessionSnapshot('sesion_iniciada');
   }

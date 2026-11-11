@@ -1,4 +1,4 @@
-<?php  //[STAMP] 83d7fde9f260f07560cc3f745fe187f6
+<?php  //[STAMP] 81d6cecc25d806b38d820fe12339592f
 // phpcs:ignoreFile
 namespace Tests\Support\_generated;
 
@@ -11192,5 +11192,40 @@ trait AcceptanceTesterActions
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('verificoLaCargaDeLaImagen', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::abjuntoElArchivoAlCampoHTML()
+     */
+    public function abjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('abjuntoElArchivoAlCampoHTML', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::abjuntoElArchivoAlCampoHTML()
+     */
+    public function tryToAbjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('abjuntoElArchivoAlCampoHTML', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes abjuntoElArchivoAlCampoHTML and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::abjuntoElArchivoAlCampoHTML()
+     */
+    public function retryAbjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('abjuntoElArchivoAlCampoHTML', func_get_args(), $retryNum, $retryInterval));
     }
 }
