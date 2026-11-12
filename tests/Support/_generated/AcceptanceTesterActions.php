@@ -11201,7 +11201,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::abjuntoElArchivoAlCampoHTML()
      */
-    public function abjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo): void {
+    public function abjuntoElArchivoAlCampoHTML(string $selector, string $rutaRelativaArchivo): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('abjuntoElArchivoAlCampoHTML', func_get_args()));
     }
     /**
@@ -11211,7 +11211,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::abjuntoElArchivoAlCampoHTML()
      */
-    public function tryToAbjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo): bool {
+    public function tryToAbjuntoElArchivoAlCampoHTML(string $selector, string $rutaRelativaArchivo): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('abjuntoElArchivoAlCampoHTML', func_get_args()));
     }
     /**
@@ -11223,7 +11223,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::abjuntoElArchivoAlCampoHTML()
      */
-    public function retryAbjuntoElArchivoAlCampoHTML(string $selectorCss, string $rutaRelativaArchivo) {
+    public function retryAbjuntoElArchivoAlCampoHTML(string $selector, string $rutaRelativaArchivo) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('abjuntoElArchivoAlCampoHTML', func_get_args(), $retryNum, $retryInterval));

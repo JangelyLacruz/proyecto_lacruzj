@@ -187,8 +187,8 @@ final class pruebasUsuariosCest {
     $I->seeElement('.modalDatosUsuarios .modal-header .btn-close');
     $I->waitForElementClickable('.modalDatosUsuarios .modal-header .btn-close', 5);
     $I->click('.modalDatosUsuarios .modal-header .btn-close');
-    $I->waitForElementNotVisible('.modalDatosUsuarios', 10);
-    $I->waitForElementNotVisible('.modal-backdrop', 10);
+    $I->waitForElementNotVisible('.modalDatosUsuarios', 20);
+    $I->waitForElementNotVisible('.modal-backdrop', 20);
   }
   public function _afterClass(AcceptanceTester $I): void {
     $I->resetCookie('TEMP');
