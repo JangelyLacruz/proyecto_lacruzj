@@ -7,7 +7,6 @@ namespace Tests\Acceptance\humo;
 use Tests\Support\AcceptanceTester;
 
 final class pruebasDeHumoGeneralesCest {
-
   public function _before(AcceptanceTester $I): void {
 
     if ($I->loadSessionSnapshot('sesion_iniciada')) return;
@@ -17,22 +16,19 @@ final class pruebasDeHumoGeneralesCest {
     $I->setCookie('TEMP', 'true');
     $I->amOnPage('/usuarios/login');
 
-    // Verificamos que el formulario AJAX y sus campos existen en pantalla
-    $I->seeElement('form.formularioAjax.login');
-    $I->seeElement('input[name="usuario_usuario"]');
-    $I->seeElement('input[name="contrasena1_usuario"]');
-
-    // Llenamos las credenciales reales
-    $I->fillField('input[name="usuario_usuario"]', 'Ander123');
-    $I->fillField('input[name="contrasena1_usuario"]', 'David01*');
-
-    $I->click('button[type="submit"]');
-    $I->click('.swal2-confirm.swal2-styled');
+    $I->llenoElCampo('input[name="usuario_usuario"]', 'Ander123');
+    $I->llenoElCampo('input[name="contrasena1_usuario"]', 'David01*');
+    $I->cliqueoElCampo('button[type="submit"]');
+    $I->confirmoLaAlertaSweetAlert();
 
     $I->waitForJS(
       "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
       30
     );
+    $cookieSesion = $I->grabCookie('JLACRUZ');
+    if (empty($cookieSesion)) {
+      $I->fail('Fallo crítico: No se generó la cookie de sesión JLACRUZ tras enviar el formulario.');
+    }
     $I->saveSessionSnapshot('sesion_iniciada');
   }
   public function verificarRedireccionDelLoginAlDashboard(AcceptanceTester $I): void {

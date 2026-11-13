@@ -1,4 +1,4 @@
-<?php  //[STAMP] 81d6cecc25d806b38d820fe12339592f
+<?php  //[STAMP] 174598c1ab4ea5f82cf0cddcc8797a4f
 // phpcs:ignoreFile
 namespace Tests\Support\_generated;
 
@@ -11227,5 +11227,355 @@ trait AcceptanceTesterActions
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('abjuntoElArchivoAlCampoHTML', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::cliqueoElCampo()
+     */
+    public function cliqueoElCampo(string $selector, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('cliqueoElCampo', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::cliqueoElCampo()
+     */
+    public function tryToCliqueoElCampo(string $selector, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('cliqueoElCampo', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes cliqueoElCampo and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::cliqueoElCampo()
+     */
+    public function retryCliqueoElCampo(string $selector, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('cliqueoElCampo', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::llenoElCampo()
+     */
+    public function llenoElCampo(string $selector, string $valor, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('llenoElCampo', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::llenoElCampo()
+     */
+    public function tryToLlenoElCampo(string $selector, string $valor, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('llenoElCampo', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes llenoElCampo and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::llenoElCampo()
+     */
+    public function retryLlenoElCampo(string $selector, string $valor, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('llenoElCampo', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::seleccionoLaOpcion()
+     */
+    public function seleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('seleccionoLaOpcion', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::seleccionoLaOpcion()
+     */
+    public function tryToSeleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('seleccionoLaOpcion', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes seleccionoLaOpcion and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::seleccionoLaOpcion()
+     */
+    public function retrySeleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('seleccionoLaOpcion', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::abroElModal()
+     */
+    public function abroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('abroElModal', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::abroElModal()
+     */
+    public function tryToAbroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('abroElModal', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes abroElModal and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::abroElModal()
+     */
+    public function retryAbroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('abroElModal', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::cierroElModal()
+     */
+    public function cierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('cierroElModal', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::cierroElModal()
+     */
+    public function tryToCierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('cierroElModal', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes cierroElModal and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::cierroElModal()
+     */
+    public function retryCierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('cierroElModal', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::confirmoLaAlertaSweetAlert()
+     */
+    public function confirmoLaAlertaSweetAlert(int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('confirmoLaAlertaSweetAlert', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::confirmoLaAlertaSweetAlert()
+     */
+    public function tryToConfirmoLaAlertaSweetAlert(int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('confirmoLaAlertaSweetAlert', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes confirmoLaAlertaSweetAlert and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::confirmoLaAlertaSweetAlert()
+     */
+    public function retryConfirmoLaAlertaSweetAlert(int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('confirmoLaAlertaSweetAlert', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::canceloLaAlertaSweetAlert()
+     */
+    public function canceloLaAlertaSweetAlert(int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('canceloLaAlertaSweetAlert', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::canceloLaAlertaSweetAlert()
+     */
+    public function tryToCanceloLaAlertaSweetAlert(int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('canceloLaAlertaSweetAlert', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes canceloLaAlertaSweetAlert and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::canceloLaAlertaSweetAlert()
+     */
+    public function retryCanceloLaAlertaSweetAlert(int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('canceloLaAlertaSweetAlert', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::veoElTexto()
+     */
+    public function veoElTexto(string $texto, ?string $selector = NULL, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('veoElTexto', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::veoElTexto()
+     */
+    public function tryToVeoElTexto(string $texto, ?string $selector = NULL, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('veoElTexto', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes veoElTexto and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::veoElTexto()
+     */
+    public function retryVeoElTexto(string $texto, ?string $selector = NULL, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('veoElTexto', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::verificoBotonDeMostrarContrasena()
+     */
+    public function verificoBotonDeMostrarContrasena(string $selectorBotonCambio, string $selectorInputQueCambia, string $estadoInicial = "contrasena"): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('verificoBotonDeMostrarContrasena', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::verificoBotonDeMostrarContrasena()
+     */
+    public function tryToVerificoBotonDeMostrarContrasena(string $selectorBotonCambio, string $selectorInputQueCambia, string $estadoInicial = "contrasena"): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('verificoBotonDeMostrarContrasena', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes verificoBotonDeMostrarContrasena and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::verificoBotonDeMostrarContrasena()
+     */
+    public function retryVerificoBotonDeMostrarContrasena(string $selectorBotonCambio, string $selectorInputQueCambia, string $estadoInicial = "contrasena") {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('verificoBotonDeMostrarContrasena', func_get_args(), $retryNum, $retryInterval));
+    }
+
+ 
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     *
+     * @see \Tests\Support\Helper\Acceptance::scroleoHastaElElemento()
+     */
+    public function scroleoHastaElElemento(string $selector, int $timeout = 10): void {
+        $this->getScenario()->runStep(new \Codeception\Step\Action('scroleoHastaElElemento', func_get_args()));
+    }
+    /**
+     * [!] Method is generated. Documentation taken from corresponding module.
+     *
+     * [!] Test won't be stopped on fail. Error won't be logged 
+     *
+     * @see \Tests\Support\Helper\Acceptance::scroleoHastaElElemento()
+     */
+    public function tryToScroleoHastaElElemento(string $selector, int $timeout = 10): bool {
+        return $this->getScenario()->runStep(new \Codeception\Step\TryTo('scroleoHastaElElemento', func_get_args()));
+    }
+    /**
+     * [!] Method is generated.
+     *
+     * * Executes scroleoHastaElElemento and retries on failure.
+     *
+     * Retry number and interval set by $I->retry();
+     *
+     * @see \Tests\Support\Helper\Acceptance::scroleoHastaElElemento()
+     */
+    public function retryScroleoHastaElElemento(string $selector, int $timeout = 10) {
+        $retryNum      = $this->retryNum ?? 1;
+        $retryInterval = $this->retryInterval ?? 200;
+        return $this->getScenario()->runStep(new \Codeception\Step\Retry('scroleoHastaElElemento', func_get_args(), $retryNum, $retryInterval));
     }
 }

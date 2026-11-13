@@ -11,7 +11,6 @@ final class pruebasUsuariosCest {
     $I->amOnPage('/');
     $I->seeInCurrentUrl('/');
     $I->verificoLaCargaDeLaImagen('.nav-logo-img');
-
     $elementosInteractivos = [
       '.nav-logo[href="#inicio"]',
       '.nav-links a[href="#inicio"]',
@@ -70,27 +69,17 @@ final class pruebasUsuariosCest {
       '#btnMisPedidosNav',
       '#modalMisPedidos',
     ];
-
     foreach ($elementosInteractivos as $selector) {
       $I->seeElementInDOM($selector);
     }
-    $I->fillField('#buscadorCatalogoPagina', 'Cloro');
-    $I->seeInField('#buscadorCatalogoPagina', 'Cloro');
-
-    $I->click('#btnAbrirCarritoNav');
-    $I->waitForElementClickable('#cartOffcanvas [data-bs-dismiss="offcanvas"]', 20);
-    $I->click('#cartOffcanvas [data-bs-dismiss="offcanvas"]');
-
-    $I->waitForElementClickable('#chatbot-toggle-btn', 20);
-    $I->click('#chatbot-toggle-btn');
-    $I->waitForElementVisible('#chatbot-window', 5);
+    $I->scroleoHastaElElemento('#buscadorCatalogoPagina');
+    $I->llenoElCampo('#buscadorCatalogoPagina', 'Cloro');
+    $I->cliqueoElCampo('#btnAbrirCarritoNav');
+    $I->cliqueoElCampo('#cartOffcanvas [data-bs-dismiss="offcanvas"]');
+    $I->abroElModal('#chatbot-toggle-btn','#chatbot-window');
     $I->seeElement('#chatbot-suggestions .btnSugerenciaChatBot');
-    
-    $I->waitForElementVisible('#chatbot-input', 5);
-    $I->fillField('#chatbot-input', 'Consulta de prueba');
-    $I->seeInField('#chatbot-input', 'Consulta de prueba');
-    $I->click('#chatbot-close-btn');
-    $I->waitForElementNotVisible('#chatbot-window', 5);
+    $I->llenoElCampo('#chatbot-input', 'Consulta de prueba');
+    $I->cierroElModal('#chatbot-close-btn', '#chatbot-window');
   }
   /**
    * @depends verificarElementosLandingPage
@@ -103,33 +92,34 @@ final class pruebasUsuariosCest {
     $I->amOnPage('/usuarios/login');
 
     $I->seeElement('form.formularioAjax.login');
-    $I->fillField('input[name="usuario_usuario"]', 'Ander123');
-    $I->fillField('input[name="contrasena1_usuario"]', 'David01*');
-    $I->click('form.formularioAjax.login button[type="submit"]');
-    $I->waitForElementVisible('.swal2-confirm.swal2-styled', 10);
-    $I->click('.swal2-confirm.swal2-styled');
+    $I->llenoElCampo('input[name="usuario_usuario"]', 'Ander123');
+    $I->llenoElCampo('input[name="contrasena1_usuario"]', 'David01*');
+    $I->cliqueoElCampo('form.formularioAjax.login button[type="submit"]');
+    $I->confirmoLaAlertaSweetAlert();
     $I->waitForJS(
       "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard');",
       30
     );
+    $cookieSesion = $I->grabCookie('JLACRUZ');
+    if (empty($cookieSesion)) {
+      $I->fail('Fallo crítico: No se generó la cookie de sesión JLACRUZ tras enviar el formulario.');
+    }
 
     $I->amOnPage('/usuarios');
     $I->seeInCurrentUrl('/usuarios');
-
     $sufijo = bin2hex(random_bytes(3));
     $cedula = (string) (70000000 + random_int(0, 9999999));
 
-    $I->click('button[data-bs-target=".modalRegistrar"]');
-    $I->waitForElementVisible('.modalRegistrar', 10);
+    $I->abroElModal('button[data-bs-target=".modalRegistrar"]','.modalRegistrar');
 
-    $I->selectOption('.modalRegistrar select[name="codigo_cedula_usuario"]', 'V');
-    $I->fillField('.modalRegistrar input[name="cedula_usuario"]', $cedula);
-    $I->fillField('.modalRegistrar input[name="nombre_usuario"]', 'PRUEBA');
-    $I->fillField('.modalRegistrar input[name="apellido_usuario"]', 'AUTOMATIZADA');
-    $I->selectOption('.modalRegistrar select[name="prefijo_telefono_usuario"]', '0424');
-    $I->fillField('.modalRegistrar input[name="telefono_usuario"]', '555' . random_int(1000, 9999));
-    $I->fillField('.modalRegistrar input[name="correo_usuario"]', 'qa-' . $sufijo . '@example.com');
-    $I->fillField('.modalRegistrar input[name="usuario_usuario"]', 'qa' . $sufijo . '12');
+    $I->seleccionoLaOpcion('.modalRegistrar select[name="codigo_cedula_usuario"]', 'V');
+    $I->llenoElCampo('.modalRegistrar input[name="cedula_usuario"]', $cedula);
+    $I->llenoElCampo('.modalRegistrar input[name="nombre_usuario"]', 'PRUEBA');
+    $I->llenoElCampo('.modalRegistrar input[name="apellido_usuario"]', 'AUTOMATIZADA');
+    $I->seleccionoLaOpcion('.modalRegistrar select[name="prefijo_telefono_usuario"]', '0424');
+    $I->llenoElCampo('.modalRegistrar input[name="telefono_usuario"]', '555' . random_int(1000, 9999));
+    $I->llenoElCampo('.modalRegistrar input[name="correo_usuario"]', 'qa-' . $sufijo . '@example.com');
+    $I->llenoElCampo('.modalRegistrar input[name="usuario_usuario"]', 'qa' . $sufijo . '12');
 
     $I->waitForJS(
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)') !== null;",
@@ -139,24 +129,21 @@ final class pruebasUsuariosCest {
       "return document.querySelector('.modalRegistrar select[name=\"id_rol\"] option:nth-child(2)').value;"
     );
     $I->assertTrue($rolRegistro !== '', 'El formulario de registro debe cargar roles seleccionables.');
-    $I->selectOption('.modalRegistrar select[name="id_rol"]', ['value' => $rolRegistro]);
+    $I->seleccionoLaOpcion('.modalRegistrar select[name="id_rol"]', $rolRegistro);
     $I->abjuntoElArchivoAlCampoHTML('.modalRegistrar input[name="foto_usuario"]', 'src/assets/images/logo.png');
-    $I->fillField('.modalRegistrar input[name="direccion_usuario"]', 'Direccion de prueba automatizada');
-    $I->fillField('.modalRegistrar input[name="contrasena1_usuario"]', 'Prueba1234');
-    $I->fillField('.modalRegistrar input[name="contrasena2_usuario"]', 'Prueba1234');
+    $I->llenoElCampo('.modalRegistrar input[name="direccion_usuario"]', 'Direccion de prueba automatizada');
+    $I->llenoElCampo('.modalRegistrar input[name="contrasena1_usuario"]', 'Prueba1234');
+    $I->llenoElCampo('.modalRegistrar input[name="contrasena2_usuario"]', 'Prueba1234');
 
-    $I->click('.modalRegistrar .btnMostrarOcultarContrasena');
-    $I->seeElement('.modalRegistrar input[name="contrasena1_usuario"][type="text"]');
-    $I->click('.modalRegistrar .btnMostrarOcultarContrasena');
-    $I->seeElement('.modalRegistrar input[name="contrasena1_usuario"][type="password"]');
-
-    $I->click('.modalRegistrar .grupoConfirmarContrasena .btnMostrarOcultarContrasena');
-    $I->seeElement('.modalRegistrar input[name="contrasena2_usuario"][type="text"]');
-    $I->click('.modalRegistrar .grupoConfirmarContrasena .btnMostrarOcultarContrasena');
-    $I->seeElement('.modalRegistrar input[name="contrasena2_usuario"][type="password"]');
-
-    $I->click('.modalRegistrar button[data-bs-target=".modalPreguntasSeguridad"]');
-    $I->waitForElementVisible('.modalPreguntasSeguridad', 10);
+    $I->verificoBotonDeMostrarContrasena(
+      '.modalRegistrar .btnMostrarOcultarContrasena',
+      '.modalRegistrar input[name="contrasena1_usuario"]'
+    );
+    $I->verificoBotonDeMostrarContrasena(
+      '.modalRegistrar .grupoConfirmarContrasena .btnMostrarOcultarContrasena',
+      '.modalRegistrar input[name="contrasena2_usuario"]'
+    );
+    $I->abroElModal('.modalRegistrar button[data-bs-target=".modalPreguntasSeguridad"]','.modalPreguntasSeguridad');
     $I->waitForJS(
       "return document.querySelectorAll('.modalPreguntasSeguridad .selectPregunta option').length > 1;",
       30
@@ -170,25 +157,19 @@ final class pruebasUsuariosCest {
     for ($indicePregunta = 0; $indicePregunta < 6; $indicePregunta++) {
       $nombrePregunta = 'preguntas_respuestas-' . $indicePregunta . '-id_pregunta';
       $valorPregunta = $opcionesPregunta[$indicePregunta];
-      $I->selectOption(
+      $I->seleccionoLaOpcion(
         '.modalPreguntasSeguridad select[name="' . $nombrePregunta . '"]',
         ['value' => $valorPregunta]
       );
-      $I->fillField(
+      $I->llenoElCampo(
         '.modalPreguntasSeguridad input[name="preguntas_respuestas-' . $indicePregunta . '-respuesta"]',
         'Respuesta de prueba ' . ($indicePregunta + 1)
       );
     }
-    $I->click('.modalPreguntasSeguridad button[type="submit"]');
-    $I->waitForElementVisible('.swal2-cancel.swal2-styled', 10);
-    $I->click('.swal2-cancel.swal2-styled');
-    $I->click('.modalPreguntasSeguridad button[data-bs-target=".modalDatosUsuarios"]');
-    $I->waitForElementVisible('.modalDatosUsuarios', 10);
-    $I->seeElement('.modalDatosUsuarios .modal-header .btn-close');
-    $I->waitForElementClickable('.modalDatosUsuarios .modal-header .btn-close', 5);
-    $I->click('.modalDatosUsuarios .modal-header .btn-close');
-    $I->waitForElementNotVisible('.modalDatosUsuarios', 20);
-    $I->waitForElementNotVisible('.modal-backdrop', 20);
+    $I->cliqueoElCampo('.modalPreguntasSeguridad button[type="submit"]');
+    $I->canceloLaAlertaSweetAlert();
+    $I->abroElModal('.modalPreguntasSeguridad button[data-bs-target=".modalDatosUsuarios"]','.modalDatosUsuarios');
+    $I->cierroElModal('.modalDatosUsuarios .modal-header .btn-close','.modalDatosUsuarios');
   }
   public function _afterClass(AcceptanceTester $I): void {
     $I->resetCookie('TEMP');

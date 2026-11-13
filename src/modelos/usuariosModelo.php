@@ -869,7 +869,6 @@ class usuariosModelo extends conexion {
       ];
     }
 
-
     if (!isset($datosUsAtuales['cedula_usuario'])) {
       return [
         "tipo" => "simple",

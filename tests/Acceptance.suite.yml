@@ -3,27 +3,29 @@
 # Perform tests in a browser by either emulating one using PhpBrowser, or in a real browser using WebDriver.
 # If you need both WebDriver and PhpBrowser tests, create a separate suite for each.
 
-
-
-
-
 actor: AcceptanceTester
-
 modules:
   enabled:
     - WebDriver:
         url: "http://localhost/proyecto-lacruz-j"
         browser: chrome
-        path: ''
         port: 9515
+        path: ''
         window_size: 1280x800
         capabilities:
+          # pageLoadStrategy: 'none'
           goog:chromeOptions:
             args:
+              # - "--headless=new" # descomentar para que ChromeDriver se ejecute sin IG
               - "--disable-gpu"
               - "--no-sandbox"
-              # comentar/descomentar para que ChromeDriver se ejecute sin IG
-              - "--headless=new"
+              - '--disable-software-rasterizer'
+              - '--disable-dev-shm-usage'
+              - '--disable-extensions'
+              - '--disable-background-networking'
+              - '--disable-sync'
+              - '--mute-audio'
+              - '--log-level=3'
     - Asserts
     - \Tests\Support\Helper\Acceptance
     # - PhpBrowser:
@@ -38,6 +40,9 @@ env:
       config:
         WebDriver:
           url: "http://127.0.0.1:8000/proyecto-lacruz-j/"
+          port: 9515
+          path: ''
+          window_size: 1280x800
           capabilities:
             goog:chromeOptions:
               args:
