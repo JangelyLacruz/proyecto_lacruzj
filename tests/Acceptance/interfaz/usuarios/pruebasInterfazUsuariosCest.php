@@ -169,7 +169,7 @@ final class pruebasUsuariosCest {
     $I->cliqueoElCampo('.modalPreguntasSeguridad button[type="submit"]');
     $I->canceloLaAlertaSweetAlert();
     $I->abroElModal('.modalPreguntasSeguridad button[data-bs-target=".modalDatosUsuarios"]','.modalDatosUsuarios');
-    $I->cierroElModal('.modalDatosUsuarios .modal-header .btn-close','.modalDatosUsuarios');
+    $I->cierroElModal('.modalDatosUsuarios.modalRegistrar button[data-bs-dismiss="modal"]','.modalDatosUsuarios.modalRegistrar .modal-dialog.modal-xl');
   }
   public function _afterClass(AcceptanceTester $I): void {
     $I->resetCookie('TEMP');

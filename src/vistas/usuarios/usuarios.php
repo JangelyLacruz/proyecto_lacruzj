@@ -154,7 +154,6 @@ echo $componente->listaDataTable($instruccionesLista);
             <i class="fas fa-save me-2"></i> Siguiente
           </button>
         </div>
-
       </div>
     </div>
   </div>

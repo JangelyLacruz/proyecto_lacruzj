@@ -26,10 +26,10 @@
     "toz": "java -Xmx512m -jar \"C:\\Program Files\\ZAP\\Zed Attack Proxy\\zap-2.17.0.jar\" -cmd -quickurl http://localhost/THE-VINA-FAST-FOOD/ -quickout \"C:\\xampp\\htdocs\\THE-VINA-FAST-FOOD\\app\\tests\\owasp_zap\\reporte.html\"",
     "tsqlmap": "python C:/SQLMAP/sqlmap.py -u \"http://localhost/proyecto-lacruz-j/usuarios/login\" --data=\"usuario_usuario=Ander123&contrasena1_usuario=David01\" --level=3 --risk=2 --banner --batch",
     
-    "tceG": "vendor/bin/codecept run Acceptance --steps",
-    "tceA": "vendor/bin/codecept run tests/Acceptance/aceptacion --steps",
-    "tceI": "vendor/bin/codecept run tests/Acceptance/interfaz --steps",
-    "tceH": "vendor/bin/codecept run tests/Acceptance/humo --steps",
+    "tceG": "vendor/bin/codecept run Acceptance --steps --debug",
+    "tceA": "vendor/bin/codecept run tests/Acceptance/aceptacion --steps --debug",
+    "tceI": "vendor/bin/codecept run tests/Acceptance/interfaz --steps --debug",
+    "tceH": "vendor/bin/codecept run tests/Acceptance/humo --steps --debug",
     "resetce": "php vendor/bin/codecept build -c .",
     "esce": "npx chromedriver --port=9515",
     
