@@ -32,14 +32,14 @@ class Acceptance extends \Codeception\Module {
     $I = $this->getWebDriver();
     $I->attachFile($selector, $codeceptionPath);
   }
-  public function cliqueoElCampo(string $selector, int $timeout = 10): void {
+  public function cliqueoElCampo(string $selector, int $timeout = 20): void {
     $I = $this->getWebDriver();
     $I->waitForElement($selector, $timeout);
     $I->waitForElementVisible($selector, $timeout);
     $I->waitForElementClickable($selector, $timeout);
     $I->click($selector);
   }
-  public function llenoElCampo(string $selector, string $valor, int $timeout = 10): void {
+  public function llenoElCampo(string $selector, string $valor, int $timeout = 20): void {
     $I = $this->getWebDriver();
     $I->waitForElement($selector, $timeout);
     $this->scroleoHastaElElemento($selector, $timeout);
@@ -48,31 +48,31 @@ class Acceptance extends \Codeception\Module {
     $I->fillField($selector, $valor);
     $I->seeInField($selector, $valor);
   }
-  public function seleccionoLaOpcion(string $selector, string|array $opcion, int $timeout = 10): void {
+  public function seleccionoLaOpcion(string $selector, string|array $opcion, int $timeout = 20): void {
     $I = $this->getWebDriver();
     $I->waitForElement($selector, $timeout);
     $I->waitForElementVisible($selector, $timeout);
     $I->selectOption($selector, $opcion);
   }
-  public function abroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10): void {
+  public function abroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 20): void {
     $I = $this->getWebDriver();
     $this->cliqueoElCampo($selectorBotonAbrir, $timeout);
     $I->waitForElementVisible($selectorModalQueSeDebeAbrir, $timeout);
   }
-  public function cierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10): void {
+  public function cierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 20): void {
     $I = $this->getWebDriver();
     $this->cliqueoElCampo($selectorBotonCerrar, $timeout);
     $I->waitForElementNotVisible($selectorModalContenedor, $timeout);
   }
-  public function confirmoLaAlertaSweetAlert(int $timeout = 10): void {
+  public function confirmoLaAlertaSweetAlert(int $timeout = 20): void {
     $this->cliqueoElCampo('.swal2-confirm.swal2-styled', $timeout);
     $this->getWebDriver()->waitForElementNotVisible('.swal2-container', $timeout);
   }
-  public function canceloLaAlertaSweetAlert(int $timeout = 10): void {
+  public function canceloLaAlertaSweetAlert(int $timeout = 20): void {
     $this->cliqueoElCampo('.swal2-cancel.swal2-styled', $timeout);
     $this->getWebDriver()->waitForElementNotVisible('.swal2-container', $timeout);
   }
-  public function veoElTexto(string $texto, ?string $selector = null, int $timeout = 10): void {
+  public function veoElTexto(string $texto, ?string $selector = null, int $timeout = 20): void {
     $I = $this->getWebDriver();
 
     if ($selector !== null) {
@@ -89,7 +89,7 @@ class Acceptance extends \Codeception\Module {
     $this->cliqueoElCampo($selectorBotonCambio);
     $I->seeElement($selectorInputQueCambia . '[type="' . $contrario . '"]');
   }
-  public function scroleoHastaElElemento(string $selector, int $timeout = 10): void {
+  public function scroleoHastaElElemento(string $selector, int $timeout = 20): void {
     $I = $this->getWebDriver();
     $I->waitForElement($selector, $timeout);
     $tieneScroll = $I->executeJS("

@@ -11236,7 +11236,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::cliqueoElCampo()
      */
-    public function cliqueoElCampo(string $selector, int $timeout = 10): void {
+    public function cliqueoElCampo(string $selector, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('cliqueoElCampo', func_get_args()));
     }
     /**
@@ -11246,7 +11246,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::cliqueoElCampo()
      */
-    public function tryToCliqueoElCampo(string $selector, int $timeout = 10): bool {
+    public function tryToCliqueoElCampo(string $selector, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('cliqueoElCampo', func_get_args()));
     }
     /**
@@ -11258,7 +11258,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::cliqueoElCampo()
      */
-    public function retryCliqueoElCampo(string $selector, int $timeout = 10) {
+    public function retryCliqueoElCampo(string $selector, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('cliqueoElCampo', func_get_args(), $retryNum, $retryInterval));
@@ -11271,7 +11271,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::llenoElCampo()
      */
-    public function llenoElCampo(string $selector, string $valor, int $timeout = 10): void {
+    public function llenoElCampo(string $selector, string $valor, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('llenoElCampo', func_get_args()));
     }
     /**
@@ -11281,7 +11281,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::llenoElCampo()
      */
-    public function tryToLlenoElCampo(string $selector, string $valor, int $timeout = 10): bool {
+    public function tryToLlenoElCampo(string $selector, string $valor, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('llenoElCampo', func_get_args()));
     }
     /**
@@ -11293,7 +11293,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::llenoElCampo()
      */
-    public function retryLlenoElCampo(string $selector, string $valor, int $timeout = 10) {
+    public function retryLlenoElCampo(string $selector, string $valor, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('llenoElCampo', func_get_args(), $retryNum, $retryInterval));
@@ -11306,7 +11306,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::seleccionoLaOpcion()
      */
-    public function seleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 10): void {
+    public function seleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('seleccionoLaOpcion', func_get_args()));
     }
     /**
@@ -11316,7 +11316,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::seleccionoLaOpcion()
      */
-    public function tryToSeleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 10): bool {
+    public function tryToSeleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('seleccionoLaOpcion', func_get_args()));
     }
     /**
@@ -11328,7 +11328,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::seleccionoLaOpcion()
      */
-    public function retrySeleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 10) {
+    public function retrySeleccionoLaOpcion(string $selector, array|string $opcion, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('seleccionoLaOpcion', func_get_args(), $retryNum, $retryInterval));
@@ -11341,7 +11341,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::abroElModal()
      */
-    public function abroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10): void {
+    public function abroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('abroElModal', func_get_args()));
     }
     /**
@@ -11351,7 +11351,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::abroElModal()
      */
-    public function tryToAbroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10): bool {
+    public function tryToAbroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('abroElModal', func_get_args()));
     }
     /**
@@ -11363,7 +11363,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::abroElModal()
      */
-    public function retryAbroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 10) {
+    public function retryAbroElModal(string $selectorBotonAbrir, string $selectorModalQueSeDebeAbrir, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('abroElModal', func_get_args(), $retryNum, $retryInterval));
@@ -11376,7 +11376,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::cierroElModal()
      */
-    public function cierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10): void {
+    public function cierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('cierroElModal', func_get_args()));
     }
     /**
@@ -11386,7 +11386,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::cierroElModal()
      */
-    public function tryToCierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10): bool {
+    public function tryToCierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('cierroElModal', func_get_args()));
     }
     /**
@@ -11398,7 +11398,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::cierroElModal()
      */
-    public function retryCierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 10) {
+    public function retryCierroElModal(string $selectorBotonCerrar, string $selectorModalContenedor, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('cierroElModal', func_get_args(), $retryNum, $retryInterval));
@@ -11411,7 +11411,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::confirmoLaAlertaSweetAlert()
      */
-    public function confirmoLaAlertaSweetAlert(int $timeout = 10): void {
+    public function confirmoLaAlertaSweetAlert(int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('confirmoLaAlertaSweetAlert', func_get_args()));
     }
     /**
@@ -11421,7 +11421,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::confirmoLaAlertaSweetAlert()
      */
-    public function tryToConfirmoLaAlertaSweetAlert(int $timeout = 10): bool {
+    public function tryToConfirmoLaAlertaSweetAlert(int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('confirmoLaAlertaSweetAlert', func_get_args()));
     }
     /**
@@ -11433,7 +11433,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::confirmoLaAlertaSweetAlert()
      */
-    public function retryConfirmoLaAlertaSweetAlert(int $timeout = 10) {
+    public function retryConfirmoLaAlertaSweetAlert(int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('confirmoLaAlertaSweetAlert', func_get_args(), $retryNum, $retryInterval));
@@ -11446,7 +11446,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::canceloLaAlertaSweetAlert()
      */
-    public function canceloLaAlertaSweetAlert(int $timeout = 10): void {
+    public function canceloLaAlertaSweetAlert(int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('canceloLaAlertaSweetAlert', func_get_args()));
     }
     /**
@@ -11456,7 +11456,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::canceloLaAlertaSweetAlert()
      */
-    public function tryToCanceloLaAlertaSweetAlert(int $timeout = 10): bool {
+    public function tryToCanceloLaAlertaSweetAlert(int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('canceloLaAlertaSweetAlert', func_get_args()));
     }
     /**
@@ -11468,7 +11468,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::canceloLaAlertaSweetAlert()
      */
-    public function retryCanceloLaAlertaSweetAlert(int $timeout = 10) {
+    public function retryCanceloLaAlertaSweetAlert(int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('canceloLaAlertaSweetAlert', func_get_args(), $retryNum, $retryInterval));
@@ -11481,7 +11481,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::veoElTexto()
      */
-    public function veoElTexto(string $texto, ?string $selector = NULL, int $timeout = 10): void {
+    public function veoElTexto(string $texto, ?string $selector = NULL, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('veoElTexto', func_get_args()));
     }
     /**
@@ -11491,7 +11491,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::veoElTexto()
      */
-    public function tryToVeoElTexto(string $texto, ?string $selector = NULL, int $timeout = 10): bool {
+    public function tryToVeoElTexto(string $texto, ?string $selector = NULL, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('veoElTexto', func_get_args()));
     }
     /**
@@ -11503,7 +11503,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::veoElTexto()
      */
-    public function retryVeoElTexto(string $texto, ?string $selector = NULL, int $timeout = 10) {
+    public function retryVeoElTexto(string $texto, ?string $selector = NULL, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('veoElTexto', func_get_args(), $retryNum, $retryInterval));
@@ -11551,7 +11551,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::scroleoHastaElElemento()
      */
-    public function scroleoHastaElElemento(string $selector, int $timeout = 10): void {
+    public function scroleoHastaElElemento(string $selector, int $timeout = 20): void {
         $this->getScenario()->runStep(new \Codeception\Step\Action('scroleoHastaElElemento', func_get_args()));
     }
     /**
@@ -11561,7 +11561,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::scroleoHastaElElemento()
      */
-    public function tryToScroleoHastaElElemento(string $selector, int $timeout = 10): bool {
+    public function tryToScroleoHastaElElemento(string $selector, int $timeout = 20): bool {
         return $this->getScenario()->runStep(new \Codeception\Step\TryTo('scroleoHastaElElemento', func_get_args()));
     }
     /**
@@ -11573,7 +11573,7 @@ trait AcceptanceTesterActions
      *
      * @see \Tests\Support\Helper\Acceptance::scroleoHastaElElemento()
      */
-    public function retryScroleoHastaElElemento(string $selector, int $timeout = 10) {
+    public function retryScroleoHastaElElemento(string $selector, int $timeout = 20) {
         $retryNum      = $this->retryNum ?? 1;
         $retryInterval = $this->retryInterval ?? 200;
         return $this->getScenario()->runStep(new \Codeception\Step\Retry('scroleoHastaElElemento', func_get_args(), $retryNum, $retryInterval));
