@@ -161,7 +161,7 @@ jobs:
             sleep 1
           done
 
-          composer tceI -- --env ci
+          composer tceG -- --env ci
       
       - name: Mostrar log de errores de Apache y PHP
         if: failure()
