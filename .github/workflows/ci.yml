@@ -176,3 +176,24 @@ jobs:
         with:
           name: smoke-failure-report
           path: tests/_output/
+
+  Despliegue:
+    needs: [Pruebas_codeception]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Incluir el codigo
+        uses: actions/checkout@v3
+
+      - name: Despliegue
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ./
+          local-dir: ./
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/vendor/**
+            **/node_modules/**
