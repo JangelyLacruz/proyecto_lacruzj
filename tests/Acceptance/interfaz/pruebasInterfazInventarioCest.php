@@ -17,8 +17,7 @@ final class pruebasInterfazInventarioCest {
     $I->fillField('input[name="usuario_usuario"]', 'Ander123');
     $I->fillField('input[name="contrasena1_usuario"]', 'David01*');
     $I->click('form.formularioAjax.login button[type="submit"]');
-    $I->waitForElementVisible('.swal2-confirm.swal2-styled', 10);
-    $I->click('.swal2-confirm.swal2-styled');
+    $I->confirmoLaAlertaSweetAlert();
     $I->waitForJS(
       "return window.location.href.includes('/reportes') || window.location.href.includes('/dashboard') || window.location.href.includes('/home');",
       30
