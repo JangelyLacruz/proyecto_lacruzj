@@ -10,7 +10,7 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
+ 
 jobs:
   Pruebas_codeception:
     runs-on: ubuntu-24.04
