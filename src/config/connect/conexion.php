@@ -53,55 +53,60 @@ class conexion {
   }
 
   private function conectarP($BD = null) {
-    $conexionElegida = self::$conexion;
-    $this->nombreDB = 'proyecto_lacruz';
+    $esPrueba = isset($_COOKIE['TEMP']) || isset($_ENV['MODO_TESTEO']);
     if ($BD == 'seguridad') {
+      $this->nombreDB = $esPrueba ? DB_NAME . '_seguridad_pruebas' : DB_NAME . '_seguridad';
       $conexionElegida = self::$conexion2;
-      $this->nombreDB = 'proyecto_lacruz_seguridad';
+    } else {
+      $this->nombreDB = $esPrueba ? DB_NAME . '_pruebas' : DB_NAME;
+      $conexionElegida = self::$conexion;
     }
-    if ($conexionElegida instanceof PDO) return $conexionElegida;
 
-    if ($conexionElegida == null) {
-      try {
-        $conexionElegida = new PDO(
-          "mysql:host=" . $this->servidorDB . ";dbname=" . $this->nombreDB,
-          $this->usuarioDB,
-          $this->contrasenaDB,
-          [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES => false,
-          ]
-        );
-        $conexionElegida->exec("SET CHARACTER SET utf8");
-      } catch (PDOException $e) {
-        $_SESSION['codigoRequest'] = 500;
-        throw new PDOException(
-          "Error al establecer la conexión con la base de datos: " . $e->getMessage(), 
-          (int)$e->getCode());
-      }
+    if ($conexionElegida instanceof PDO) {
+        return $conexionElegida;
     }
-    if (!$conexionElegida->inTransaction()) {
+
     try {
+      $conexionElegida = new PDO(
+        "mysql:host=" . $this->servidorDB . ";dbname=" . $this->nombreDB,
+        $this->usuarioDB,
+        $this->contrasenaDB,
+        [
+          PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+          PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+          PDO::ATTR_EMULATE_PREPARES => false,
+        ]
+      );
+      $conexionElegida->exec("SET CHARACTER SET utf8");
+    } catch (PDOException $e) {
+      $_SESSION['codigoRequest'] = 500;
+      throw new PDOException(
+        "Error al establecer la conexión con la base de datos (" . $this->nombreDB . "): " . $e->getMessage(), 
+        (int)$e->getCode()
+      );
+    }
+    
+    if (!$conexionElegida->inTransaction()) {
+      try {
         $conexionElegida->beginTransaction();
       } catch (PDOException $e) {
         throw new PDOException("Error al iniciar la transacción: " . $e->getMessage(),(int)$e->getCode());
       }
     }
 
-    //Guardar la conexion
-    if ($BD == 'seguridad') self::$conexion2 = $conexionElegida;
-    else self::$conexion = $conexionElegida;
+    if ($BD == 'seguridad') {
+        self::$conexion2 = $conexionElegida;
+    } else {
+        self::$conexion = $conexionElegida;
+    }
 
     return $conexionElegida;
   }
+  
   private function commitP() {
-    //verificamos que la conexión esté abierta y esté en una transacción
     if (
       self::$conexion instanceof PDO &&
-      self::$conexion->inTransaction() &&
-      !isset($_COOKIE['TEMP']) &&
-      !isset($_ENV['MODO_TESTEO'])
+      self::$conexion->inTransaction()
     ) {
       try {
         self::$conexion->commit();
@@ -110,12 +115,10 @@ class conexion {
           "Error al confirmar la transacción (COMMIT): " . $e->getMessage(), (int)$e->getCode());
       }
     }
-    //verificamos que la conexión esté abierta y esté en una transacción
+
     if (
       self::$conexion2 instanceof PDO &&
-      self::$conexion2->inTransaction() &&
-      !isset($_COOKIE['TEMP']) &&
-      !isset($_ENV['MODO_TESTEO'])
+      self::$conexion2->inTransaction()
     ) {
       try {
         self::$conexion2->commit();
@@ -125,6 +128,7 @@ class conexion {
       }
     }
   }
+  
   private function rollbackP() {
     if (self::$conexion instanceof PDO && self::$conexion->inTransaction()) {
       try {
@@ -141,6 +145,7 @@ class conexion {
       }
     }
   }
+  
   private function seleccionarDatosP2(array $instrucciones) {
     // $objCache = new cacheModelo();
     try {
@@ -365,14 +370,6 @@ class conexion {
         }
       }
       $consulta->execute();
-      // if (isset($instrucciones['fnDevolver'])) {
-      //   $consulta = $instrucciones['fnDevolver']($consulta);
-      //   if (!isset($instrucciones['noCache']) ?? false) {
-      //     $cacheTabla = $objCache->getItem($tabla) ?? [];
-      //     $cacheTabla[json_encode($claveCacheInd)] = $consulta;
-      //     $objCache->setItem($tabla, $cacheTabla);
-      //   }
-      // }
       return $consulta;
     } catch (\Throwable $th) {
       $this->rollback();
@@ -392,6 +389,7 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
+  
   private function guardarDatosP2(array $instrucciones) {
     try {
       $conexion = $this->conectar($instrucciones['BD'] ?? NULL);
@@ -480,6 +478,7 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
+  
   private function actualizarDatosP2(array $instrucciones) {
     try {
       $conexion = $this->conectar($instrucciones['BD'] ?? NULL);
@@ -608,6 +607,7 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
+  
   private function eliminarDatosP2(array $instrucciones) {
     try {
       $conexion = $this->conectar($instrucciones['BD'] ?? NULL);
@@ -727,6 +727,7 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
+  
   private function procesosAlmacenadosP(array $instrucciones) {
     $conexion = $this->conectar();
     $sql = 'CALL ' . $instrucciones['sp'] . '(';
