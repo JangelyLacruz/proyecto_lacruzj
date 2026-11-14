@@ -1,3 +1,8 @@
+<?php
+if (!defined('DIR_IMG')) {
+  define('DIR_IMG', 'src/assets/images/');
+}
+?>
   <link rel="stylesheet" href="/proyecto-lacruz-j/src/assets/css/landing.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -272,6 +277,16 @@
         <div class="row g-4 justify-content-center d-none" id="catalogoGridWrapper">
         </div>
 
+        <!-- Botón Ver Más Productos -->
+        <div id="btnVerMasContainer" class="text-center mt-4 d-none">
+          <button id="btnVerMasProductos" type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+            <span id="btnVerMasTexto">Ver más productos</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
         <div id="catalogoVacioState" class="text-center py-5 d-none bg-white rounded shadow-sm p-4 mx-auto" style="max-width:500px">
           <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted opacity-50 mb-2">
             <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
@@ -394,7 +409,7 @@
                 </div>
                 <div>
                   <small class="text-white opacity-75 d-block">Ubicación Principal</small>
-                  <strong class="text-white fs-6">Barquisimeto, Estado Lara, Venezuela</strong>
+                  <strong class="text-white fs-6">Calle San Rafael, Cabudare, Estado Lara, Venezuela</strong>
                 </div>
               </div>
 
@@ -462,7 +477,7 @@
                 </svg>
                 <span>Ubicación Interactiva de J. LACRUZ C.A.</span>
               </span>
-              <a href="https://maps.app.goo.gl/ei45ghyYmUALrw3y9" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1">
+              <a href="https://maps.app.goo.gl/4ZkqsqHpKwiRs8Z36" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1">
                 <span>Abrir en Google Maps</span>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -487,7 +502,7 @@
       </div>
     </div>
     <p class="footer-copy">
-      © 2024-2026 J. LACRUZ C.A. · RIF J-504221190 · Barquisimeto, Venezuela · 0424-5085666
+      © 2024-2026 J. LACRUZ C.A. · RIF J-504221190 · Cabudare, Lara, Venezuela · 0424-5085666
     </p>
 
     <!-- Variables de entorno del chatbot -->
@@ -739,7 +754,7 @@
                     <input class="form-check-input" type="radio" name="tipo_entrega" id="optRetiro" value="retiro">
                     <label class="form-check-label fw-bold text-dark" for="optRetiro">🏢 Retiro en Sede</label>
                   </div>
-                  <small class="text-muted ps-4">Retiro personal en nuestra sede (Carrera 28 entre calles 41 y 42, Barquisimeto).</small>
+                  <small class="text-muted ps-4">Retiro personal en nuestra sede (Calle San Rafael, Cabudare, Lara).</small>
                 </div>
               </div>
             </div>

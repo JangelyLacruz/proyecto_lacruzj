@@ -43,8 +43,18 @@ $archivoModulo = $directorioJs . $nombreModulo . $versionJs;
 
 use src\modelos\accesosModelo;
 
-$objAcceso = new accesosModelo();
-if ($_SESSION['vistaActual'] != 'login' && !$objAcceso->validarPermisos('chatbot', 'ver chatbot')): ?>
+$mostrarChatbot = false;
+if (($_SESSION['vistaActual'] ?? '') == 'landing') {
+  $mostrarChatbot = true;
+} elseif (($_SESSION['vistaActual'] ?? '') != 'login') {
+  try {
+    $objAcceso = new accesosModelo();
+    $mostrarChatbot = !$objAcceso->validarPermisos('chatbot', 'ver chatbot');
+  } catch (\Throwable $e) {
+    $mostrarChatbot = false;
+  }
+}
+if ($mostrarChatbot): ?>
   <!-- Chatbot Toggle Button -->
   <button id="chatbot-toggle-btn" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1050; font-size: 24px; background-color: #0d6efd; border: none;">
     <i class="fi fi-rr-headset"></i>
