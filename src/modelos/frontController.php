@@ -13,7 +13,7 @@ class frontController {
   private string $archivo;
 
   public function __construct() {
-    $salidasFueraDeSesion = ['productos', 'servicios', 'rutas', 'monedas'];
+    $salidasFueraDeSesion = ['productos', 'servicios', 'rutas', 'monedas', 'usuarios', 'preguntas-seguridad', 'webEmpresa', 'chatbot'];
     $this->controladores = [
       'accesos',
       'bancos',
@@ -35,6 +35,7 @@ class frontController {
       'monedas',
       'ordenesEntregasPresupuestos',
       'ordenesServicios',
+      'others',
       'pedidos',
       'permisos',
       'presentaciones',
@@ -53,9 +54,11 @@ class frontController {
       'sucursalesEmpresasEnvios',
       'unidadesMedidas',
       'usuarios',
+      'webEmpresa',
     ];
     $this->vistasEstaticas = [
       'home',
+      'landing',
       '404'
     ];
 
@@ -76,7 +79,7 @@ class frontController {
       } elseif (in_array($this->url, $this->vistasEstaticas)) {
         $this->archivo = "src\controladores\othersControlador.php";
         $_SESSION['vistaActual'] = $this->url;
-      } elseif (in_array($this->url, $salidasFueraDeSesion) && $accion == 'listar') {
+      } elseif (in_array($this->url, $salidasFueraDeSesion)) {
         $this->archivo = "src/controladores/" . $this->url . "Controlador.php";
       } elseif (isset($_SESSION['cedula'])) {
         $this->redireccionarUsuario();

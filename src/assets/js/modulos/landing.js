@@ -9,15 +9,21 @@ import {
 //#region [ VARIABLES O CONSTANTES GLOBALES ] COMIENZO
 
 const BASE_PATH = window.location.pathname.includes('/pagina_empresa')
-  ? window.location.pathname.substring(0, window.location.pathname.indexOf('/pagina_empresa') + 1)
+  ? '/proyecto-lacruz-j/'
   : (window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1));
 
 const API_BASE = window.location.origin + BASE_PATH;
 const API_WEB_EMPRESA = API_BASE + '?views=webEmpresa';
 const API_CHATBOT = API_BASE + '?views=chatbot';
 const FOTOS_BASE = API_BASE + 'src/assets/fotosModulos/';
-const EMPRESA_IMG_BASE = API_BASE + 'pagina_empresa/img/';
+const EMPRESA_IMG_BASE = window.location.origin + '/pagina_empresa/img/';
+const DEFAULT_PRODUCTO_IMG = API_BASE + 'src/assets/images/producto_default.png';
 const KEY_CARRITO = 'itemsCarritoPedido';
+
+const LIMITE_PRODUCTOS_INICIAL = 5;
+const INCREMENTO_PRODUCTOS = 5;
+let productosVisiblesLimite = LIMITE_PRODUCTOS_INICIAL;
+let productosFiltradosActuales = [];
 
 let tasaDolar = 36.5;
 let productosData = [];
@@ -258,6 +264,7 @@ async function cargarCatalogo() {
   const loadingEl = document.getElementById('catalogoLoadingState');
   const gridEl = document.getElementById('catalogoGridWrapper');
   const vacioEl = document.getElementById('catalogoVacioState');
+  const btnContainer = document.getElementById('btnVerMasContainer');
 
   try {
     const fd = new FormData();
@@ -267,6 +274,7 @@ async function cargarCatalogo() {
 
     if (Array.isArray(data) && data.length > 0) {
       productosData = data;
+      productosVisiblesLimite = LIMITE_PRODUCTOS_INICIAL;
       renderizarCategorias(productosData);
       renderizarTarjetasCatalogo(productosData);
       loadingEl?.classList.add('d-none');
@@ -274,11 +282,13 @@ async function cargarCatalogo() {
     } else {
       loadingEl?.classList.add('d-none');
       vacioEl?.classList.remove('d-none');
+      btnContainer?.classList.add('d-none');
     }
   } catch (err) {
     console.error('Error al cargar catalogo:', err);
     loadingEl?.classList.add('d-none');
     vacioEl?.classList.remove('d-none');
+    btnContainer?.classList.add('d-none');
   }
 }
 async function cargarServicios() {
@@ -402,41 +412,50 @@ function renderizarCategorias(productos) {
   if (contenedor) contenedor.innerHTML = '';
 }
 function filtrarCatalogo() {
+  productosVisiblesLimite = LIMITE_PRODUCTOS_INICIAL;
   const texto = document.getElementById('buscadorCatalogoPagina')?.value.toLowerCase().trim() || '';
 
   const filtrados = productosData.filter(p => {
     return !texto ||
       p.nombre_producto?.toLowerCase().includes(texto) ||
-      p.nombre_presentacion?.toLowerCase().includes(texto);
+      p.nombre_presentacion?.toLowerCase().includes(texto) ||
+      p.nombre_categoria_producto?.toLowerCase().includes(texto);
   });
   renderizarTarjetasCatalogo(filtrados);
 }
 function renderizarTarjetasCatalogo(productos) {
   const gridEl = document.getElementById('catalogoGridWrapper');
   const vacioEl = document.getElementById('catalogoVacioState');
+  const btnContainer = document.getElementById('btnVerMasContainer');
+  const btnTexto = document.getElementById('btnVerMasTexto');
 
   if (!gridEl) return;
-  gridEl.innerHTML = '';
+  productosFiltradosActuales = Array.isArray(productos) ? productos : [];
 
-  if (productos.length === 0) {
+  if (productosFiltradosActuales.length === 0) {
+    gridEl.innerHTML = '';
     gridEl.classList.add('d-none');
     vacioEl?.classList.remove('d-none');
+    btnContainer?.classList.add('d-none');
     return;
   }
 
   vacioEl?.classList.add('d-none');
   gridEl.classList.remove('d-none');
 
-  productos.forEach(prod => {
+  const slice = productosFiltradosActuales.slice(0, productosVisiblesLimite);
+  gridEl.innerHTML = '';
+
+  slice.forEach(prod => {
     const col = document.createElement('div');
     col.className = 'col-12 col-sm-6 col-md-4 col-lg-3 d-flex align-items-stretch';
 
-    const precioUSD = parseFloat(prod.precio_producto) || 0;
-    const precioBs = (precioUSD * tasaDolar).toFixed(2);
+    const precioUSD = parseFloat(prod.precio_dolar || prod.precio_producto) || 0;
+    const precioBs = prod.precio_bs || (precioUSD * tasaDolar).toFixed(2);
 
     const fotoUrl = prod.foto_presentacion && prod.foto_presentacion !== ''
       ? FOTOS_BASE + 'presentaciones_productos/' + prod.foto_presentacion
-      : EMPRESA_IMG_BASE + 'aseo-limpieza.jpg';
+      : DEFAULT_PRODUCTO_IMG;
 
     const infoObj = JSON.stringify({
       id_producto: prod.id_producto,
@@ -451,7 +470,7 @@ function renderizarTarjetasCatalogo(productos) {
     col.innerHTML = `
       <div class="producto-card w-100">
         <div class="producto-card-img-wrap">
-          <img src="${fotoUrl}" alt="${escaparHTML(prod.nombre_producto)}" class="producto-card-img" onerror="this.src='${EMPRESA_IMG_BASE}aseo-limpieza.jpg'">
+          <img src="${fotoUrl}" alt="${escaparHTML(prod.nombre_producto)}" class="producto-card-img" onerror="this.onerror=null; this.src='${DEFAULT_PRODUCTO_IMG}'">
         </div>
         <div class="producto-card-body">
           <h5 class="producto-card-title">${escaparHTML(prod.nombre_producto)}</h5>
@@ -475,6 +494,20 @@ function renderizarTarjetasCatalogo(productos) {
     `;
     gridEl.appendChild(col);
   });
+
+  // Control del botón "Ver más productos"
+  if (btnContainer) {
+    if (productosFiltradosActuales.length > productosVisiblesLimite) {
+      const restantes = productosFiltradosActuales.length - productosVisiblesLimite;
+      const proximoLote = Math.min(INCREMENTO_PRODUCTOS, restantes);
+      btnContainer.classList.remove('d-none');
+      if (btnTexto) {
+        btnTexto.textContent = `Ver más productos (+${proximoLote} de ${restantes} restantes)`;
+      }
+    } else {
+      btnContainer.classList.add('d-none');
+    }
+  }
 }
 async function verificarSesionCliente() {
   try {
@@ -805,7 +838,7 @@ async function cargarMisPedidos() {
             <tr>
               <td class="py-2">
                 <div class="d-flex align-items-center gap-2">
-                  <img src="${fotoIt}" class="rounded border" style="width:36px; height:36px; object-fit:cover;" onerror="this.src='${EMPRESA_IMG_BASE}aseo-limpieza.jpg'">
+                  <img src="${fotoIt}" class="rounded border" style="width:36px; height:36px; object-fit:cover;" onerror="this.onerror=null; this.src='${DEFAULT_PRODUCTO_IMG}'">
                   <div>
                     <strong class="d-block text-dark">${escaparHTML(it.nombre_producto)}</strong>
                   </div>
@@ -1153,8 +1186,8 @@ function iniciarMapa() {
   const mapContainer = document.getElementById('mapaContacto');
   if (!mapContainer || typeof L === 'undefined') return;
 
-  const lat = 10.0632758;
-  const lng = -69.3170799;
+  const lat = 10.02884;
+  const lng = -69.25703;
 
   const map = L.map('mapaContacto').setView([lat, lng], 17);
 
@@ -1166,14 +1199,14 @@ function iniciarMapa() {
   const marker = L.marker([lat, lng]).addTo(map);
   marker.bindPopup(`
     <div style="text-align:center;">
-      <strong style="color:#0a1628;">J. LACRUZ C.A.</strong><br>
-      <small style="color:#64748b;">Barquisimeto, Estado Lara, Venezuela</small><br>
-      <a href="https://maps.app.goo.gl/ei45ghyYmUALrw3y9" target="_blank" style="color:#1a56db;font-weight:bold;font-size:11px;">Abrir en Google Maps</a>
+      <strong style="color:#0a1628;">Multiservicios Generales J.LACRUZ C.A.</strong><br>
+      <small style="color:#64748b;">Calle San Rafael, Cabudare, Estado Lara</small><br>
+      <a href="https://maps.app.goo.gl/4ZkqsqHpKwiRs8Z36" target="_blank" style="color:#1a56db;font-weight:bold;font-size:11px;">Abrir en Google Maps</a>
     </div>
   `).openPopup();
 
   map.on('click', () => {
-    window.open('https://maps.app.goo.gl/ei45ghyYmUALrw3y9', '_blank');
+    window.open('https://maps.app.goo.gl/4ZkqsqHpKwiRs8Z36', '_blank');
   });
 }
 //#endregion [ FUNCIONES PROPIAS DEL MODULO ] FIN
@@ -1355,6 +1388,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (buscador) {
     buscador.addEventListener('input', () => {
       filtrarCatalogo();
+    });
+  }
+
+  // Botón Ver Más Productos
+  const btnVerMas = document.getElementById('btnVerMasProductos');
+  if (btnVerMas) {
+    btnVerMas.addEventListener('click', () => {
+      productosVisiblesLimite += INCREMENTO_PRODUCTOS;
+      renderizarTarjetasCatalogo(productosFiltradosActuales);
     });
   }
 

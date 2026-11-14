@@ -25,7 +25,7 @@ define('APP_URL', $PROTOCOLO . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "/proyec
 define('ROOT_PATH', dirname(__DIR__, 2).'/');
 
 const modoDev = true;
-const coorJLACRUZ = ['latitud' => 10.063276, 'longitud' => -69.31708];
+const coorJLACRUZ = ['latitud' => 10.02884, 'longitud' => -69.25703];
 const APP_NAME = "MULTISERVICIOS JLACRUZ C.A.";
 const APP_SESSION_NAME = "JLACRUZ";
 date_default_timezone_set("America/Caracas");

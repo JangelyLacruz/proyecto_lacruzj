@@ -9,7 +9,7 @@ class frontController extends conexion {
   private array|string $url = '';
   private array $vistasEstaticas;
   private array $controladores;
-  private string $archivo;
+  private string $archivo = '';
 
   public function __construct() {
     $salidasFueraDeSesion = [
@@ -18,7 +18,9 @@ class frontController extends conexion {
       'rutas',
       'monedas',
       'usuarios',
-      'preguntas-seguridad'
+      'preguntas-seguridad',
+      'webEmpresa',
+      'chatbot'
     ];
     $this->controladores = [
       'accesos',
@@ -61,16 +63,19 @@ class frontController extends conexion {
       'sucursalesEmpresasEnvios',
       'unidadesMedidas',
       'usuarios',
+      'webEmpresa',
     ];
     $this->vistasEstaticas = [
       'home',
-      '404',
+      'landing',
+      '404'
     ];
 
     $metodo = $_SERVER["REQUEST_METHOD"];
     $this->transformarCuerpoAPost();
     $accion = $_POST['accion'] ?? $_POST['reporte'] ?? '';
 
+    
     if (isset($_GET["views"]) && $_GET["views"] != "") {
       $this->url = explode("/", $_GET['views']);
       $_SESSION['vistaActual'] = $this->url[0];
@@ -83,7 +88,7 @@ class frontController extends conexion {
           $_SESSION['vistaActual'] = $this->url;
         }
       } elseif (in_array($this->url, $this->vistasEstaticas)) {
-        $this->archivo = "src\controladores\othersControlador.php";
+        $this->archivo = "src/controladores/othersControlador.php";
         $_SESSION['vistaActual'] = $this->url;
       } elseif (in_array($this->url, $salidasFueraDeSesion)) {
         $this->archivo = "src/controladores/" . $this->url . "Controlador.php";
@@ -114,8 +119,8 @@ class frontController extends conexion {
       $urlActual = explode("/", ($_GET['views'] ?? ''));
       $url1 = $urlActual[0] ?? "";
       $url2 = $urlActual[1] ?? "";
-      $_SESSION['url1'] = $urlActual[0] ?? "";
-      $_SESSION['url2'] = $urlActual[1] ?? "";
+      $_SESSION['url1']=$urlActual[0] ?? "";
+      $_SESSION['url2']=$urlActual[1] ?? "";
       require_once $this->archivo;
     } else {
       $this->redireccionarUsuario();
