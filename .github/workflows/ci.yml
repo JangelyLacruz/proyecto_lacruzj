@@ -186,10 +186,20 @@ jobs:
 
       - name: Restaurar fechas reales de Git
         run: |
-          git ls-files -z | while IFS= read -r -d '' f; do
-            touch -d "$(git log -1 --format=%cI -- "$f")" "$f"
-          done
-
+          python3 -c '
+          import os, subprocess
+          out = subprocess.check_output(["git", "log", "--pretty=format:TIME:%ct", "--name-only"]).decode("utf-8", "ignore")
+          ts = None
+          seen = set()
+          for line in out.splitlines():
+              if line.startswith("TIME:"):
+                  ts = int(line[5:])
+              elif line and line not in seen:
+                  seen.add(line)
+                  if os.path.exists(line) and not os.path.islink(line):
+                      os.utime(line, (ts, ts))
+          '
+      
       - name: Despliegue ultrarrapido por SFTP (lftp + llave SSH)
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -211,9 +221,6 @@ jobs:
             open -u $SSH_USER,dummy sftp://namecheap;
             mirror -R --delete --parallel=4 --verbose \
               --exclude-glob .git* \
-              --exclude-glob node_modules/ \
-              --exclude-glob tests/ \
-              --exclude-glob vendor/ \
               ./ dev.jlacruzca.com/;
             bye
           "
