@@ -30,6 +30,7 @@
     "tceG": "vendor/bin/codecept run Acceptance --steps --debug",
     "tceA": "vendor/bin/codecept run tests/Acceptance/aceptacion --steps --debug",
     "tceI": "vendor/bin/codecept run tests/Acceptance/interfaz --steps --debug",
+    "tceIU": "vendor/bin/codecept run tests/Acceptance/interfaz/pruebasInterfazUsuariosCest --steps --debug",
     "tceH": "vendor/bin/codecept run tests/Acceptance/humo --steps --debug",
     "resetce": "php vendor/bin/codecept build -c .",
     "esce": "npx chromedriver --port=9515",
