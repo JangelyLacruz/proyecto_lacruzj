@@ -175,6 +175,39 @@ jobs:
   #         name: smoke-failure-report
   #         path: tests/_output/
 
+  # despliegue_a_desarrollo:
+  #   # needs: [pruebas_codeception]
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - name: Incluir el codigo
+  #       uses: actions/checkout@v4
+
+  #     - name: Configurar PHP y Composer
+  #       uses: shivammathur/setup-php@v2
+  #       with:
+  #         php-version: "8.3"
+  #         tools: composer
+  #         coverage: none
+
+  #     - name: Instalar dependencias de produccion
+  #       run: composer install --no-dev --prefer-dist --no-progress --no-interaction
+
+  #     - name: Despliegue
+  #       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+  #       with:
+  #         server: ${{ secrets.FTP_SERVER }}
+  #         username: ${{ secrets.FTP_USERNAME_DEV }}
+  #         password: ${{ secrets.FTP_PASSWORD_DEV }}
+  #         protocol: ftps
+  #         port: 21
+  #         server-dir: ./
+  #         local-dir: ./
+  #         timeout: 60000
+  #         exclude: |
+  #           **/.git*
+  #           **/.git*/**
+  #           **/node_modules/**
+
   despliegue_a_desarrollo:
     # needs: [pruebas_codeception]
     runs-on: ubuntu-24.04
@@ -192,22 +225,22 @@ jobs:
       - name: Instalar dependencias de produccion
         run: composer install --no-dev --prefer-dist --no-progress --no-interaction
 
-      - name: Despliegue
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME_DEV }}
-          password: ${{ secrets.FTP_PASSWORD_DEV }}
-          protocol: ftps
-          port: 21
-          server-dir: ./
-          local-dir: ./
-          timeout: 60000
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
+      - name: Despliegue ultrarrapido por SSH + rsync
+        env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
+          rsync -avzc --delete \
+            --exclude='.git*' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            -e "ssh -i ~/.ssh/deploy_key -p 21098 -o StrictHostKeyChecking=no" \
+            ./ "$SSH_USER@$SSH_HOST:~/dev.jlacruzca.com/"
 
   # despliegue_a_produccion:
   #   needs: [despliegue_a_desarrollo]
