@@ -12,7 +12,7 @@ concurrency:
 jobs:
   # pruebas_codeception:
   #   runs-on: ubuntu-24.04
-    
+
   #   services:
   #     mysql:
   #       image: mysql:8.0
@@ -176,6 +176,7 @@ jobs:
   #         path: tests/_output/
 
   despliegue_a_desarrollo:
+    
     # needs: [pruebas_codeception]
     runs-on: ubuntu-24.04
     steps:
