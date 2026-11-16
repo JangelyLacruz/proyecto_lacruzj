@@ -175,39 +175,6 @@ jobs:
   #         name: smoke-failure-report
   #         path: tests/_output/
 
-  # despliegue_a_desarrollo:
-  #   # needs: [pruebas_codeception]
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - name: Incluir el codigo
-  #       uses: actions/checkout@v4
-
-  #     - name: Configurar PHP y Composer
-  #       uses: shivammathur/setup-php@v2
-  #       with:
-  #         php-version: "8.3"
-  #         tools: composer
-  #         coverage: none
-
-  #     - name: Instalar dependencias de produccion
-  #       run: composer install --no-dev --prefer-dist --no-progress --no-interaction
-
-  #     - name: Despliegue
-  #       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-  #       with:
-  #         server: ${{ secrets.FTP_SERVER }}
-  #         username: ${{ secrets.FTP_USERNAME_DEV }}
-  #         password: ${{ secrets.FTP_PASSWORD_DEV }}
-  #         protocol: ftps
-  #         port: 21
-  #         server-dir: ./
-  #         local-dir: ./
-  #         timeout: 60000
-  #         exclude: |
-  #           **/.git*
-  #           **/.git*/**
-  #           **/node_modules/**
-
   despliegue_a_desarrollo:
     # needs: [pruebas_codeception]
     runs-on: ubuntu-24.04
@@ -225,43 +192,31 @@ jobs:
       - name: Instalar dependencias de produccion
         run: composer install --no-dev --prefer-dist --no-progress --no-interaction
 
-      - name: Despliegue ultrarrapido por SSH + rsync
+      - name: Despliegue ultrarrapido por SFTP (lftp + llave SSH)
         env:
           SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
         run: |
+          sudo apt-get update && sudo apt-get install -y lftp
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          rsync -avzc --delete \
-            --exclude='.git*' \
-            --exclude='node_modules/' \
-            --exclude='tests/' \
-            -e "ssh -i ~/.ssh/deploy_key -p 21098 -o StrictHostKeyChecking=no" \
-            ./ "$SSH_USER@$SSH_HOST:~/dev.jlacruzca.com/"
+          lftp -e "
+            set sftp:auto-confirm yes;
+            set sftp:connect-program 'ssh -a -x -i ~/.ssh/deploy_key -p 21098 -o StrictHostKeyChecking=no';
+            set net:timeout 60;
+            set net:max-retries 3;
+            open sftp://$SSH_USER@$SSH_HOST;
+            mirror -R --delete --parallel=4 --verbose \
+              --exclude-glob .git* \
+              --exclude-glob node_modules/ \
+              --exclude-glob tests/ \
+              ./ dev.jlacruzca.com/;
+            bye
+          "
 
-  # despliegue_a_produccion:
-  #   needs: [despliegue_a_desarrollo]
-  #   runs-on: ubuntu-24.04
-  #   steps:
-  #     - name: Incluir el codigo
-  #       uses: actions/checkout@v3
-
-  #     - name: Despliegue
-  #       uses: SamKirkland/FTP-Deploy-Action@v4.3.0
-  #       with:
-  #         server: ${{ secrets.FTP_SERVER }}
-  #         username: ${{ secrets.FTP_USERNAME }}
-  #         password: ${{ secrets.FTP_PASSWORD }}
-  #         server-dir: ./
-  #         local-dir: ./
-  #         exclude: |
-  #           **/.git*
-  #           **/.git*/**
-  #           **/vendor/**
-  #           **/node_modules/**
 
 
 
