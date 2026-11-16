@@ -203,12 +203,22 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
+          cat <<EOF > ~/.ssh/config
+          Host namecheap
+            HostName $SSH_HOST
+            User $SSH_USER
+            Port 21098
+            IdentityFile ~/.ssh/deploy_key
+            StrictHostKeyChecking no
+            BatchMode yes
+          EOF
+          chmod 600 ~/.ssh/config
+
           lftp -e "
             set sftp:auto-confirm yes;
-            set sftp:connect-program 'ssh -a -x -i ~/.ssh/deploy_key -p 21098 -o StrictHostKeyChecking=no';
             set net:timeout 60;
             set net:max-retries 3;
-            open sftp://$SSH_USER@$SSH_HOST;
+            open -u $SSH_USER,dummy sftp://namecheap;
             mirror -R --delete --parallel=4 --verbose \
               --exclude-glob .git* \
               --exclude-glob node_modules/ \
@@ -216,7 +226,6 @@ jobs:
               ./ dev.jlacruzca.com/;
             bye
           "
-
 
 
 
