@@ -1,185 +1,183 @@
 name: despliegue y pruebas
 
-# Se dispara en cada push o Pull Request hacia la rama de deploy
+# Se dispara en cada push hacia la rama de deploy
 on:
   push:
-    branches: [deploy]
-  pull_request:
-    branches: [deploy]
+    branches: [deploy,main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  Pruebas_codeception:
-    runs-on: ubuntu-24.04
+  # pruebas_codeception:
+  #   runs-on: ubuntu-24.04
     
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: "root_password"
-          MYSQL_DATABASE: proyecto_lacruz
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+  #   services:
+  #     mysql:
+  #       image: mysql:8.0
+  #       env:
+  #         MYSQL_ROOT_PASSWORD: "root_password"
+  #         MYSQL_DATABASE: proyecto_lacruz
+  #       ports:
+  #         - 3306:3306
+  #       options: >-
+  #         --health-cmd="mysqladmin ping"
+  #         --health-interval=10s
+  #         --health-timeout=5s
+  #         --health-retries=3
 
-    steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout del repositorio
+  #       uses: actions/checkout@v4
 
-      - name: Preparar bases de datos para pruebas
-        env:
-          MYSQL_PWD: root_password
-        run: |
-          set -e
-          mysql -h 127.0.0.1 -u root -e "SET GLOBAL log_bin_trust_function_creators = 1;"
-          mysql -h 127.0.0.1 -u root proyecto_lacruz < src/config/connect/proyecto_lacruz.sql
-          mysql -h 127.0.0.1 -u root < src/config/connect/proyecto_lacruz_seguridad.sql
-          mysql -h 127.0.0.1 -u root -t -e "SHOW DATABASES;"
-          mysql -h 127.0.0.1 -u root proyecto_lacruz -t -e "SHOW TABLES;"
-          mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "SHOW TABLES;"
-          mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "
-            SELECT * FROM usuarios WHERE usuario_usuario = 'Ander123';
-          " || echo "ADVERTENCIA: No se encontró Ander123 en accesos"
-          mysql -h 127.0.0.1 -u root -t -e "
-            SELECT 'proyecto_lacruz_seguridad.accesos' AS Tabla, COUNT(*) AS Total FROM proyecto_lacruz_seguridad.accesos;
-          "
+  #     - name: Preparar bases de datos para pruebas
+  #       env:
+  #         MYSQL_PWD: root_password
+  #       run: |
+  #         set -e
+  #         mysql -h 127.0.0.1 -u root -e "SET GLOBAL log_bin_trust_function_creators = 1;"
+  #         mysql -h 127.0.0.1 -u root proyecto_lacruz < src/config/connect/proyecto_lacruz.sql
+  #         mysql -h 127.0.0.1 -u root < src/config/connect/proyecto_lacruz_seguridad.sql
+  #         mysql -h 127.0.0.1 -u root -t -e "SHOW DATABASES;"
+  #         mysql -h 127.0.0.1 -u root proyecto_lacruz -t -e "SHOW TABLES;"
+  #         mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "SHOW TABLES;"
+  #         mysql -h 127.0.0.1 -u root proyecto_lacruz_seguridad -t -e "
+  #           SELECT * FROM usuarios WHERE usuario_usuario = 'Ander123';
+  #         " || echo "ADVERTENCIA: No se encontró Ander123 en accesos"
+  #         mysql -h 127.0.0.1 -u root -t -e "
+  #           SELECT 'proyecto_lacruz_seguridad.accesos' AS Tabla, COUNT(*) AS Total FROM proyecto_lacruz_seguridad.accesos;
+  #         "
       
-      - name: Configurar PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: "8.3"
-          extensions: mbstring, json, pdo, pdo_mysql, curl, openssl
-          tools: composer
-          coverage: none
+  #     - name: Configurar PHP
+  #       uses: shivammathur/setup-php@v2
+  #       with:
+  #         php-version: "8.3"
+  #         extensions: mbstring, json, pdo, pdo_mysql, curl, openssl
+  #         tools: composer
+  #         coverage: none
 
-      - name: Preparar directorio de cache y permisos
-        run: |
-          mkdir -p src/config/connect/cache
-          chmod -R 775 src/config/connect/cache
+  #     - name: Preparar directorio de cache y permisos
+  #       run: |
+  #         mkdir -p src/config/connect/cache
+  #         chmod -R 775 src/config/connect/cache
 
-      - name: Configurar Apache para las pruebas
-        run: | 
-          sudo apt-get update
-          sudo apt-get install -y apache2 libapache2-mod-php8.3
-          sudo a2enmod rewrite php8.3 env
+  #     - name: Configurar Apache para las pruebas
+  #       run: | 
+  #         sudo apt-get update
+  #         sudo apt-get install -y apache2 libapache2-mod-php8.3
+  #         sudo a2enmod rewrite php8.3 env
 
-          echo "export APACHE_RUN_USER=$(id -un)" | sudo tee -a /etc/apache2/envvars
-          echo "export APACHE_RUN_GROUP=$(id -gn)" | sudo tee -a /etc/apache2/envvars
+  #         echo "export APACHE_RUN_USER=$(id -un)" | sudo tee -a /etc/apache2/envvars
+  #         echo "export APACHE_RUN_GROUP=$(id -gn)" | sudo tee -a /etc/apache2/envvars
 
-          if ! grep -qE '^[[:space:]]*Listen 8000$' /etc/apache2/ports.conf; then
-            echo "Listen 8000" | sudo tee -a /etc/apache2/ports.conf
-          fi
+  #         if ! grep -qE '^[[:space:]]*Listen 8000$' /etc/apache2/ports.conf; then
+  #           echo "Listen 8000" | sudo tee -a /etc/apache2/ports.conf
+  #         fi
 
-          sudo tee /etc/apache2/sites-available/ci.conf > /dev/null <<EOF
-          <VirtualHost *:8000>
-              ServerName 127.0.0.1
-              DocumentRoot "$GITHUB_WORKSPACE"
-              DirectoryIndex index.php
-              Alias /proyecto-lacruz-j/ "$GITHUB_WORKSPACE/"
+  #         sudo tee /etc/apache2/sites-available/ci.conf > /dev/null <<EOF
+  #         <VirtualHost *:8000>
+  #             ServerName 127.0.0.1
+  #             DocumentRoot "$GITHUB_WORKSPACE"
+  #             DirectoryIndex index.php
+  #             Alias /proyecto-lacruz-j/ "$GITHUB_WORKSPACE/"
 
-              <Directory "$GITHUB_WORKSPACE">
-                  Options FollowSymLinks
-                  AllowOverride All
-                  Require all granted
-              </Directory>
+  #             <Directory "$GITHUB_WORKSPACE">
+  #                 Options FollowSymLinks
+  #                 AllowOverride All
+  #                 Require all granted
+  #             </Directory>
 
-              SetEnv DB_HOST 127.0.0.1
-              SetEnv DB_NAME proyecto_lacruz
-              SetEnv DB_USER root
-              SetEnv DB_PASS root_password
+  #             SetEnv DB_HOST 127.0.0.1
+  #             SetEnv DB_NAME proyecto_lacruz
+  #             SetEnv DB_USER root
+  #             SetEnv DB_PASS root_password
 
-              ErrorLog \${APACHE_LOG_DIR}/ci-error.log
-              CustomLog \${APACHE_LOG_DIR}/ci-access.log combined
-          </VirtualHost>
-          EOF
+  #             ErrorLog \${APACHE_LOG_DIR}/ci-error.log
+  #             CustomLog \${APACHE_LOG_DIR}/ci-access.log combined
+  #         </VirtualHost>
+  #         EOF
 
-          sudo a2ensite ci.conf
-          sudo apache2ctl configtest
+  #         sudo a2ensite ci.conf
+  #         sudo apache2ctl configtest
 
-      - name: Cachear dependencias de Composer
-        uses: actions/cache@v4
-        with:
-          path: vendor
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
+  #     - name: Cachear dependencias de Composer
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: vendor
+  #         key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+  #         restore-keys: ${{ runner.os }}-composer-
 
-      - name: Instalar dependencias
-        run: composer install --prefer-dist --no-progress --no-interaction
+  #     - name: Instalar dependencias
+  #       run: composer install --prefer-dist --no-progress --no-interaction
 
-      - name: Dar permisos de ejecucion a codeception
-        run: chmod +x vendor/bin/codecept
+  #     - name: Dar permisos de ejecucion a codeception
+  #       run: chmod +x vendor/bin/codecept
 
-      - name: Iniciar chromedriver
-        uses: nanasess/setup-chromedriver@v3
+  #     - name: Iniciar chromedriver
+  #       uses: nanasess/setup-chromedriver@v3
 
-      - name: Ejecutar pruebas
-        env:
-          DB_HOST: 127.0.0.1
-          DB_NAME: proyecto_lacruz
-          DB_USER: root
-          DB_PASS: root_password
+  #     - name: Ejecutar pruebas
+  #       env:
+  #         DB_HOST: 127.0.0.1
+  #         DB_NAME: proyecto_lacruz
+  #         DB_USER: root
+  #         DB_PASS: root_password
 
-        run: |
-          chromedriver --port=9515 > /tmp/chromedriver.log 2>&1 &
-          CHROMEDRIVER_PID=$!
+  #       run: |
+  #         chromedriver --port=9515 > /tmp/chromedriver.log 2>&1 &
+  #         CHROMEDRIVER_PID=$!
 
-          sudo service apache2 restart
-          trap 'kill "$CHROMEDRIVER_PID" 2>/dev/null || true; sudo service apache2 stop' EXIT
+  #         sudo service apache2 restart
+  #         trap 'kill "$CHROMEDRIVER_PID" 2>/dev/null || true; sudo service apache2 stop' EXIT
 
-          for attempt in {1..30}; do
-            if curl --silent --fail http://127.0.0.1:9515/status \
-              | jq --exit-status '.value.ready == true' >/dev/null; then
-              echo "ChromeDriver esta listo."
-              break
-            fi
-            if [ "$attempt" -eq 30 ]; then
-              echo "ChromeDriver no estuvo listo en 30 segundos." >&2
-              cat /tmp/chromedriver.log
-              exit 1
-            fi
-            echo "Esperando a ChromeDriver (${attempt}/30)..."
-            sleep 1
-          done
+  #         for attempt in {1..30}; do
+  #           if curl --silent --fail http://127.0.0.1:9515/status \
+  #             | jq --exit-status '.value.ready == true' >/dev/null; then
+  #             echo "ChromeDriver esta listo."
+  #             break
+  #           fi
+  #           if [ "$attempt" -eq 30 ]; then
+  #             echo "ChromeDriver no estuvo listo en 30 segundos." >&2
+  #             cat /tmp/chromedriver.log
+  #             exit 1
+  #           fi
+  #           echo "Esperando a ChromeDriver (${attempt}/30)..."
+  #           sleep 1
+  #         done
 
-          for attempt in {1..30}; do
-            if curl --silent --output /dev/null --fail http://127.0.0.1:8000/proyecto-lacruz-j/; then
-              echo "Apache esta listo."
-              break
-            fi
-            if [ "$attempt" -eq 30 ]; then
-              echo "Apache no estuvo listo en 30 segundos." >&2
-              sudo cat /var/log/apache2/ci-error.log
-              exit 1
-            fi
-            sleep 1
-          done
+  #         for attempt in {1..30}; do
+  #           if curl --silent --output /dev/null --fail http://127.0.0.1:8000/proyecto-lacruz-j/; then
+  #             echo "Apache esta listo."
+  #             break
+  #           fi
+  #           if [ "$attempt" -eq 30 ]; then
+  #             echo "Apache no estuvo listo en 30 segundos." >&2
+  #             sudo cat /var/log/apache2/ci-error.log
+  #             exit 1
+  #           fi
+  #           sleep 1
+  #         done
 
-          composer tceG -- --env ci
+  #         composer tceG -- --env ci
       
-      - name: Mostrar log de errores de Apache y PHP
-        if: failure()
-        run: |
-          echo "==================== LOG DE ERRORES APACHE / PHP ===================="
-          sudo cat /var/log/apache2/ci-error.log || sudo cat /var/log/apache2/error.log
-          echo "====================================================================="
+  #     - name: Mostrar log de errores de Apache y PHP
+  #       if: failure()
+  #       run: |
+  #         echo "==================== LOG DE ERRORES APACHE / PHP ===================="
+  #         sudo cat /var/log/apache2/ci-error.log || sudo cat /var/log/apache2/error.log
+  #         echo "====================================================================="
 
-      - name: Guardar evidencias si falla la prueba
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-failure-report
-          path: tests/_output/
+  #     - name: Guardar evidencias si falla la prueba
+  #       if: failure()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: smoke-failure-report
+  #         path: tests/_output/
 
-  Despliegue:
-    needs: [Pruebas_codeception]
-    runs-on: ubuntu-latest
+  despliegue_a_desarrollo:
+    # needs: [pruebas_codeception]
+    runs-on: ubuntu-24.04
     steps:
       - name: Incluir el codigo
         uses: actions/checkout@v3
@@ -188,8 +186,8 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@v4.3.0
         with:
           server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          username: ${{ secrets.FTP_USERNAME_DEV }}
+          password: ${{ secrets.FTP_PASSWORD_DEV }}
           server-dir: ./
           local-dir: ./
           exclude: |
@@ -197,3 +195,28 @@ jobs:
             **/.git*/**
             **/vendor/**
             **/node_modules/**
+
+  # despliegue_a_produccion:
+  #   needs: [despliegue_a_desarrollo]
+  #   runs-on: ubuntu-24.04
+  #   steps:
+  #     - name: Incluir el codigo
+  #       uses: actions/checkout@v3
+
+  #     - name: Despliegue
+  #       uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+  #       with:
+  #         server: ${{ secrets.FTP_SERVER }}
+  #         username: ${{ secrets.FTP_USERNAME }}
+  #         password: ${{ secrets.FTP_PASSWORD }}
+  #         server-dir: ./
+  #         local-dir: ./
+  #         exclude: |
+  #           **/.git*
+  #           **/.git*/**
+  #           **/vendor/**
+  #           **/node_modules/**
+
+
+
+

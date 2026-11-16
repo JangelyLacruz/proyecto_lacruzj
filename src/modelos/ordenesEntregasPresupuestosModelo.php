@@ -212,10 +212,15 @@ class ordenesEntregasPresupuestosModelo extends conexion {
         (SELECT COUNT(*) FROM servicios_ordenes_entregas_presupuestos sf WHERE sf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND sf.status IN (1, 2)) AS cant_servicios,
         (SELECT COUNT(*) FROM deliveries d WHERE d.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND d.status = 1) AS tiene_delivery,
         ci.monto_cambio_iva,
-        (SELECT COALESCE(SUM(pf.cantidad_producto * p.precio_producto), 0) 
+        (SELECT COALESCE(SUM(
+           (pf.cantidad_producto * (p.precio_producto * pre.cantidad_pmp)) * 
+           (1 - (COALESCE(dp.descuento_producto, 0) / 100))
+         ), 0) 
          FROM productos_ordenes_entregas_presupuestos pf 
          JOIN presentaciones_productos pp ON pf.id_presentacion_producto=pp.id_presentacion_producto 
          JOIN productos p ON pp.id_producto = p.id_producto 
+         JOIN presentaciones pre ON pp.id_presentacion = pre.id_presentacion
+         LEFT JOIN descuentos_productos dp ON pf.id_producto_factura = dp.id_producto_factura AND dp.status = 1
          WHERE pf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND pf.status = 1) AS sub_prod,
         (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
          FROM servicios_ordenes_entregas_presupuestos sf 
@@ -390,14 +395,17 @@ class ordenesEntregasPresupuestosModelo extends conexion {
     // Luego buscamos qué productos se vendieron
     $stmtProd = $this->conectar()->prepare("
       SELECT pf.id_producto_factura, pf.cantidad_producto,
-             p.nombre_producto, p.precio_producto,
-             pr.nombre_presentacion,
-             pp.id_presentacion_producto
+             p.id_producto, p.nombre_producto, p.precio_producto,
+             pr.nombre_presentacion, pr.cantidad_pmp,
+             pp.id_presentacion_producto,
+             COALESCE(dp.descuento_producto, 0) AS descuento_producto
       FROM productos_ordenes_entregas_presupuestos pf
       JOIN presentaciones_productos pp
         ON pf.id_presentacion_producto = pp.id_presentacion_producto
       JOIN productos p ON pp.id_producto = p.id_producto
       JOIN presentaciones pr ON pp.id_presentacion = pr.id_presentacion
+      LEFT JOIN descuentos_productos dp 
+        ON pf.id_producto_factura = dp.id_producto_factura AND dp.status = 1
       WHERE pf.id_orden_entrega_presupuesto = :id AND pf.status = 1
     ");
     $stmtProd->execute([':id' => $this->idOrden]);
@@ -482,7 +490,18 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       $iva = floatval($cabecera['IVA']) / 100;
 
       $subProd = 0;
-      foreach ($productos as $p) $subProd += ($p['cantidad_producto'] * $p['precio_producto']);
+      foreach ($productos as &$p) {
+        $capacidad = floatval($p['cantidad_pmp'] ?? 1);
+        $precioUnitario = floatval($p['precio_producto']) * $capacidad;
+        $desc = floatval($p['descuento_producto'] ?? 0);
+        $montoSinDesc = floatval($p['cantidad_producto']) * $precioUnitario;
+        $montoDesc = $montoSinDesc * ($desc / 100);
+        $sub = $montoSinDesc - $montoDesc;
+        $p['precio_presentacion'] = $precioUnitario;
+        $p['subtotal_producto'] = $sub;
+        $subProd += $sub;
+      }
+      unset($p);
 
       $subServ = 0;
       foreach ($servicios as $s) {
@@ -707,7 +726,7 @@ class ordenesEntregasPresupuestosModelo extends conexion {
         }
 
         // Insertar en productos_ordenes_entregas_presupuestos (siempre, incluso para presupuesto)
-        $this->guardarDatos2([
+        $idProductoFactura = $this->guardarDatos2([
           'tabla' => 'productos_ordenes_entregas_presupuestos',
           'datos' => [
             'id_orden_entrega_presupuesto' => $this->idOrden,
@@ -716,6 +735,19 @@ class ordenesEntregasPresupuestosModelo extends conexion {
             'status'                   => 1
           ]
         ]);
+
+        $descuento = floatval($p['descuento'] ?? 0);
+        if ($descuento > 0 && $idProductoFactura) {
+          if ($descuento > 100) $descuento = 100;
+          $this->guardarDatos2([
+            'tabla' => 'descuentos_productos',
+            'datos' => [
+              'id_producto_factura' => $idProductoFactura,
+              'descuento_producto'  => $descuento,
+              'status'              => 1
+            ]
+          ]);
+        }
 
         // Descontar stock SOLO si no es presupuesto
         if ($this->status !== 20) {
@@ -947,8 +979,22 @@ class ordenesEntregasPresupuestosModelo extends conexion {
       // estados 3 o 4 del modal → status BD 3 (despachada); 1 o 2 → status BD 1
       $nuevoStatus = ($this->estadoSeleccionado == 3 || $this->estadoSeleccionado == 4) ? 3 : 1;
 
-      // Borrar el detalle actual del presupuesto
-      $this->eliminarDatos2(['tabla' => 'productos_ordenes_entregas_presupuestos', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
+      // Consultar los productos actuales activos del presupuesto para sincronizarlos
+      $stmtExistentes = $cn->prepare("
+        SELECT pf.id_producto_factura, pf.id_presentacion_producto, pf.cantidad_producto
+        FROM productos_ordenes_entregas_presupuestos pf
+        WHERE pf.id_orden_entrega_presupuesto = :id AND pf.status = 1
+      ");
+      $stmtExistentes->execute([':id' => $this->idOrden]);
+      $filasExistentes = $stmtExistentes->fetchAll(PDO::FETCH_ASSOC);
+
+      $existentesPorId = [];
+      foreach ($filasExistentes as $f) {
+        $existentesPorId[(int)$f['id_producto_factura']] = $f;
+      }
+      $idsConservados = [];
+
+      // Borrar servicios y delivery anteriores para recrearlos
       $this->eliminarDatos2(['tabla' => 'servicios_ordenes_entregas_presupuestos', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
       $this->eliminarDatos2(['tabla' => 'deliveries', 'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden]]);
 
@@ -959,10 +1005,14 @@ class ordenesEntregasPresupuestosModelo extends conexion {
         'WHERE' => ['id_orden_entrega_presupuesto' => $this->idOrden],
       ]);
 
-      // Insertar los productos y validar stock simultaneamente
+      // Sincronizar o insertar productos, actualizar/desactivar descuentos y validar stock
       foreach ($this->productos as $p) {
         $idPresentacion = $p['id_presentacion_producto'] ?? '';
         $cantidad       = (float)($p['cantidad'] ?? 0);
+        $idPf           = !empty($p['id_producto_factura']) ? (int)$p['id_producto_factura'] : 0;
+        $descuento      = (float)($p['descuento'] ?? 0);
+        if ($descuento < 0) $descuento = 0;
+        if ($descuento > 100) $descuento = 100;
 
         if (empty($idPresentacion) || $cantidad <= 0) continue;
 
@@ -999,16 +1049,79 @@ class ordenesEntregasPresupuestosModelo extends conexion {
           ];
         }
 
-        // Insertar
-        $this->guardarDatos2([
-          'tabla' => 'productos_ordenes_entregas_presupuestos',
-          'datos' => [
-            'id_orden_entrega_presupuesto' => $this->idOrden,
-            'id_presentacion_producto' => $idPresentacion,
-            'cantidad_producto'        => $cantidad,
-            'status'                   => 1
-          ]
-        ]);
+        // Si el producto ya existía en el presupuesto, se actualiza
+        if ($idPf > 0 && isset($existentesPorId[$idPf])) {
+          $this->actualizarDatos2([
+            'tabla' => 'productos_ordenes_entregas_presupuestos',
+            'datos' => [
+              'id_presentacion_producto' => $idPresentacion,
+              'cantidad_producto'        => $cantidad,
+              'status'                   => 1
+            ],
+            'WHERE' => ['id_producto_factura' => $idPf]
+          ]);
+          $idsConservados[] = $idPf;
+
+          // Gestionar descuentos_productos para este producto existente
+          $stmtDesc = $cn->prepare("SELECT id_descuento_producto FROM descuentos_productos WHERE id_producto_factura = :idPf LIMIT 1");
+          $stmtDesc->execute([':idPf' => $idPf]);
+          $descExistente = $stmtDesc->fetch(PDO::FETCH_ASSOC);
+
+          if ($descuento > 0) {
+            if ($descExistente) {
+              // UPDATE al descuento existente
+              $this->actualizarDatos2([
+                'tabla' => 'descuentos_productos',
+                'datos' => [
+                  'descuento_producto' => $descuento,
+                  'status'             => 1
+                ],
+                'WHERE' => ['id_producto_factura' => $idPf]
+              ]);
+            } else {
+              // INSERT si no existía descuento previo
+              $this->guardarDatos2([
+                'tabla' => 'descuentos_productos',
+                'datos' => [
+                  'id_producto_factura' => $idPf,
+                  'descuento_producto'  => $descuento,
+                  'status'              => 1
+                ]
+              ]);
+            }
+          } else {
+            // Descuento en 0 o interruptor desactivado: status en 0
+            if ($descExistente) {
+              $this->actualizarDatos2([
+                'tabla' => 'descuentos_productos',
+                'datos' => ['status' => 0],
+                'WHERE' => ['id_producto_factura' => $idPf]
+              ]);
+            }
+          }
+        } else {
+          // Es un producto nuevo agregado en el modal de procesamiento
+          $idProductoFactura = $this->guardarDatos2([
+            'tabla' => 'productos_ordenes_entregas_presupuestos',
+            'datos' => [
+              'id_orden_entrega_presupuesto' => $this->idOrden,
+              'id_presentacion_producto' => $idPresentacion,
+              'cantidad_producto'        => $cantidad,
+              'status'                   => 1
+            ]
+          ]);
+
+          if ($descuento > 0 && $idProductoFactura) {
+            $this->guardarDatos2([
+              'tabla' => 'descuentos_productos',
+              'datos' => [
+                'id_producto_factura' => $idProductoFactura,
+                'descuento_producto'  => $descuento,
+                'status'              => 1
+              ]
+            ]);
+          }
+        }
 
         // Descontar stock
         $resStock = $objProductos->modificarStock($datosProd['id_producto'], -$volumenRequerido, $cn);
@@ -1027,6 +1140,22 @@ class ordenesEntregasPresupuestosModelo extends conexion {
             'texto'  => 'No se pudo descontar el stock del presupuesto',
             'icono'  => 'error',
           ];
+        }
+      }
+
+      // Si había productos en el presupuesto que el usuario eliminó en el modal, desactivarlos junto con su descuento
+      foreach ($existentesPorId as $idViejo => $datosViejos) {
+        if (!in_array($idViejo, $idsConservados)) {
+          $this->actualizarDatos2([
+            'tabla' => 'productos_ordenes_entregas_presupuestos',
+            'datos' => ['status' => 0],
+            'WHERE' => ['id_producto_factura' => $idViejo]
+          ]);
+          $this->actualizarDatos2([
+            'tabla' => 'descuentos_productos',
+            'datos' => ['status' => 0],
+            'WHERE' => ['id_producto_factura' => $idViejo]
+          ]);
         }
       }
 
@@ -1611,9 +1740,14 @@ class ordenesEntregasPresupuestosModelo extends conexion {
 
     foreach ($productos as $producto) {
       $cantidad = number_format(floatval($producto['cantidad_producto']), 0, ',', '.');
+      $capacidad = floatval($producto['cantidad_pmp'] ?? 1);
+      $precioU = floatval($producto['precio_producto']) * $capacidad;
+      $desc = floatval($producto['descuento_producto'] ?? 0);
       $descripcion = $producto['nombre_producto'] . ' - ' . $producto['nombre_presentacion'];
-      $precioU = floatval($producto['precio_producto']);
-      $monto = floatval($producto['cantidad_producto']) * $precioU;
+      if ($desc > 0) {
+        $descripcion .= ' (Desc. ' . number_format($desc, 2) . '%)';
+      }
+      $monto = floatval($producto['cantidad_producto']) * $precioU * (1 - ($desc / 100));
       $imprimirFila($cantidad, $descripcion, $precioU, $monto);
     }
 

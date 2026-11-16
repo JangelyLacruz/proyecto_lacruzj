@@ -453,6 +453,7 @@ class sucursalesEmpresasEnviosModelo extends conexion {
         ]);
 
         $this->rollback();
+
         return [
           'tipo'   => 'simple',
           'titulo' => 'Error al actualizar',

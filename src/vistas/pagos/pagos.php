@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/proyecto-lacruz-j/src/assets/css/ordenesEntregasPresupuestos.css">
 <input type="hidden" class="nombreVista" value="pagos">
 
 <?php
@@ -14,18 +15,18 @@ echo $componente->listaDataTable($instruccionesLista);
      Ventana para registrar/actualizar un pago
      ================================================================ -->
 <div class="modal fade modalRegistrar" tabindex="-1">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content border-0 shadow-lg">
 
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title d-flex align-items-center gap-2">
-          <i class="fi fi-rs-money"></i>
-          <span class="tituloModal">Agregar Pago</span>
+          <i class="fi fi-rs-credit-card me-2"></i>
+          <span class="tituloModal">Detalles del Pago</span>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
 
-      <div class="modal-body bg-light">
+      <div class="modal-body bg-light validar">
         <form class="formularioAjax validar form-group" method="POST" enctype="multipart/form-data">
           <input type="hidden" name="accion" value="registrar">
           <input type="hidden" name="id_pago" id="inputIdPago" value="" disabled>
@@ -51,17 +52,17 @@ echo $componente->listaDataTable($instruccionesLista);
               </div>
 
               <!-- Totales de la Orden Seleccionada -->
-              <div class="d-flex justify-content-between text-white p-3 rounded mt-3 d-none" id="infoTotalesOEP" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+              <div class="d-flex justify-content-between text-white p-3 rounded mt-3 d-none" id="infoTotalesOEP" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
                 <div>
-                  <small class="d-block mb-1"><i class="fi fi-rs-box me-1"></i>TOTAL ORDEN</small>
+                  <small class="d-block mb-1"><i class="fi fi-rs-box me-1"></i>TOTAL A PAGAR</small>
                   <h5 class="mb-0" id="totalOrdenSel">$0.00</h5>
                 </div>
                 <div>
-                  <small class="d-block mb-1"><i class="fi fi-rs-check-circle me-1"></i>YA PAGADO</small>
+                  <small class="d-block mb-1"><i class="fi fi-rs-check-circle me-1"></i>CANCELADO</small>
                   <h5 class="mb-0 text-white" id="pagadoOrdenSel">$0.00</h5>
                 </div>
                 <div>
-                  <small class="d-block mb-1"><i class="fi fi-rs-info me-1"></i>RESTANTE POR PAGAR</small>
+                  <small class="d-block mb-1"><i class="fi fi-rs-info me-1"></i>RESTANTE</small>
                   <h5 class="mb-0 text-warning" id="restanteOrdenSel">$0.00</h5>
                 </div>
               </div>
@@ -73,7 +74,7 @@ echo $componente->listaDataTable($instruccionesLista);
             <!-- Los detalles se agregarán aquí dinámicamente -->
           </div>
 
-          <button type="button" class="btn btn-outline-primary w-100 border-dashed mb-4 d-none" id="btnAgregarOtroPagoModulo">
+          <button type="button" class="btn btn-outline-primary w-100 border-dashed mb-3 d-none" id="btnAgregarOtroPagoModulo">
             <i class="fi fi-rs-plus me-1"></i>Agregar otro detalle de pago
           </button>
 
@@ -92,9 +93,9 @@ echo $componente->listaDataTable($instruccionesLista);
             </div>
           </div>
 
-          <div class="d-flex justify-content-end mt-4">
-            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancelar</button>
-            <button type="button" class="btn text-white btnEnviarFormulario" style="background: linear-gradient(135deg, #4e54c8, #8f94fb)">Guardar Pago</button>
+          <div class="modal-footer justify-content-between px-0 pb-0">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Volver</button>
+            <button type="button" class="btn btn-primary px-4 btnEnviarFormulario" style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;">Confirmar Pago</button>
           </div>
 
         </form>
@@ -112,39 +113,39 @@ echo $componente->listaDataTable($instruccionesLista);
         <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-pago d-none"><i class="fi fi-rs-trash"></i></button>
       </div>
       <div class="row g-3">
-        <div class="col-md-4 col-lg-3 contenedorMetodoPago">
+        <div class="col-md-3">
           <label class="form-label text-muted small">MÉTODO DE PAGO</label>
           <select class="form-select form-select-sm sel-metodo-pago">
             <!-- Llenado por JS -->
           </select>
         </div>
-        <div class="col-md-4 col-lg-3 d-none col-banco-emisor">
+        <div class="col-md-3 d-none col-banco-emisor">
           <label class="form-label text-muted small">BANCO EMISOR</label>
           <select class="form-select form-select-sm sel-banco-emisor">
             <!-- Llenado por JS -->
           </select>
         </div>
-        <div class="col-md-4 col-lg-3 d-none col-banco-receptor">
+        <div class="col-md-3 d-none col-banco-receptor">
           <label class="form-label text-muted small">BANCO RECEPTOR</label>
           <select class="form-select form-select-sm sel-banco-receptor">
             <!-- Llenado por JS -->
           </select>
         </div>
-        <div class="col-md-4 col-lg-3 d-none col-referencia-pago">
+        <div class="col-md-3 d-none col-referencia-pago">
           <label class="form-label text-muted small">REFERENCIA</label>
           <input type="text" class="form-control form-control-sm input-referencia-pago" placeholder="N° de Referencia">
         </div>
-        <div class="col-md-4 col-lg-3 col-moneda-pago d-none">
+        <div class="col-md-3 col-moneda-pago">
           <label class="form-label text-muted small">MONEDA</label>
           <select class="form-select form-select-sm sel-moneda-pago">
             <!-- Llenado por JS -->
           </select>
         </div>
-        <div class="col-md-4 col-lg-3 contenedorMontoPago">
+        <div class="col-md-3">
           <label class="form-label text-muted small">MONTO PAGADO</label>
           <div class="input-group input-group-sm">
-            <span class="input-group-text"><i class="fi fi-rs-money"></i></span>
-            <input type="text" class="form-control input-monto-pago dinero" value="0.00">
+            <span class="input-group-text span-simbolo-moneda">$</span>
+            <input type="text" class="form-control input-monto-pago dinero validado" pattern="<?php echo regexPrecioFront ?>" minlength="<?php echo minRegexPrecioFront ?>" maxlength="<?php echo maxRegexPrecioFront ?>" required placeholder="Ej: 12.00">
           </div>
         </div>
       </div>
@@ -156,7 +157,7 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade" id="modalSelOEP" tabindex="-1" style="z-index: 1060;">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title">Seleccionar Orden (OEP) con Saldo Pendiente</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -185,7 +186,7 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade modalDetallesPago" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content border-0 shadow-lg">
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title d-flex align-items-center gap-2">
           <i class="fi fi-rs-eye"></i>
           Detalle del Pago

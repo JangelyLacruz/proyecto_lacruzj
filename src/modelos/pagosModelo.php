@@ -265,10 +265,15 @@ class pagosModelo extends conexion {
         f.fecha_orden_entrega_presupuesto,
         f.status,
         ci.monto_cambio_iva,
-        (SELECT COALESCE(SUM(pf.cantidad_producto * p.precio_producto), 0) 
+        (SELECT COALESCE(SUM(
+           (pf.cantidad_producto * (p.precio_producto * pre.cantidad_pmp)) * 
+           (1 - (COALESCE(dp.descuento_producto, 0) / 100))
+         ), 0) 
          FROM productos_ordenes_entregas_presupuestos pf 
          JOIN presentaciones_productos pp ON pf.id_presentacion_producto=pp.id_presentacion_producto 
          JOIN productos p ON pp.id_producto = p.id_producto 
+         JOIN presentaciones pre ON pp.id_presentacion = pre.id_presentacion
+         LEFT JOIN descuentos_productos dp ON pf.id_producto_factura = dp.id_producto_factura AND dp.status = 1
          WHERE pf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND pf.status = 1) AS sub_prod,
         (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
          FROM servicios_ordenes_entregas_presupuestos sf 
@@ -332,10 +337,15 @@ class pagosModelo extends conexion {
         p.id_pago, p.id_orden_entrega_presupuesto, p.fecha_pago,
         c.razon_social_cliente AS CLIENTE,
         ci.monto_cambio_iva,
-        (SELECT COALESCE(SUM(pf.cantidad_producto * pr.precio_producto), 0) 
+        (SELECT COALESCE(SUM(
+           (pf.cantidad_producto * (pr.precio_producto * pre.cantidad_pmp)) * 
+           (1 - (COALESCE(dp.descuento_producto, 0) / 100))
+         ), 0) 
          FROM productos_ordenes_entregas_presupuestos pf 
          JOIN presentaciones_productos pp ON pf.id_presentacion_producto=pp.id_presentacion_producto 
          JOIN productos pr ON pp.id_producto = pr.id_producto 
+         JOIN presentaciones pre ON pp.id_presentacion = pre.id_presentacion
+         LEFT JOIN descuentos_productos dp ON pf.id_producto_factura = dp.id_producto_factura AND dp.status = 1
          WHERE pf.id_orden_entrega_presupuesto = p.id_orden_entrega_presupuesto AND pf.status = 1) AS sub_prod,
         (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
          FROM servicios_ordenes_entregas_presupuestos sf 
@@ -1045,10 +1055,15 @@ class pagosModelo extends conexion {
              JOIN detalles_pagos dp ON pa.id_pago=dp.id_pago 
              JOIN monedas mo ON dp.id_moneda=mo.id_moneda 
              WHERE pa.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND dp.status = 1 AND pa.status=1) AS total_pagado,
-             (SELECT COALESCE(SUM(pf.cantidad_producto * p.precio_producto), 0) 
+             (SELECT COALESCE(SUM(
+                (pf.cantidad_producto * (p.precio_producto * pre.cantidad_pmp)) * 
+                (1 - (COALESCE(dp.descuento_producto, 0) / 100))
+              ), 0) 
               FROM productos_ordenes_entregas_presupuestos pf 
               JOIN presentaciones_productos pp ON pf.id_presentacion_producto = pp.id_presentacion_producto 
               JOIN productos p ON pp.id_producto = p.id_producto 
+              JOIN presentaciones pre ON pp.id_presentacion = pre.id_presentacion
+              LEFT JOIN descuentos_productos dp ON pf.id_producto_factura = dp.id_producto_factura AND dp.status = 1
               WHERE pf.id_orden_entrega_presupuesto = f.id_orden_entrega_presupuesto AND pf.status = 1) AS sub_prod,
              (SELECT COALESCE(SUM(sf.cantidad_servicio * CASE WHEN sf.es_precio_mapfre=1 THEN sf.precio_servicio_mapfre ELSE s.precio_servicio END), 0) 
               FROM servicios_ordenes_entregas_presupuestos sf 

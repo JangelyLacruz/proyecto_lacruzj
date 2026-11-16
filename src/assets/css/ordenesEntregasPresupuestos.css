@@ -224,6 +224,42 @@
 }
 
 .fact-pagos-grad {
-  background: linear-gradient(90deg, #6b6bff, #8a8aff) !important;
+  background: linear-gradient(135deg, #1a56db, #0ea5e9) !important;
   border: none !important;
+}
+
+/* ── Control de descuentos por producto ── */
+.fact-desc-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  min-width: 215px;
+  max-width: 250px;
+}
+.fact-desc-box .form-switch .form-check-input {
+  cursor: pointer;
+  height: 1.15em;
+  width: 2em;
+}
+.fact-desc-box .form-switch .form-check-label {
+  cursor: pointer;
+  user-select: none;
+}
+.fact-desc-box .btnMonedaDesc {
+  border-color: #cbd5e1;
+  background-color: #fff;
+  color: #334155;
+  font-weight: 600;
+}
+.fact-desc-box .btnMonedaDesc:hover {
+  background-color: #f1f5f9;
+}
+.fact-desc-box input[type="number"]::-webkit-inner-spin-button,
+.fact-desc-box input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.fact-desc-box input[type="number"] {
+  -moz-appearance: textfield;
 }

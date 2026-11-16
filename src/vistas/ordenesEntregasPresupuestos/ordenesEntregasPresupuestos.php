@@ -98,7 +98,7 @@ echo $componente->listaDataTable($instruccionesLista);
                   <i class="fi fi-rs-box me-1"></i>
                   Productos
                   <span class="badge bg-primary ms-1"
-                    style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+                    style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;"
                     id="badgeProdOrden">0</span>
                 </button>
               </li>
@@ -108,7 +108,7 @@ echo $componente->listaDataTable($instruccionesLista);
                   <i class="fi fi-tr-room-service"></i>
                   Servicios
                   <span class="badge bg-success ms-1"
-                    style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+                    style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;"
                     id="badgeServOrden">0</span>
                 </button>
               </li>
@@ -118,7 +118,7 @@ echo $componente->listaDataTable($instruccionesLista);
                   <i class="fi fi-rs-truck-side me-1"></i>
                   Delivery
                   <span class="badge bg-secondary ms-1"
-                    style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+                    style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;"
                     id="badgeDelOrden">No</span>
                 </button>
               </li>
@@ -149,7 +149,7 @@ echo $componente->listaDataTable($instruccionesLista);
                 </h6>
                 <button type="button"
                   class="btn text-white btn-sm"
-                  style="background: linear-gradient(135deg, #4e54c8, #8f94fb);"
+                  style="background: linear-gradient(135deg, #1a56db, #0ea5e9);"
                   id="btnAgregarProductoOrden">
                   <i class="fi fi-rs-plus me-1"></i>Agregar Producto
                 </button>
@@ -178,7 +178,7 @@ echo $componente->listaDataTable($instruccionesLista);
                 </h6>
                 <button type="button"
                   class="btn text-white btn-sm"
-                  style="background: linear-gradient(135deg, #4e54c8, #8f94fb);"
+                  style="background: linear-gradient(135deg, #1a56db, #0ea5e9);"
                   id="btnAgregarServicioOrden">
                   <i class="fi fi-rs-plus me-1"></i>Agregar Servicio
                 </button>
@@ -322,7 +322,7 @@ echo $componente->listaDataTable($instruccionesLista);
         </button>
         <button type="button"
           class="btn btn-primary px-4"
-          style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+          style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;"
           id="btnGuardarOrden"
           disabled>
           <i class="fi fi-rs-credit-card me-1"></i>Ir a Pagos / Guardar
@@ -343,8 +343,11 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade" id="modalSelClienteOrden" tabindex="-1" style="z-index: 1060;">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
-      <div class="modal-header text-white fact-header-grad">
-        <h5 class="modal-title"><i class="fi fi-rs-users me-2"></i>Seleccionar Cliente</h5>
+      <div class="modal-header text-white fact-header-grad d-flex align-items-center">
+        <h5 class="modal-title mb-0"><i class="fi fi-rs-users me-2"></i>Seleccionar Cliente</h5>
+        <button type="button" class="btn btn-sm btn-light text-primary fw-semibold ms-auto me-2" id="btnNuevoClienteDesdeOrden">
+          <i class="fi fi-rs-user-add me-1"></i>Registrar Nuevo Cliente
+        </button>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -363,6 +366,118 @@ echo $componente->listaDataTable($instruccionesLista);
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     Modal para Registrar Nuevo Cliente (Rápido desde Ordenes)
+     ================================================================ -->
+<div class="modal fade" id="modalRegistrarClienteOrden" tabindex="-1" style="z-index: 1070;">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header text-white fact-header-grad">
+        <h5 class="modal-title mb-0">
+          <i class="fi fi-rs-user-add me-2"></i> Registro de Nuevo Cliente
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="formRegistrarClienteRapido" class="validar" novalidate>
+        <div class="modal-body">
+          <div class="row">
+            <input type="hidden" name="accion" value="registrar">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">RIF / Cédula</label>
+              <div class="input-group">
+                <select
+                  data-prefijo=".selectCodigoRIF"
+                  data-cuerpo=".inputRifCedula"
+                  class="input-group-text selectCodigoRIF"
+                  name="codigo_rif_cedula_cliente"
+                  id="regCliCodigoRif"
+                  required>
+                  <option value="V">V</option>
+                  <option value="E">E</option>
+                  <option value="J">J</option>
+                  <option value="G">G</option>
+                  <option value="C">C</option>
+                  <option value="P">P</option>
+                </select>
+                <input
+                  data-prefijo=".selectCodigoRIF"
+                  data-cuerpo=".inputRifCedula"
+                  type="text"
+                  class="form-control inputRifCedula"
+                  id="regCliRifCedula"
+                  name="rif_cedula_cliente"
+                  pattern="<?php echo regexCedulaRifLetra ?>"
+                  minlength="<?php echo minRegexCedulaRif ?>"
+                  maxlength="<?php echo maxRegexCedulaRif ?>"
+                  minlengthC="<?php echo minRegexCedulaRif ?>"
+                  maxlengthC="<?php echo maxRegexCedulaRif ?>"
+                  placeholder="Ej: 12345678"
+                  required>
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Razón Social / Nombre</label>
+              <input type="text" class="form-control" id="regCliRazonSocial" name="razon_social_cliente" pattern="<?php echo regexDescripcion ?>" minlength="<?php echo minRegexDescripcion ?>" maxlength="<?php echo maxRegexDescripcion ?>" placeholder="Nombre o Razón Social" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Teléfono</label>
+              <div class="input-group">
+                <select
+                  data-prefijo=".selectPrefijoTelefono"
+                  data-cuerpo=".telefonoCliente"
+                  class="input-group-text selectPrefijoTelefono"
+                  name="prefijo_telefono_cliente"
+                  id="regCliPrefijoTelefono">
+                  <option value="">S/N</option>
+                  <option value="0416">0416</option>
+                  <option value="0426">0426</option>
+                  <option value="0424">0424</option>
+                  <option value="0414">0414</option>
+                  <option value="0412">0412</option>
+                  <option value="0422">0422</option>
+                  <option value="0212">0212</option>
+                  <option value="0251">0251</option>
+                  <option value="0241">0241</option>
+                  <option value="0257">0257</option>
+                </select>
+                <input
+                  data-prefijo=".selectPrefijoTelefono"
+                  data-cuerpo=".telefonoCliente"
+                  type="text"
+                  class="form-control telefonoCliente"
+                  id="regCliTelefono"
+                  name="telefono_cliente"
+                  pattern="<?php echo regexTelefono ?>"
+                  minlength="<?php echo minRegexCuerpoTelefono ?>"
+                  maxlength="<?php echo maxRegexCuerpoTelefono ?>"
+                  minlengthC="<?php echo minRegexTelefono ?>"
+                  maxlengthC="<?php echo maxRegexTelefono ?>"
+                  placeholder="Ej: 1234567">
+              </div>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Correo Electrónico</label>
+              <input type="email" class="form-control" id="regCliCorreo" name="correo_cliente" pattern="<?php echo regexCorreo ?>" minlength="<?php echo minRegexCorreo ?>" maxlength="<?php echo maxRegexCorreo ?>" placeholder="ejemplo@correo.com">
+            </div>
+            <div class="col-md-12 mb-3">
+              <label class="form-label fw-semibold">Dirección</label>
+              <textarea class="form-control" id="regCliDireccion" name="direccion_cliente" rows="2" pattern="<?php echo regexDescripcion ?>" minlength="<?php echo minRegexDescripcion ?>" maxlength="<?php echo maxRegexDescripcion ?>" placeholder="Dirección del cliente" required></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light justify-content-end">
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+            <i class="fi fi-rs-cross me-1"></i> Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary fact-header-grad border-0" id="btnGuardarClienteRapido">
+            <i class="fi fi-rs-disk me-1"></i> Guardar y Seleccionar
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -456,8 +571,9 @@ echo $componente->listaDataTable($instruccionesLista);
           <thead>
             <tr>
               <th>Producto</th>
+              <th>Disponibilidad</th>
+              <th>Presentación</th>
               <th>Precio</th>
-              <th>Stock</th>
               <th></th>
             </tr>
           </thead>
@@ -670,7 +786,7 @@ echo $componente->listaDataTable($instruccionesLista);
                 <div class="col-md-3">
                   <label class="form-label text-muted small">MONTO PAGADO</label>
                   <div class="input-group input-group-sm">
-                    <span class="input-group-text"><i class="fi fi-rs-money"></i></span>
+                    <span class="input-group-text span-simbolo-moneda"><i class="fi fi-rs-money"></i></span>
                     <input type="text" class="form-control input-monto-pago dinero validado" pattern="<?php echo regexPrecioFront ?>" minlength="<?php echo minRegexPrecioFront ?>" maxlength="<?php echo maxRegexPrecioFront ?>" required placeholder="Ej: 12.00">
                   </div>
                 </div>

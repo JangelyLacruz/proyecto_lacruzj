@@ -39,6 +39,7 @@ $archivoModulo = $directorioJs . $nombreModulo . $versionJs;
 <?php endif; ?>
 
 <!-- CHAT BOT -->
+
 <?php
 
 use src\modelos\accesosModelo;
@@ -94,9 +95,9 @@ if ($mostrarChatbot): ?>
 
     <!-- Suggestions -->
     <div id="chatbot-suggestions" class="px-3 py-2 bg-white d-flex overflow-auto flex-shrink-0" style="white-space: nowrap; border-top: 1px solid #dee2e6;">
-      <button class="btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Soporte técnico</button>
-      <button class="btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Presupuesto</button>
-      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3">Hablar con huma...</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Soporte técnico</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Presupuesto</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill px-3">Hablar con huma...</button>
     </div>
 
     <!-- Input Area -->
