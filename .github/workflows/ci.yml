@@ -181,16 +181,14 @@ jobs:
     steps:
       - name: Incluir el codigo
         uses: actions/checkout@v4
-
-      - name: Configurar PHP y Composer
-        uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.3"
-          tools: composer
-          coverage: none
+          fetch-depth: 0
 
-      - name: Instalar dependencias de produccion
-        run: composer install --no-dev --prefer-dist --no-progress --no-interaction
+      - name: Restaurar fechas reales de Git
+        run: |
+          git ls-files -z | while IFS= read -r -d '' f; do
+            touch -d "$(git log -1 --format=%cI -- "$f")" "$f"
+          done
 
       - name: Despliegue ultrarrapido por SFTP (lftp + llave SSH)
         env:
@@ -203,15 +201,7 @@ jobs:
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-          cat <<EOF > ~/.ssh/config
-          Host namecheap
-            HostName $SSH_HOST
-            User $SSH_USER
-            Port 21098
-            IdentityFile ~/.ssh/deploy_key
-            StrictHostKeyChecking no
-            BatchMode yes
-          EOF
+          printf "Host namecheap\n  HostName %s\n  User %s\n  Port 21098\n  IdentityFile ~/.ssh/deploy_key\n  StrictHostKeyChecking no\n  BatchMode yes\n" "$SSH_HOST" "$SSH_USER" > ~/.ssh/config
           chmod 600 ~/.ssh/config
 
           lftp -e "
@@ -223,10 +213,10 @@ jobs:
               --exclude-glob .git* \
               --exclude-glob node_modules/ \
               --exclude-glob tests/ \
+              --exclude-glob vendor/ \
               ./ dev.jlacruzca.com/;
             bye
           "
-
 
 
 
