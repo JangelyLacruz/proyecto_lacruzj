@@ -191,10 +191,10 @@ jobs:
           server-dir: ./
           local-dir: ./
           exclude: |
-            # **/.git*
-            # **/.git*/**
+            **/.git*
+            **/.git*/**
             # **/vendor/**
-            # **/node_modules/**
+            **/node_modules/**
 
   # despliegue_a_produccion:
   #   needs: [despliegue_a_desarrollo]
