@@ -38,6 +38,7 @@ try {
   $_SESSION['codigoRequest'] = 500;
   echo json_encode($mensajeError);
   exit();
+  // Hola mundo
 } catch (\Throwable $th) {
   $mensajeError = [
     'tipo' => 'simple',
@@ -59,3 +60,5 @@ try {
   echo json_encode($mensajeError);
   exit();
 }
+
+
