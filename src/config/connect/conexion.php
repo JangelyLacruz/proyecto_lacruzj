@@ -12,7 +12,7 @@ use src\modelos\cacheModelo;
 class conexion {
   use traitModelo;
 
-  private string $servidorDB = DB_SERVER;
+  private string $servidorDB = DB_HOST;
   private string $nombreDB = DB_NAME;
   private string $usuarioDB = DB_USER;
   private string $contrasenaDB = DB_PASS;
@@ -51,9 +51,9 @@ class conexion {
   protected function procesosAlmacenados(array $instrucciones) {
     return $this->procesosAlmacenadosP($instrucciones);
   }
-
   private function conectarP($BD = null) {
     $esPrueba = isset($_COOKIE['TEMP']) || isset($_ENV['MODO_TESTEO']);
+
     if ($BD == 'seguridad') {
       $this->nombreDB = $esPrueba ? DB_NAME . '_seguridad_pruebas' : DB_NAME . '_seguridad';
       $conexionElegida = self::$conexion2;
@@ -62,9 +62,7 @@ class conexion {
       $conexionElegida = self::$conexion;
     }
 
-    if ($conexionElegida instanceof PDO) {
-        return $conexionElegida;
-    }
+    if ($conexionElegida instanceof PDO) return $conexionElegida;
 
     try {
       $conexionElegida = new PDO(
@@ -77,32 +75,31 @@ class conexion {
           PDO::ATTR_EMULATE_PREPARES => false,
         ]
       );
-      $conexionElegida->exec("SET CHARACTER SET utf8");
+        $conexionElegida->exec("SET CHARACTER SET utf8");
     } catch (PDOException $e) {
       $_SESSION['codigoRequest'] = 500;
       throw new PDOException(
-        "Error al establecer la conexión con la base de datos (" . $this->nombreDB . "): " . $e->getMessage(), 
+        "Error al establecer la conexión con la base de datos (" . $this->nombreDB . "): " . $e->getMessage(),
         (int)$e->getCode()
       );
     }
-    
+
     if (!$conexionElegida->inTransaction()) {
       try {
         $conexionElegida->beginTransaction();
       } catch (PDOException $e) {
-        throw new PDOException("Error al iniciar la transacción: " . $e->getMessage(),(int)$e->getCode());
+        throw new PDOException("Error al iniciar la transacción: " . $e->getMessage(), (int)$e->getCode());
       }
     }
 
     if ($BD == 'seguridad') {
-        self::$conexion2 = $conexionElegida;
+      self::$conexion2 = $conexionElegida;
     } else {
-        self::$conexion = $conexionElegida;
+      self::$conexion = $conexionElegida;
     }
 
     return $conexionElegida;
   }
-  
   private function commitP() {
     if (
       self::$conexion instanceof PDO &&
@@ -112,7 +109,9 @@ class conexion {
         self::$conexion->commit();
       } catch (PDOException $e) {
         throw new PDOException(
-          "Error al confirmar la transacción (COMMIT): " . $e->getMessage(), (int)$e->getCode());
+          "Error al confirmar la transacción (COMMIT): " . $e->getMessage(),
+          (int)$e->getCode()
+        );
       }
     }
 
@@ -123,12 +122,13 @@ class conexion {
       try {
         self::$conexion2->commit();
       } catch (PDOException $e) {
-        throw new PDOException("Error al confirmar la transacción (COMMIT): " . $e->getMessage(),
-        (int)$e->getCode());
+        throw new PDOException(
+          "Error al confirmar la transacción (COMMIT): " . $e->getMessage(),
+          (int)$e->getCode()
+        );
       }
     }
   }
-  
   private function rollbackP() {
     if (self::$conexion instanceof PDO && self::$conexion->inTransaction()) {
       try {
@@ -145,7 +145,6 @@ class conexion {
       }
     }
   }
-  
   private function seleccionarDatosP2(array $instrucciones) {
     // $objCache = new cacheModelo();
     try {
@@ -389,7 +388,6 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
-  
   private function guardarDatosP2(array $instrucciones) {
     try {
       $conexion = $this->conectar($instrucciones['BD'] ?? NULL);
@@ -478,7 +476,6 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
-  
   private function actualizarDatosP2(array $instrucciones) {
     try {
       $conexion = $this->conectar($instrucciones['BD'] ?? NULL);
@@ -607,7 +604,6 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
-  
   private function eliminarDatosP2(array $instrucciones) {
     try {
       $conexion = $this->conectar($instrucciones['BD'] ?? NULL);
@@ -727,7 +723,6 @@ class conexion {
       throw new errorBD($th->getMessage(), $error, (int)$th->getCode(), $th);
     }
   }
-  
   private function procesosAlmacenadosP(array $instrucciones) {
     $conexion = $this->conectar();
     $sql = 'CALL ' . $instrucciones['sp'] . '(';

@@ -2,10 +2,17 @@
 
 // #region [ CONSTANTES DE LA BD ]
 
-define('DB_SERVER', getenv('DB_HOST') ?: 'localhost');
-define('DB_NAME', getenv('DB_NAME') ?: 'proyecto_lacruz');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
+
+//Busqueda de variables de entorno en el servidor
+$rutaCredenciales = dirname(__DIR__,3) . '/.env.php';
+if (file_exists($rutaCredenciales)) {
+  $variablesEntornoHosting = require_once $rutaCredenciales;
+}
+
+define('DB_HOST', $variablesEntornoHosting['DB_HOST'] ?? getenv('DB_HOST') ?? 'localhost');
+define('DB_NAME', $variablesEntornoHosting['DB_NAME'] ?? getenv('DB_NAME') ?? 'proyecto_lacruz');
+define('DB_USER', $variablesEntornoHosting['DB_USER'] ?? getenv('DB_USER') ?? 'root');
+define('DB_PASS', $variablesEntornoHosting['DB_PASS'] ?? getenv('DB_PASS') ?? '');
 
 // #endregion [ CONSTANTES DE LA BD ]
 
@@ -22,7 +29,7 @@ if (
   $PROTOCOLO = 'https://';
 }
 define('APP_URL', $PROTOCOLO . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "/proyecto-lacruz-j/");
-define('ROOT_PATH', dirname(__DIR__, 2).'/');
+define('ROOT_PATH', dirname(__DIR__, 2) . '/');
 
 const modoDev = true;
 const coorJLACRUZ = ['latitud' => 10.02884, 'longitud' => -69.25703];
