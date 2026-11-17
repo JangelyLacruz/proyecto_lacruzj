@@ -6,6 +6,12 @@ Options -Indexes -MultiViews
     RewriteRule ^ - [L]
     RewriteCond %{REQUEST_METHOD} POST
     RewriteRule ^proyecto-lacruz-j/([a-zA-Z0-9/ñÑ_-]+)$ index.php?views=$1 [QSA,L]
+    RewriteCond %{REQUEST_METHOD} GET
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/$1 !-f
+    RewriteCond %{DOCUMENT_ROOT}/$1 !-d
+    RewriteRule ^proyecto-lacruz-j/([a-zA-Z0-9/ñÑ_-]+?)/?$ index.php?views=$1 [QSA,L]
     RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$ [NC]
     RewriteRule ^proyecto-lacruz-j/(.*)$ /$1 [PT,L]
     RewriteCond %{REQUEST_FILENAME} -f [OR]

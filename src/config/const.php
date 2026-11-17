@@ -9,10 +9,10 @@ if (file_exists($rutaCredenciales)) {
   $variablesEntornoHosting = require_once $rutaCredenciales;
 }
 
-define('DB_HOST', $variablesEntornoHosting['DB_HOST'] ?? getenv('DB_HOST') ?? 'localhost');
-define('DB_NAME', $variablesEntornoHosting['DB_NAME'] ?? getenv('DB_NAME') ?? 'proyecto_lacruz');
-define('DB_USER', $variablesEntornoHosting['DB_USER'] ?? getenv('DB_USER') ?? 'root');
-define('DB_PASS', $variablesEntornoHosting['DB_PASS'] ?? getenv('DB_PASS') ?? '');
+define('DB_HOST', $variablesEntornoHosting['DB_HOST'] ?? $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_NAME', $variablesEntornoHosting['DB_NAME'] ?? $_ENV['DB_NAME'] ?? 'proyecto_lacruz');
+define('DB_USER', $variablesEntornoHosting['DB_USER'] ?? $_ENV['DB_USER'] ?? 'root');
+define('DB_PASS', $variablesEntornoHosting['DB_PASS'] ?? $_ENV['DB_PASS'] ?? '');
 
 // #endregion [ CONSTANTES DE LA BD ]
 

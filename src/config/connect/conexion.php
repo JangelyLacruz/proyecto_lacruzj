@@ -11,7 +11,7 @@ use src\modelos\cacheModelo;
 
 class conexion {
   use traitModelo;
-
+ 
   private string $servidorDB = DB_HOST;
   private string $nombreDB = DB_NAME;
   private string $usuarioDB = DB_USER;
