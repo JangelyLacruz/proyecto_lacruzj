@@ -1273,7 +1273,7 @@ class comprasModelo extends conexion {
     // FIRMAS Y SELLOS
     $yFirmas = $yFila + 22;
 
-    $rutaLogo = 'src/assets/images/logo2.png';
+    $rutaLogo = 'src/assets/images/logo.png';
     if (!file_exists($rutaLogo)) {
       $rutaLogo = 'src/assets/images/logo.png';
     }

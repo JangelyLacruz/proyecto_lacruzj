@@ -99,7 +99,7 @@ class pdfModel extends FPDF {
   function Header() {
     if ($this->header == true) {
       // Logo
-      $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo2.png', 10, 10, 17, 15);
+      $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo.png', 10, 10, 17, 15);
       //Encabezado
       $fechaActual = new DateTime();
       $fechaActual = $fechaActual->format('d-m-Y');
@@ -122,7 +122,7 @@ class pdfModel extends FPDF {
       // $this->Rect(10, 10, 190, 30);
       
       /*
-      $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo2.png', 10, 10, 28, 20);
+      $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo.png', 10, 10, 28, 20);
 
       // Datos de la Empresa (Izquierda)
       $this->SetXY(42, 10);
