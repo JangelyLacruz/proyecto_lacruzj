@@ -3,7 +3,7 @@ name: despliegue y pruebas
 # Se dispara en cada push hacia la rama de deploy
 on:
   push:
-    branches: [deploy,main]
+    branches: [deploy,main,master]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
