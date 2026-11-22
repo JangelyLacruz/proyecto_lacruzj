@@ -99,7 +99,7 @@ class pdfModel extends FPDF {
   function Header() {
     if ($this->header == true) {
       // Logo
-      $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo2.png', 10, 10, 17, 15);
+      $this->Image(APP_DIR_ROOT.'src/assets/images/logo.png', 10, 10, 17, 15);
       //Encabezado
       $fechaActual = new DateTime();
       $fechaActual = $fechaActual->format('d-m-Y');
@@ -118,44 +118,6 @@ class pdfModel extends FPDF {
       }
     }
     if ($this->dataNotaEntrega) {
-      // Cuadro exterior superior (Opcional, para delimitar la zona superior si se desea)
-      // $this->Rect(10, 10, 190, 30);
-      
-      /*
-      $this->Image($_SERVER['DOCUMENT_ROOT'] . '/proyecto-lacruz-j/src/assets/images/logo2.png', 10, 10, 28, 20);
-
-      // Datos de la Empresa (Izquierda)
-      $this->SetXY(42, 10);
-      $this->SetFont('Arial', 'B', 19);
-      $this->SetTextColor(14, 35, 125);
-      $this->cell2(50, 5, 'J. LACRUZ C.A.', 0, 1, 'C');
-      $this->SetX(42);
-      $this->SetFont('Arial', 'B', 12);
-      $this->cell2(50, 5, 'Multiservicios Generales', 0, 1, 'C');
-      $this->SetX(42);
-      $this->SetFont('Arial', 'B', 7);
-      $this->cell2(50, 5, 'TELFS: +58 424-5085666 / 0414-5718890', 0, 1, 'C');
-      $this->SetX(42);
-      $this->cell2(50, 5, 'jlacruzca@gmail.com', 0, 1, 'C');
-
-      //Direccion y Rif
-      $this->SetFont('Arial', 'B', 8);
-      $this->SetXY(155, 10);
-      $this->cell2(40, 4, 'Carrera 2 Entre Calle 6 y 7', 0, 1, 'C');
-      $this->SetX(155);
-      $this->cell2(40, 4, 'Local Casa N914', 0, 1, 'C');
-      $this->SetX(155);
-      $this->cell2(40, 4, 'Nor. Local 3 Sector La mata', 0, 1, 'C');
-      $this->SetX(155);
-      $this->cell2(40, 4, 'Cabudare, Estado Lara', 0, 1, 'C');
-      $this->SetX(155);
-      $this->cell2(40, 4, 'Zona Postal 3001', 0, 1, 'C');
-      $this->SetX(155);
-      $this->SetFont('Arial', 'B', 10);
-      $this->SetTextColor(10, 24, 82);
-      $this->cell2(40, 4, 'RIF.: J-412192701', 0, 1, 'C');
-      $this->SetTextColor(0);
-      */
 
       $this->SetXY(10, 40);
       $this->SetFont('Arial', 'B', 8);

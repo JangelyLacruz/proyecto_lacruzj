@@ -21,7 +21,10 @@ if (
 ) {
   $PROTOCOLO = 'https://';
 }
-define('APP_URL', $PROTOCOLO . ($_SERVER['HTTP_HOST'] ?? 'localhost') . "/proyecto-lacruz-j/");
+
+define('HOSTING', ($_SERVER['HTTP_HOST'] ?? 'localhost'));
+define('APP_URL', $PROTOCOLO .  HOSTING . (HOSTING === 'localhost' ? "/proyecto-lacruz-j/" : '/'));
+define('APP_DIR_ROOT',$_SERVER['DOCUMENT_ROOT'] . (HOSTING === 'localhost' ? "/proyecto-lacruz-j/" : '/'));
 const modoDev = true;
 const coorJLACRUZ = ['latitud' => 10.063276, 'longitud' => -69.31708];
 const APP_NAME = "MULTISERVICIOS JLACRUZ C.A.";
