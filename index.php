@@ -12,10 +12,23 @@ try {
   $controlador = new frontController;
   require_once 'src/config/inc/script.php';
 } catch (errorBD $th) {
+
+  $d = ($th->getDetalles() ?? []);
+  $texto = 'Ha ocurrido un error en la base de datos';
+  if (modoDev) {
+    $texto .=
+      ' | titulo: ' . ($d['titulo'] ?? '') .
+      ' | linea: ' . ($d['linea'] ?? '') .
+      ' | código de error: ' . ($d['código de error'] ?? '') .
+      ' | mensaje de error: ' . ($d['mensaje de error'] ?? '') .
+      ' | titulo: ' . ($d['titulo'] ?? '')
+    ;
+  }
+
   $mensajeError = [
     'tipo' => 'simple',
     'titulo' => 'Error en la Base de Datos',
-    'texto' => 'Ha ocurrido un error en la base de datos',
+    'texto' => $texto,
     'icono' => 'error',
   ];
   if (modoDev) {
@@ -25,6 +38,7 @@ try {
   $_SESSION['codigoRequest'] = 500;
   echo json_encode($mensajeError);
   exit();
+  // Hola mundo
 } catch (\Throwable $th) {
   $mensajeError = [
     'tipo' => 'simple',

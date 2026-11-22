@@ -1,3 +1,8 @@
+<?php
+if (!defined('DIR_IMG')) {
+  define('DIR_IMG', 'src/assets/images/');
+}
+?>
   <link rel="stylesheet" href="/proyecto-lacruz-j/src/assets/css/landing.css">
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Barlow+Condensed:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -272,6 +277,16 @@
         <div class="row g-4 justify-content-center d-none" id="catalogoGridWrapper">
         </div>
 
+        <!-- Botón Ver Más Productos -->
+        <div id="btnVerMasContainer" class="text-center mt-4 d-none">
+          <button id="btnVerMasProductos" type="button" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+            <span id="btnVerMasTexto">Ver más productos</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+
         <div id="catalogoVacioState" class="text-center py-5 d-none bg-white rounded shadow-sm p-4 mx-auto" style="max-width:500px">
           <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-muted opacity-50 mb-2">
             <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
@@ -394,7 +409,7 @@
                 </div>
                 <div>
                   <small class="text-white opacity-75 d-block">Ubicación Principal</small>
-                  <strong class="text-white fs-6">Barquisimeto, Estado Lara, Venezuela</strong>
+                  <strong class="text-white fs-6">Calle San Rafael, Cabudare, Estado Lara, Venezuela</strong>
                 </div>
               </div>
 
@@ -462,7 +477,7 @@
                 </svg>
                 <span>Ubicación Interactiva de J. LACRUZ C.A.</span>
               </span>
-              <a href="https://maps.app.goo.gl/ei45ghyYmUALrw3y9" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1">
+              <a href="https://maps.app.goo.gl/4ZkqsqHpKwiRs8Z36" target="_blank" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1 fw-bold d-inline-flex align-items-center gap-1">
                 <span>Abrir en Google Maps</span>
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -487,80 +502,13 @@
       </div>
     </div>
     <p class="footer-copy">
-      © 2024-2026 J. LACRUZ C.A. · RIF J-504221190 · Barquisimeto, Venezuela · 0424-5085666
+      © 2024-2026 J. LACRUZ C.A. · RIF J-504221190 · Cabudare, Lara, Venezuela · 0424-5085666
     </p>
 
     <!-- Variables de entorno del chatbot -->
     <input type="hidden" id="chatbot_secret_key" value="">
     <input type="hidden" id="chatbot_microservice_url" value="">
   </footer>
-
-  <!-- Asistente flotante -->
-  <button id="chatbot-toggle-btn" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center p-0" style="position:fixed;bottom:20px;right:20px;width:60px;height:60px;z-index:1050;background-color:#0d6efd;border:2px solid #ffffff;" title="Asistente MicroBot AI">
-    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"></path>
-      <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-    </svg>
-  </button>
-
-  <!-- Ventana desplegable del chat -->
-  <div id="chatbot-window" class="d-none shadow-lg border bg-white" style="position:fixed;bottom:85px;right:20px;width:360px;max-width:calc(100vw - 40px);height:450px;max-height:calc(100vh - 160px);z-index:1050;display:flex;flex-direction:column;overflow:hidden;border-radius:12px;">
-    <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white flex-shrink-0">
-      <div class="d-flex align-items-center">
-        <div class="bg-primary rounded-circle d-flex justify-content-center align-items-center me-3 p-1" style="width:40px;height:40px;background-color:#0d6efd !important;">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"></path>
-            <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
-          </svg>
-        </div>
-        <div>
-          <h6 class="m-0 fw-bold text-dark" style="font-size:15px">MicroBot AI</h6>
-          <small class="text-success d-flex align-items-center" style="font-size:12px">
-            <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#198754;margin-right:4px"></span>
-            En línea
-          </small>
-        </div>
-      </div>
-      <button id="chatbot-close-btn" class="btn-close" aria-label="Cerrar" style="font-size:14px"></button>
-    </div>
-
-    <!-- Mensajes del chat -->
-    <div id="chatbot-messages" class="flex-grow-1 p-3 overflow-auto" style="background-color:#f8f9fa">
-      <div class="text-center mb-3">
-        <small class="text-muted" style="font-size:11px">HOY</small>
-      </div>
-      <div class="d-flex mb-3">
-        <div class="bot-msg-bubble bg-white border p-3 shadow-sm">
-          ¡Hola! Soy tu asistente de MicroBot. Puedo ayudarte a recomendar productos o realizar presupuestos. ¿En qué puedo apoyarte hoy?
-          <div class="text-end text-muted mt-1" style="font-size:0.65rem" id="chatbotHoraInicio"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Sugerencias -->
-    <div id="chatbot-suggestions" class="px-3 py-2 bg-white d-flex overflow-auto flex-shrink-0" style="white-space:nowrap;border-top:1px solid #dee2e6">
-      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3" data-sugerenciaChatBot="Soporte técnico" >Soporte técnico</button>
-      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3" data-sugerenciaChatBot="Quiero un presupuesto">Presupuesto</button>
-      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill px-3" data-sugerenciaChatBot="Cotizar botellones de agua">Agua Potable</button>
-    </div>
-
-    <!-- Entrada del usuario -->
-    <div class="px-3 pt-2 pb-1 bg-white flex-shrink-0">
-      <form id="chatbot-form" class="d-flex position-relative">
-        <input type="text" id="chatbot-input" class="form-control rounded-pill ps-3 pe-5 py-2" placeholder="Escribe tu mensaje..." required autocomplete="off" style="border:1px solid #dee2e6;font-size:14px">
-        <button type="submit" class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center position-absolute" style="width:36px;height:36px;right:4px;top:4px;background-color:#0d6efd;border:none">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="white">
-            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-          </svg>
-        </button>
-      </form>
-      <div class="text-center mt-2 mb-1">
-        <small class="text-muted" style="font-size:10px">Desarrollado por MicroBot AI Engine</small>
-      </div>
-    </div>
-  </div>
 
   <!-- Panel del carrito -->
   <div class="panelCotizacionPedido offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" aria-labelledby="cartOffcanvasLabel">
@@ -739,7 +687,7 @@
                     <input class="form-check-input" type="radio" name="tipo_entrega" id="optRetiro" value="retiro">
                     <label class="form-check-label fw-bold text-dark" for="optRetiro">🏢 Retiro en Sede</label>
                   </div>
-                  <small class="text-muted ps-4">Retiro personal en nuestra sede (Carrera 28 entre calles 41 y 42, Barquisimeto).</small>
+                  <small class="text-muted ps-4">Retiro personal en nuestra sede (Calle San Rafael, Cabudare, Lara).</small>
                 </div>
               </div>
             </div>

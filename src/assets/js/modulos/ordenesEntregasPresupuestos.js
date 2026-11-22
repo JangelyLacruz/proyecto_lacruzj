@@ -275,7 +275,14 @@ async function actualizarDeliveryPorUbicacion(latlng) {
   }
 }
 function calcularTotales() {
-  let subProd = productosOrden.reduce((s, p) => s + (p.cantidad * p.precio), 0);
+  let subProd = productosOrden.reduce((s, p) => {
+    let subBruto = p.cantidad * p.precio;
+    let desc = parseFloat(p.descuento || 0);
+    if (isNaN(desc) || desc < 0) desc = 0;
+    if (desc > 100) desc = 100;
+    let subNeto = subBruto * (1 - (desc / 100));
+    return s + subNeto;
+  }, 0);
   let subServ = serviciosOrden.reduce((s, s2) => {
     let precio = s2.es_mapfre ? s2.precio_mapfre : s2.precio;
     return s + (s2.cantidad * precio);
@@ -407,12 +414,28 @@ function calcularTotales() {
     $('#resumenVolumenOrden').addClass('d-none');
   }
 
-  $('#subtotalProdOrden').text('$' + subProd.toFixed(2));
-  $('#subtotalServOrden').text('$' + subServ.toFixed(2));
-  $('#resumenProdOrden').text('$' + subProd.toFixed(2));
-  $('#resumenServOrden').text('$' + subServ.toFixed(2));
-  $('#resumenDeliveryOrden').text('$' + delivery.toFixed(2));
-  $('#resumenTotalOrden').html(`$${total.toFixed(2)} <br><small class="text-muted fs-6">Bs ${totalBs.toFixed(2)} (IVA ${ivaActivo}%: $${montoIva.toFixed(2)})</small>`);
+  let montoIvaProd = subProd * (ivaActivo / 100);
+  let subProdBs = subProd * tasaBolivar;
+  let ivaProdBs = montoIvaProd * tasaBolivar;
+
+  let montoIvaServ = subServ * (ivaActivo / 100);
+  let subServBs = subServ * tasaBolivar;
+  let ivaServBs = montoIvaServ * tasaBolivar;
+
+  let montoIvaDel = delivery * (ivaActivo / 100);
+  let delBs = delivery * tasaBolivar;
+  let ivaDelBs = montoIvaDel * tasaBolivar;
+
+  $('#subtotalProdOrden').html(`$${subProd.toFixed(2)} <span class="fw-normal text-muted">/ Bs ${subProdBs.toFixed(2)}</span> <span class="ms-1 text-primary">| IVA (${ivaActivo}%): $${montoIvaProd.toFixed(2)} (Bs ${ivaProdBs.toFixed(2)})</span>`);
+  $('#subtotalServOrden').html(`$${subServ.toFixed(2)} <span class="fw-normal text-muted">/ Bs ${subServBs.toFixed(2)}</span> <span class="ms-1 text-primary">| IVA (${ivaActivo}%): $${montoIvaServ.toFixed(2)} (Bs ${ivaServBs.toFixed(2)})</span>`);
+  $('#resumenProdOrden').html(`$${subProd.toFixed(2)} <span class="text-muted fs-6">/ Bs ${subProdBs.toFixed(2)}</span><small class="text-muted d-block">IVA (${ivaActivo}%): $${montoIvaProd.toFixed(2)} / Bs ${ivaProdBs.toFixed(2)}</small>`);
+  $('#resumenServOrden').html(`$${subServ.toFixed(2)} <span class="text-muted fs-6">/ Bs ${subServBs.toFixed(2)}</span><small class="text-muted d-block">IVA (${ivaActivo}%): $${montoIvaServ.toFixed(2)} / Bs ${ivaServBs.toFixed(2)}</small>`);
+  if (delivery > 0) {
+    $('#resumenDeliveryOrden').html(`$${delivery.toFixed(2)} <span class="text-muted fs-6">/ Bs ${delBs.toFixed(2)}</span><small class="text-muted d-block">IVA (${ivaActivo}%): $${montoIvaDel.toFixed(2)} / Bs ${ivaDelBs.toFixed(2)}</small>`);
+  } else {
+    $('#resumenDeliveryOrden').text('$0.00');
+  }
+  $('#resumenTotalOrden').html(`$${total.toFixed(2)} <br><small class="text-muted fs-6">Bs ${totalBs.toFixed(2)} (IVA Total ${ivaActivo}%: $${montoIva.toFixed(2)} / Bs ${(montoIva * tasaBolivar).toFixed(2)})</small>`);
   $('#totalGeneralOrden').val(total.toFixed(2));
   $('#badgeProdOrden').text(productosOrden.length);
   $('#badgeServOrden').text(serviciosOrden.length);
@@ -438,21 +461,157 @@ function renderProductos() {
     cont.html(`<div class="fact-empty-state"><i class="fi fi-rs-box-open"></i><p>No hay productos agregados</p></div>`);
   } else {
     let html = `<table class="fact-items-table"><thead><tr>
-      <th>Producto</th><th>Precio</th><th>Cant.</th><th>Subtotal</th><th></th>
+      <th>Producto</th>
+      <th>Precio</th>
+      <th>Cant.</th>
+      <th style="min-width: 220px;">Descuento</th>
+      <th>Subtotal</th>
+      <th></th>
     </tr></thead><tbody>`;
     productosOrden.forEach((p, i) => {
-      let sub = (p.cantidad * p.precio).toFixed(2);
-      html += `<tr>
+      let subBruto = p.cantidad * p.precio;
+      let subBrutoBs = subBruto * tasaBolivar;
+
+      let descPorc = parseFloat(p.descuento || 0);
+      if (isNaN(descPorc) || descPorc < 0) descPorc = 0;
+      if (descPorc > 100) descPorc = 100;
+      p.descuento = descPorc;
+
+      let tipoDesc = p.tipo_descuento || 'ninguno';
+      let monedaDesc = p.moneda_descuento || '$';
+
+      let montoDescUsd = subBruto * (descPorc / 100);
+      let montoDescBs = montoDescUsd * tasaBolivar;
+      let subNeto = subBruto - montoDescUsd;
+      let subNetoBs = subNeto * tasaBolivar;
+
+      let maxMonto = monedaDesc === 'Bs' ? subBrutoBs : subBruto;
+      let valMonto = '';
+      if (tipoDesc === 'monto') {
+        if (p.monto_descuento_valor !== undefined && p.monto_descuento_valor !== null && p.monto_descuento_valor > 0) {
+          valMonto = p.monto_descuento_valor;
+        } else if (descPorc > 0) {
+          valMonto = monedaDesc === 'Bs' ? montoDescBs.toFixed(2) : montoDescUsd.toFixed(2);
+        }
+      }
+
+      let subtotalHtml = '';
+      if (descPorc > 0) {
+        subtotalHtml = `<td class="fw-bold text-primary col-subtotal-prod" data-index="${i}">
+          <span class="fs-6 text-success">$${subNeto.toFixed(2)}</span>
+          <small class="text-muted text-decoration-line-through d-block fw-normal" style="font-size:0.75rem;">$${subBruto.toFixed(2)}</small>
+          <small class="text-muted fw-normal">Bs ${subNetoBs.toFixed(2)}</small>
+        </td>`;
+      } else {
+        subtotalHtml = `<td class="fw-bold text-primary col-subtotal-prod" data-index="${i}">
+          $${subBruto.toFixed(2)} <br><small class="text-muted fw-normal">Bs ${subBrutoBs.toFixed(2)}</small>
+        </td>`;
+      }
+
+      html += `<tr class="fila-prod-orden" data-index="${i}">
         <td><span class="fact-item-nombre">${p.nombre}</span></td>
         <td>$${p.precio.toFixed(2)}</td>
         <td><input type="number" class="fact-qty-input cantProdOrden" data-index="${i}" value="${p.cantidad}" min="1" step="1"></td>
-        <td class="fw-bold text-primary">$${sub}</td>
+        <td>
+          <div class="fact-desc-box p-1 rounded border bg-light" style="max-width: 250px;">
+            <!-- Interruptores para las 2 opciones (nunca ambas) -->
+            <div class="d-flex align-items-center justify-content-between mb-1 px-1">
+              <div class="form-check form-switch m-0" title="Descuento por Porcentaje (%)">
+                <input class="form-check-input switchDescPorc" type="checkbox" id="swDescPorc_${i}" data-index="${i}" ${tipoDesc === 'porcentaje' ? 'checked' : ''}>
+                <label class="form-check-label fw-semibold" for="swDescPorc_${i}" style="font-size:0.75rem; cursor:pointer;">% Porc.</label>
+              </div>
+              <div class="form-check form-switch m-0" title="Descuento por Monto directo ($ o Bs)">
+                <input class="form-check-input switchDescMonto" type="checkbox" id="swDescMonto_${i}" data-index="${i}" ${tipoDesc === 'monto' ? 'checked' : ''}>
+                <label class="form-check-label fw-semibold" for="swDescMonto_${i}" style="font-size:0.75rem; cursor:pointer;">Monto</label>
+              </div>
+            </div>
+
+            <!-- Opcion 1: Porcentaje -->
+            <div class="contDescPorc ${tipoDesc === 'porcentaje' ? '' : 'd-none'}" id="contDescPorc_${i}">
+              <div class="input-group input-group-sm">
+                <input type="number" class="form-control form-control-sm text-end inputDescPorc" data-index="${i}" value="${descPorc > 0 ? descPorc : ''}" min="0" max="100" step="any" placeholder="0" ${tipoDesc === 'porcentaje' ? '' : 'disabled'}>
+                <span class="input-group-text py-0 px-2 fw-bold text-muted">%</span>
+              </div>
+              <div class="desc-info-porc text-end mt-1" id="descInfoPorc_${i}" style="font-size:0.72rem;">
+                ${descPorc > 0 ? `<span class="text-danger fw-semibold">-$${montoDescUsd.toFixed(2)}</span> <span class="text-muted">/ Bs ${montoDescBs.toFixed(2)}</span>` : '<span class="text-muted">Máx 100%</span>'}
+              </div>
+            </div>
+
+            <!-- Opcion 2: Monto en $ o en Bs -->
+            <div class="contDescMonto ${tipoDesc === 'monto' ? '' : 'd-none'}" id="contDescMonto_${i}">
+              <div class="input-group input-group-sm">
+                <button class="btn btn-outline-secondary dropdown-toggle btnMonedaDesc py-0 px-2 fw-semibold" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:0.75rem;" id="btnMonedaDesc_${i}">
+                  ${monedaDesc === 'Bs' ? 'Bs' : '$'}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-sm shadow-sm py-1" style="min-width:70px;">
+                  <li><a class="dropdown-item py-1 small selMonedaDesc" href="#" data-index="${i}" data-moneda="$">$ (USD)</a></li>
+                  <li><a class="dropdown-item py-1 small selMonedaDesc" href="#" data-index="${i}" data-moneda="Bs">Bs (VES)</a></li>
+                </ul>
+                <input type="number" class="form-control form-control-sm text-end inputDescMonto" data-index="${i}" value="${valMonto}" min="0" step="any" placeholder="0.00" ${tipoDesc === 'monto' ? '' : 'disabled'}>
+              </div>
+              <div class="desc-info-monto text-end mt-1" id="descInfoMonto_${i}" style="font-size:0.72rem;">
+                ${descPorc > 0 ? `<span class="text-primary fw-semibold">${descPorc.toFixed(2)}%</span> <span class="text-danger">(-$${montoDescUsd.toFixed(2)})</span>` : `<span class="text-muted">Máx: ${monedaDesc === 'Bs' ? 'Bs ' + maxMonto.toFixed(2) : '$' + maxMonto.toFixed(2)}</span>`}
+              </div>
+            </div>
+
+            <!-- Estado sin descuento -->
+            <div class="contDescNinguno text-center py-1 ${tipoDesc === 'porcentaje' || tipoDesc === 'monto' ? 'd-none' : ''}" id="contDescNinguno_${i}">
+              <span class="text-muted" style="font-size:0.75rem;"><i class="fi fi-rs-cross-circle me-1"></i>Sin descuento</span>
+            </div>
+          </div>
+        </td>
+        ${subtotalHtml}
         <td><button type="button" class="fact-btn-borrar quitarProdOrden" data-index="${i}">&times;</button></td>
       </tr>`;
     });
     html += '</tbody></table>';
     cont.html(html);
   }
+  calcularTotales();
+}
+
+function actualizarFilaDescuentoYTotales(idx, reRender = false) {
+  if (reRender) {
+    renderProductos();
+    return;
+  }
+  let p = productosOrden[idx];
+  if (!p) return;
+
+  let subBruto = p.cantidad * p.precio;
+  let subBrutoBs = subBruto * tasaBolivar;
+  let descPorc = parseFloat(p.descuento || 0);
+  if (isNaN(descPorc) || descPorc < 0) descPorc = 0;
+  if (descPorc > 100) descPorc = 100;
+  p.descuento = descPorc;
+
+  let montoDescUsd = subBruto * (descPorc / 100);
+  let montoDescBs = montoDescUsd * tasaBolivar;
+  let subNeto = subBruto - montoDescUsd;
+  let subNetoBs = subNeto * tasaBolivar;
+
+  let monedaDesc = p.moneda_descuento || '$';
+  let maxMonto = monedaDesc === 'Bs' ? subBrutoBs : subBruto;
+
+  if (descPorc > 0) {
+    $(`#descInfoPorc_${idx}`).html(`<span class="text-danger fw-semibold">-$${montoDescUsd.toFixed(2)}</span> <span class="text-muted">/ Bs ${montoDescBs.toFixed(2)}</span>`);
+    $(`#descInfoMonto_${idx}`).html(`<span class="text-primary fw-semibold">${descPorc.toFixed(2)}%</span> <span class="text-danger">(-$${montoDescUsd.toFixed(2)})</span>`);
+  } else {
+    $(`#descInfoPorc_${idx}`).html('<span class="text-muted">Máx 100%</span>');
+    $(`#descInfoMonto_${idx}`).html(`<span class="text-muted">Máx: ${monedaDesc === 'Bs' ? 'Bs ' + maxMonto.toFixed(2) : '$' + maxMonto.toFixed(2)}</span>`);
+  }
+
+  let subtotalTd = $(`.col-subtotal-prod[data-index="${idx}"]`);
+  if (descPorc > 0) {
+    subtotalTd.html(`
+      <span class="fs-6 text-success">$${subNeto.toFixed(2)}</span>
+      <small class="text-muted text-decoration-line-through d-block fw-normal" style="font-size:0.75rem;">$${subBruto.toFixed(2)}</small>
+      <small class="text-muted fw-normal">Bs ${subNetoBs.toFixed(2)}</small>
+    `);
+  } else {
+    subtotalTd.html(`$${subBruto.toFixed(2)} <br><small class="text-muted fw-normal">Bs ${subBrutoBs.toFixed(2)}</small>`);
+  }
+
   calcularTotales();
 }
 function renderServicios() {
@@ -466,6 +625,7 @@ function renderServicios() {
     serviciosOrden.forEach((s, i) => {
       let precio = s.es_mapfre ? s.precio_mapfre : s.precio;
       let sub = (s.cantidad * precio).toFixed(2);
+      let subBs = (sub * tasaBolivar).toFixed(2);
 
       // Si es Mapfre y ya tiene un precio puesto, mostramos ese en verde y el original tachado
       let precioColHTML = s.es_mapfre && s.precio_mapfre > 0
@@ -496,14 +656,14 @@ function renderServicios() {
           </div>
           ${s.es_mapfre ? `<div class="input-group input-group-sm mt-1" style="max-width:120px;">
             <span class="input-group-text p-1">$</span>
-            <input type="number" class="form-control form-control-sm precioMapfreOrden" data-index="${i}" value="${s.precio_mapfre > 0 ? s.precio_mapfre.toFixed(2) : ''}" min="0" step="0.01" placeholder="0.00">
+            <input type="number" class="form-control form-control-sm precioMapfreOrden" data-index="${i}" value="${s.precio_mapfre > 0 ? s.precio_mapfre.toFixed(2) : ''}" min="0" step="any" placeholder="0.00">
           </div>` : ''}
         </td>
         <td>
           <input type="number" class="fact-qty-input cantServOrden" data-index="${i}" value="${s.cantidad}" min="1" step="1">
           ${btnUbicacionHtml}
         </td>
-        <td class="fw-bold text-success">$${sub}</td>
+        <td class="fw-bold text-success">$${sub} <br><small class="text-muted fw-normal">Bs ${subBs}</small></td>
         <td><button type="button" class="fact-btn-borrar quitarServOrden" data-index="${i}">&times;</button></td>
       </tr>`;
 
@@ -536,51 +696,88 @@ async function abrirSelectorProductos() {
   let items = await cargarPresentaciones();
   if (!items.length) { Swal.fire('Info', 'No hay productos', 'info'); return; }
 
-  let filas = items.map(p => {
-    let id = p.id_presentacion_producto || p.id_producto;
-    let idProducto = p.id_producto;
-    let nombre = p.nombre_producto || p.nombre;
-    if (p.nombre_presentacion) {
-      nombre += ` (${p.nombre_presentacion})`;
+  let esPresupuesto = $('#chkPresupuestoOrden').is(':checked');
+
+  // Agrupamos los ítems por id_producto para consolidar en 1 fila por producto
+  let productosMap = {};
+  items.forEach(p => {
+    let idProd = p.id_producto;
+    if (!productosMap[idProd]) {
+      productosMap[idProd] = {
+        id_producto: idProd,
+        nombre: p.nombre_producto || p.nombre,
+        stock: parseFloat(p.stock_producto ?? 0),
+        stockMinimo: parseFloat(p.stock_minimo_producto ?? 0),
+        unidad: p.nombre_unidad_medida || 'Unidades',
+        presentaciones: []
+      };
     }
-    let precio = parseFloat(p.precio_producto || p.precio || 0);
-    let stock = parseFloat(p.stock_producto ?? 0);
-    let stockMinimo = parseFloat(p.stock_minimo_producto ?? 0);
     let capacidad = parseFloat(p.cantidad_pmp || 1);
-    let unidad = p.nombre_unidad_medida || 'Unidades';
-    let presentacion = p.nombre_presentacion || '';
+    let precioBase = parseFloat(p.precio_producto || p.precio || 0);
+    let precioPresentacion = precioBase * capacidad;
+    productosMap[idProd].presentaciones.push({
+      id_presentacion_producto: p.id_presentacion_producto,
+      nombre_presentacion: p.nombre_presentacion || 'Unidad',
+      capacidad: capacidad,
+      precio_base: precioBase,
+      precio: precioPresentacion
+    });
+  });
 
-    // El stock mostrado es en volumen, calculamos para cuántas presentaciones alcanza
-    let stockPresentaciones = Math.floor(stock / capacidad);
-
-    // Vemos cómo andamos de inventario para este producto
+  let filas = Object.values(productosMap).map(p => {
+    let stock = p.stock;
+    let stockMinimo = p.stockMinimo;
+    let unidad = p.unidad;
+    let sinStock = stock <= 0;
     let esStockCritico = stock <= stockMinimo;
-    let sinStock = stockPresentaciones <= 0;
-    let clasesFila = esStockCritico ? 'table-danger' : '';
+    let clasesFila = (!esPresupuesto && esStockCritico) ? 'table-danger' : '';
     let badgeStock = '';
     if (sinStock) {
-      badgeStock = `<span class="badge bg-danger ms-1">Sin stock suficiente</span>`;
+      badgeStock = `<span class="badge bg-danger ms-1">Sin stock</span>`;
     } else if (esStockCritico) {
       badgeStock = `<span class="badge bg-warning text-dark ms-1"><i class="fi fi-rs-triangle-warning me-1"></i>Bajo</span>`;
     }
 
+    // Selector de las presentaciones registradas para este producto
+    let presOptions = p.presentaciones.map(pres => {
+      return `<option value="${pres.id_presentacion_producto}" data-precio="${pres.precio}" data-capacidad="${pres.capacidad}" data-presentacion="${pres.nombre_presentacion}">
+        ${pres.nombre_presentacion} (${pres.capacidad} ${unidad}) - $${pres.precio.toFixed(2)}
+      </option>`;
+    }).join('');
+
+    let primerPres = p.presentaciones[0] || { id_presentacion_producto: '', precio: 0, capacidad: 1, nombre_presentacion: '' };
+    let precioInicial = primerPres.precio;
+
+    // En modo Presupuesto nunca se deshabilitan los botones de Agregar
+    let btnDisabled = (!esPresupuesto && sinStock) ? 'disabled' : '';
+    let btnTexto = (!esPresupuesto && sinStock) ? 'Agotado' : 'Agregar';
+
     return `<tr class="${clasesFila}">
       <td>
-        ${nombre} <br>
-        <small class="text-muted"><i class="fi fi-rs-box-alt me-1"></i>1 ${presentacion || 'Unidad'} = ${capacidad} ${unidad}</small>
+        <strong>${p.nombre}</strong>
       </td>
-      <td>$${precio.toFixed(2)}</td>
       <td>
-        <span data-bs-toggle="tooltip" title="Stock Total: ${stock} ${unidad}">${stockPresentaciones} ${presentacion || 'Unid.'}</span>
+        <span class="fw-semibold">${stock % 1 === 0 ? stock : stock.toFixed(2)} ${unidad}</span>
         ${badgeStock}
       </td>
-      <td><button class="btn btn-sm text-white selProdOrden fact-purple-blue-grad"
-        data-id="${id}" data-id_producto="${idProducto}" data-nombre="${nombre}" data-nombre_general="${p.nombre_producto || p.nombre}"
-        data-precio="${precio}" data-stock="${stock}"
-        data-capacidad="${capacidad}" data-unidad="${unidad}" data-presentacion="${presentacion}"
-        ${sinStock ? 'disabled' : ''}>
-        <i class="fi fi-rs-plus me-1"></i>${sinStock ? 'Agotado' : 'Agregar'}
-      </button></td>
+      <td>
+        <select class="form-select form-select-sm sel-pres-prod" style="min-width: 175px;">
+          ${presOptions}
+        </select>
+      </td>
+      <td class="col-precio-prod">
+        <span class="precio-prod-val text-success fw-bold">$${precioInicial.toFixed(2)}</span>
+      </td>
+      <td>
+        <button type="button" class="btn btn-sm text-white selProdOrden fact-purple-blue-grad"
+          data-id_producto="${p.id_producto}"
+          data-nombre_general="${p.nombre}"
+          data-stock="${stock}"
+          data-unidad="${unidad}"
+          ${btnDisabled}>
+          <i class="fi fi-rs-plus me-1"></i>${btnTexto}
+        </button>
+      </td>
     </tr>`;
   }).join('');
 
@@ -614,7 +811,7 @@ async function abrirSelectorProductos() {
         paginate: { previous: '<', next: '>' }
       },
       columnDefs: [
-        { orderable: false, targets: 3 }
+        { orderable: false, targets: [2, 4] }
       ]
     });
   });
@@ -701,14 +898,32 @@ async function verDetalleOrden(idOrden) {
   else if (c.estado_num == 20) estado = '<span class="badge" style="background: linear-gradient(135deg,#7c3aed,#a855f7);"><i class="fi fi-rs-document me-1"></i>Presupuesto</span>';
   else estado = `<span class="badge bg-secondary">${c.estado_dinamico || 'Activa'}</span>`;
 
+  let tasaDetalle = parseFloat(c.tasa_cambio || c.valor_moneda || tasaBolivar) || tasaBolivar;
   let prodHtml = '';
   let subProd = 0;
   if (data.productos && data.productos.length) {
-    prodHtml = '<table class="table table-sm"><thead><tr><th>Producto</th><th>Presentación</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>';
+    prodHtml = '<table class="table table-sm"><thead><tr><th>Producto</th><th>Presentación</th><th>Cant.</th><th>Precio</th><th>Descuento</th><th>Subtotal</th></tr></thead><tbody>';
     data.productos.forEach(p => {
-      let sub = p.cantidad_producto * p.precio_producto;
+      let capacidad = parseFloat(p.cantidad_pmp || 1);
+      let precioPres = parseFloat(p.precio_presentacion !== undefined ? p.precio_presentacion : (parseFloat(p.precio_producto) * capacidad));
+      let desc = parseFloat(p.descuento_producto || 0);
+      let subSinDesc = parseFloat(p.cantidad_producto) * precioPres;
+      let montoDesc = subSinDesc * (desc / 100);
+      let sub = subSinDesc - montoDesc;
       subProd += sub;
-      prodHtml += `<tr><td>${p.nombre_producto}</td><td>${p.nombre_presentacion}</td><td>${p.cantidad_producto}</td><td>$${parseFloat(p.precio_producto).toFixed(2)}</td><td>$${sub.toFixed(2)}</td></tr>`;
+      let subBs = sub * tasaDetalle;
+      let precioBs = precioPres * tasaDetalle;
+      let descBadge = desc > 0 
+        ? `<span class="badge bg-success">${desc.toFixed(2)}% (-$${montoDesc.toFixed(2)})</span>` 
+        : '<span class="badge bg-light text-dark border">0%</span>';
+      prodHtml += `<tr>
+        <td>${p.nombre_producto}</td>
+        <td>${p.nombre_presentacion}</td>
+        <td>${p.cantidad_producto}</td>
+        <td>$${precioPres.toFixed(2)} <small class="text-muted d-block">Bs ${precioBs.toFixed(2)}</small></td>
+        <td>${descBadge}</td>
+        <td>$${sub.toFixed(2)} <small class="text-muted d-block">Bs ${subBs.toFixed(2)}</small></td>
+      </tr>`;
     });
     prodHtml += '</tbody></table>';
   } else {
@@ -788,6 +1003,7 @@ async function verDetalleOrden(idOrden) {
 
       let cssClassTachado = isCancelado ? 'text-decoration-line-through text-muted' : '';
 
+      let subBs = sub * tasaDetalle;
       servHtml += `<tr class="${cssClassTachado}">
         <td>
           ${s.materiales && s.materiales.length ? `<button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1 me-1 btnToggleMat" data-idx="${idx}" title="Ver productos"><i class="fi fi-rs-plus-small"></i></button>` : ''}
@@ -798,7 +1014,7 @@ async function verDetalleOrden(idOrden) {
         <td>${s.cantidad_servicio}</td>
         <td>${precioDetHTML}</td>
         <td>${mapfreBadge}</td>
-        <td>$${sub.toFixed(2)}</td>
+        <td>$${sub.toFixed(2)} <small class="text-muted d-block">Bs ${subBs.toFixed(2)}</small></td>
       </tr>${matHtml}`;
     });
     servHtml += '</tbody></table>';
@@ -831,7 +1047,7 @@ async function verDetalleOrden(idOrden) {
     tieneCoordsDel = delLat !== 0 && delLng !== 0;
     delHtml = `<div class="row mb-2">
       <div class="col-md-4"><strong>Ruta:</strong> ${data.delivery.nombre_ruta}</div>
-      <div class="col-md-4"><strong>Costo:</strong> $${costoDel.toFixed(2)}</div>
+      <div class="col-md-4"><strong>Costo:</strong> $${costoDel.toFixed(2)} <small class="text-muted">/ Bs ${(costoDel * tasaDetalle).toFixed(2)}</small></div>
       <div class="col-md-4"><strong>Repartidor:</strong> ${data.delivery.REPARTIDOR || 'Sin asignar'}</div>
     </div>`;
     if (tieneCoordsDel) {
@@ -845,7 +1061,19 @@ async function verDetalleOrden(idOrden) {
   let ivaPorcentaje = parseFloat(c.IVA) || 0;
   let montoIva = total * (ivaPorcentaje / 100);
   let totalConIva = total + montoIva;
-  let totalBs = totalConIva * tasaBolivar;
+  let totalBs = totalConIva * tasaDetalle;
+
+  let montoIvaProdDet = subProd * (ivaPorcentaje / 100);
+  let subProdBsDet = subProd * tasaDetalle;
+  let ivaProdBsDet = montoIvaProdDet * tasaDetalle;
+
+  let montoIvaServDet = subServ * (ivaPorcentaje / 100);
+  let subServBsDet = subServ * tasaDetalle;
+  let ivaServBsDet = montoIvaServDet * tasaDetalle;
+
+  let montoIvaDelDet = costoDel * (ivaPorcentaje / 100);
+  let delBsDet = costoDel * tasaDetalle;
+  let ivaDelBsDet = montoIvaDelDet * tasaDetalle;
 
   $('#contenidoDetalleOrden').html(`
     <div class="fact-detalle-seccion">
@@ -867,20 +1095,29 @@ async function verDetalleOrden(idOrden) {
       <h6><i class="fi fi-rs-truck-side me-2"></i>Delivery</h6>${delHtml}
     </div>
     <div class="fact-totales-panel">
-      <div class="fact-total-row"><span>Subtotal Productos</span><span>$${subProd.toFixed(2)}</span></div>
-      <div class="fact-total-row"><span>Subtotal Servicios</span><span>$${subServ.toFixed(2)}</span></div>
-      ${costoDel > 0 ? `<div class="fact-total-row"><span>Delivery</span><span>$${costoDel.toFixed(2)}</span></div>` : ''}
+      <div class="fact-total-row">
+        <span>Subtotal Productos</span>
+        <span class="text-end">$${subProd.toFixed(2)} <span class="text-muted fs-6">/ Bs ${subProdBsDet.toFixed(2)}</span><br><small class="text-muted" style="font-weight: 500;">IVA (${ivaPorcentaje}%): $${montoIvaProdDet.toFixed(2)} / Bs ${ivaProdBsDet.toFixed(2)}</small></span>
+      </div>
+      <div class="fact-total-row">
+        <span>Subtotal Servicios</span>
+        <span class="text-end">$${subServ.toFixed(2)} <span class="text-muted fs-6">/ Bs ${subServBsDet.toFixed(2)}</span><br><small class="text-muted" style="font-weight: 500;">IVA (${ivaPorcentaje}%): $${montoIvaServDet.toFixed(2)} / Bs ${ivaServBsDet.toFixed(2)}</small></span>
+      </div>
+      ${costoDel > 0 ? `<div class="fact-total-row">
+        <span>Delivery</span>
+        <span class="text-end">$${costoDel.toFixed(2)} <span class="text-muted fs-6">/ Bs ${delBsDet.toFixed(2)}</span><br><small class="text-muted" style="font-weight: 500;">IVA (${ivaPorcentaje}%): $${montoIvaDelDet.toFixed(2)} / Bs ${ivaDelBsDet.toFixed(2)}</small></span>
+      </div>` : ''}
       <div class="fact-total-row fact-total-grande">
         <span>TOTAL GENERAL</span>
-        <span class="text-end">$${totalConIva.toFixed(2)} <br><small class="text-muted fs-6" style="font-weight: 500;">Bs ${totalBs.toFixed(2)} (IVA ${ivaPorcentaje}%: $${montoIva.toFixed(2)})</small></span>
+        <span class="text-end">$${totalConIva.toFixed(2)} <br><small class="text-muted fs-6" style="font-weight: 500;">Bs ${totalBs.toFixed(2)} (IVA Total ${ivaPorcentaje}%: $${montoIva.toFixed(2)} / Bs ${(montoIva * tasaDetalle).toFixed(2)})</small></span>
       </div>
       <div class="fact-total-row bg-light rounded mt-2 px-2 py-1">
         <span class="text-success"><i class="fi fi-rs-money me-1"></i>Abonado</span>
-        <span class="text-success text-end">$${parseFloat(c.total_pagado || 0).toFixed(2)}<br><small class="text-muted fs-6" style="font-weight: 500;">Bs ${(parseFloat(c.total_pagado || 0) * tasaBolivar).toFixed(2)}</small></span>
+        <span class="text-success text-end">$${parseFloat(c.total_pagado || 0).toFixed(2)}<br><small class="text-muted fs-6" style="font-weight: 500;">Bs ${(parseFloat(c.total_pagado || 0) * tasaDetalle).toFixed(2)}</small></span>
       </div>
       <div class="fact-total-row bg-light rounded mt-1 px-2 py-1">
         <span class="text-danger fw-bold"><i class="fi fi-rs-exclamation me-1"></i>Restante</span>
-        <span class="text-danger fw-bold text-end">$${((c.restante !== null && c.restante !== undefined) ? parseFloat(c.restante) : totalConIva).toFixed(2)}<br><small class="text-muted fs-6" style="font-weight: 500;">Bs ${(((c.restante !== null && c.restante !== undefined) ? parseFloat(c.restante) : totalConIva) * tasaBolivar).toFixed(2)}</small></span>
+        <span class="text-danger fw-bold text-end">$${((c.restante !== null && c.restante !== undefined) ? parseFloat(c.restante) : totalConIva).toFixed(2)}<br><small class="text-muted fs-6" style="font-weight: 500;">Bs ${(((c.restante !== null && c.restante !== undefined) ? parseFloat(c.restante) : totalConIva) * tasaDetalle).toFixed(2)}</small></span>
       </div>
     </div>
   `);
@@ -1097,6 +1334,120 @@ $(document).off('click', '#btnBuscarClienteOrden').on('click', '#btnBuscarClient
   $('#modalSelClienteOrden').modal('show');
 });
 
+// Botón para registrar un cliente no encontrado desde el modal de búsqueda de clientes
+$(document).off('click', '#btnNuevoClienteDesdeOrden').on('click', '#btnNuevoClienteDesdeOrden', function () {
+  let form = $('#formRegistrarClienteRapido');
+  form[0].reset();
+  form.find('.is-invalid, .error').removeClass('is-invalid error');
+  form.find('.mensajeError, .invalid-feedback').remove();
+  let modalRegCli = bootstrap.Modal.getOrCreateInstance(document.getElementById('modalRegistrarClienteOrden'));
+  modalRegCli.show();
+});
+
+// Envío del formulario de registro rápido de cliente
+$(document).off('submit', '#formRegistrarClienteRapido').on('submit', '#formRegistrarClienteRapido', async function (e) {
+  e.preventDefault();
+  let codRif = $('#regCliCodigoRif').val().trim();
+  let numRif = $('#regCliRifCedula').val().trim();
+  let razonSocial = $('#regCliRazonSocial').val().trim();
+  let prefijoTel = $('#regCliPrefijoTelefono').val();
+  let telefono = $('#regCliTelefono').val().trim();
+  let correo = $('#regCliCorreo').val().trim();
+  let direccion = $('#regCliDireccion').val().trim();
+
+  if (!numRif || !razonSocial || !direccion) {
+    Swal.fire('Campos requeridos', 'Por favor complete la cédula/RIF, razón social y dirección.', 'warning');
+    return;
+  }
+
+  if (telefono && !prefijoTel) {
+    Swal.fire('Prefijo requerido', 'Por favor seleccione el código de área / prefijo del teléfono.', 'warning');
+    $('#regCliPrefijoTelefono').focus();
+    return;
+  }
+
+  if (prefijoTel && !telefono) {
+    Swal.fire('Teléfono incompleto', 'Por favor ingrese los 7 dígitos del número de teléfono o seleccione S/N.', 'warning');
+    $('#regCliTelefono').focus();
+    return;
+  }
+
+  if (telefono && telefono.length !== 7) {
+    Swal.fire('Teléfono inválido', 'El número de teléfono debe tener 7 dígitos (sin incluir el prefijo).', 'warning');
+    $('#regCliTelefono').focus();
+    return;
+  }
+
+  if ($(this).find('.error').length > 0) {
+    Swal.fire('Campos inválidos', 'Por favor corrija los datos marcados en rojo antes de guardar.', 'warning');
+    return;
+  }
+
+  let cedulaCompleta = `${codRif}${numRif}`;
+  let telefonoCompleto = prefijoTel ? `${prefijoTel}${telefono}` : telefono;
+
+  let btn = $('#btnGuardarClienteRapido');
+  btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Guardando...');
+
+  try {
+    let resp = await pedirDatosAjax({
+      modulo: 'clientes',
+      noGuardarLocal: true,
+      datosPe: {
+        accion: 'registrar',
+        codigo_rif_cedula_cliente: codRif,
+        rif_cedula_cliente: numRif,
+        razon_social_cliente: razonSocial,
+        prefijo_telefono_cliente: prefijoTel,
+        telefono_cliente: telefono,
+        correo_cliente: correo,
+        direccion_cliente: direccion
+      }
+    });
+
+    if (resp && resp.icono === 'success') {
+      let modalRegCli = bootstrap.Modal.getInstance(document.getElementById('modalRegistrarClienteOrden'));
+      if (modalRegCli) modalRegCli.hide();
+
+      // Guardamos la información en el caché local de clientes
+      clientesSeleccionados[cedulaCompleta] = {
+        rif_cedula_cliente: cedulaCompleta,
+        razon_social_cliente: razonSocial,
+        CLIENTE: razonSocial,
+        telefono_cliente: telefonoCompleto,
+        correo_cliente: correo
+      };
+
+      // Asignamos inmediatamente al formulario de la orden
+      $('#inputCedulaClienteOrden').val(cedulaCompleta);
+      $('#nombreClienteOrden').val(razonSocial);
+      $('#btnGuardarOrden').prop('disabled', false);
+
+      // Refrescamos la tabla de clientes si existe
+      if (dtClientesOrden) reiniciarDataTables(dtClientesOrden);
+
+      // Cerramos el modal de selección de clientes
+      $('#modalSelClienteOrden').modal('hide');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Cliente registrado',
+        text: `El cliente ${razonSocial} (${cedulaCompleta}) ha sido registrado y seleccionado exitosamente.`
+      });
+    } else {
+      Swal.fire({
+        icon: resp.icono || 'error',
+        title: resp.titulo || 'Error',
+        text: resp.texto || 'No se pudo registrar el cliente'
+      });
+    }
+  } catch (err) {
+    Swal.fire('Error', 'Ocurrió un error al registrar el cliente', 'error');
+  } finally {
+    btn.prop('disabled', false).html('<i class="fi fi-rs-disk me-1"></i> Guardar y Seleccionar');
+  }
+});
+
 // Botón Elegir del modal de clientes
 $(document).off('click', '.btnElegirClienteOrden').on('click', '.btnElegirClienteOrden', function () {
   let id = $(this).data('id');
@@ -1110,28 +1461,61 @@ $(document).off('click', '.btnElegirClienteOrden').on('click', '.btnElegirClient
   $('#modalSelClienteOrden').modal('hide');
 });
 
+// Cambio de presentación en el selector de productos
+$(document).off('change', '#dtSelProdOrden .sel-pres-prod').on('change', '#dtSelProdOrden .sel-pres-prod', function () {
+  let opt = $(this).find('option:selected');
+  let precio = parseFloat(opt.data('precio') || 0);
+  let fila = $(this).closest('tr');
+  fila.find('.col-precio-prod .precio-prod-val').text(`$${precio.toFixed(2)}`);
+});
+
 // Agregar producto
 $(document).off('click', '#btnAgregarProductoOrden').on('click', '#btnAgregarProductoOrden', abrirSelectorProductos);
 
-// Seleccionar producto del modal
+// Seleccionar producto del modal con la presentación elegida
 $(document).off('click', '.selProdOrden').on('click', '.selProdOrden', function () {
-  let idProducto = $(this).data('id');
-  let existente = productosOrden.find(p => p.id_presentacion_producto == idProducto);
+  let fila = $(this).closest('tr');
+  let selPres = fila.find('.sel-pres-prod');
+  let optPres = selPres.find('option:selected');
+  let idPresentacionProducto = optPres.val();
+  let precio = parseFloat(optPres.data('precio') || 0);
+  let capacidad = parseFloat(optPres.data('capacidad') || 1);
+  let presentacion = optPres.data('presentacion') || '';
+  let idProducto = $(this).data('id_producto');
+  let nombreGeneral = $(this).data('nombre_general');
+  let stock = parseFloat($(this).data('stock') || 0);
+  let unidad = $(this).data('unidad');
+  let nombreCompleto = `${nombreGeneral} (${presentacion})`;
+
+  let existente = productosOrden.find(p => p.id_presentacion_producto == idPresentacionProducto);
 
   if (existente) {
     existente.cantidad += 1;
+    if (existente.tipo_descuento === 'monto') {
+      let subBruto = existente.cantidad * existente.precio;
+      let maxPermitido = existente.moneda_descuento === 'Bs' ? (subBruto * tasaBolivar) : subBruto;
+      if (existente.monto_descuento_valor > maxPermitido) {
+        existente.monto_descuento_valor = maxPermitido;
+      }
+      let porcentaje = maxPermitido > 0 ? (existente.monto_descuento_valor / maxPermitido) * 100 : 0;
+      existente.descuento = parseFloat(porcentaje.toFixed(2));
+    }
   } else {
     productosOrden.push({
-      id_presentacion_producto: idProducto,
-      id_producto: $(this).data('id_producto'),
-      nombre: $(this).data('nombre'),
-      nombre_general: $(this).data('nombre_general'),
-      precio: parseFloat($(this).data('precio')),
+      id_presentacion_producto: idPresentacionProducto,
+      id_producto: idProducto,
+      nombre: nombreCompleto,
+      nombre_general: nombreGeneral,
+      precio: precio,
       cantidad: 1,
-      stock: parseFloat($(this).data('stock')),
-      capacidad: parseFloat($(this).data('capacidad') || 1),
-      unidad: $(this).data('unidad'),
-      presentacion: $(this).data('presentacion')
+      stock: stock,
+      capacidad: capacidad,
+      unidad: unidad,
+      presentacion: presentacion,
+      descuento: 0,
+      tipo_descuento: 'ninguno',
+      moneda_descuento: '$',
+      monto_descuento_valor: 0
     });
   }
   renderProductos();
@@ -1143,7 +1527,150 @@ $(document).off('input', '.cantProdOrden').on('input', '.cantProdOrden', functio
   let i = $(this).data('index');
   let val = parseInt($(this).val()) || 1;
   productosOrden[i].cantidad = val;
-  calcularTotales();
+
+  let p = productosOrden[i];
+  if (p.tipo_descuento === 'monto') {
+    let subBruto = p.cantidad * p.precio;
+    let maxPermitido = p.moneda_descuento === 'Bs' ? (subBruto * tasaBolivar) : subBruto;
+    if (p.monto_descuento_valor > maxPermitido) {
+      p.monto_descuento_valor = maxPermitido;
+      $(`.inputDescMonto[data-index="${i}"]`).val(maxPermitido.toFixed(2));
+    }
+    let porcentaje = maxPermitido > 0 ? (p.monto_descuento_valor / maxPermitido) * 100 : 0;
+    p.descuento = parseFloat(porcentaje.toFixed(2));
+  }
+  actualizarFilaDescuentoYTotales(i, false);
+});
+
+// Switch Descuento Porcentaje
+$(document).off('change', '.switchDescPorc').on('change', '.switchDescPorc', function () {
+  let idx = $(this).data('index');
+  let isChecked = $(this).is(':checked');
+
+  // Borrar lo que se colocó y regresar a 0 para no tener conflictos
+  productosOrden[idx].descuento = 0;
+  productosOrden[idx].monto_descuento_valor = 0;
+  $(`#contDescPorc_${idx} input`).val('');
+  $(`#contDescMonto_${idx} input`).val('');
+
+  if (isChecked) {
+    productosOrden[idx].tipo_descuento = 'porcentaje';
+    $(`#swDescMonto_${idx}`).prop('checked', false);
+    $(`#contDescMonto_${idx}`).addClass('d-none');
+    $(`#contDescMonto_${idx} input`).prop('disabled', true);
+    $(`#contDescPorc_${idx}`).removeClass('d-none');
+    $(`#contDescPorc_${idx} input`).prop('disabled', false).focus();
+    $(`#contDescNinguno_${idx}`).addClass('d-none');
+  } else {
+    productosOrden[idx].tipo_descuento = 'ninguno';
+    $(`#contDescPorc_${idx}`).addClass('d-none');
+    $(`#contDescPorc_${idx} input`).prop('disabled', true);
+    $(`#contDescMonto_${idx} input`).prop('disabled', true);
+    $(`#contDescNinguno_${idx}`).removeClass('d-none');
+  }
+  actualizarFilaDescuentoYTotales(idx);
+});
+
+// Switch Descuento Monto
+$(document).off('change', '.switchDescMonto').on('change', '.switchDescMonto', function () {
+  let idx = $(this).data('index');
+  let isChecked = $(this).is(':checked');
+
+  // Borrar lo que se colocó y regresar a 0 para no tener conflictos
+  productosOrden[idx].descuento = 0;
+  productosOrden[idx].monto_descuento_valor = 0;
+  $(`#contDescPorc_${idx} input`).val('');
+  $(`#contDescMonto_${idx} input`).val('');
+
+  if (isChecked) {
+    productosOrden[idx].tipo_descuento = 'monto';
+    if (!productosOrden[idx].moneda_descuento) productosOrden[idx].moneda_descuento = '$';
+    $(`#swDescPorc_${idx}`).prop('checked', false);
+    $(`#contDescPorc_${idx}`).addClass('d-none');
+    $(`#contDescPorc_${idx} input`).prop('disabled', true);
+    $(`#contDescMonto_${idx}`).removeClass('d-none');
+    $(`#contDescMonto_${idx} input`).prop('disabled', false).focus();
+    $(`#contDescNinguno_${idx}`).addClass('d-none');
+  } else {
+    productosOrden[idx].tipo_descuento = 'ninguno';
+    $(`#contDescMonto_${idx}`).addClass('d-none');
+    $(`#contDescMonto_${idx} input`).prop('disabled', true);
+    $(`#contDescPorc_${idx} input`).prop('disabled', true);
+    $(`#contDescNinguno_${idx}`).removeClass('d-none');
+  }
+  actualizarFilaDescuentoYTotales(idx);
+});
+
+// Seleccionar moneda en descuento ($ o Bs)
+$(document).off('click', '.selMonedaDesc').on('click', '.selMonedaDesc', function (e) {
+  e.preventDefault();
+  let idx = $(this).data('index');
+  let moneda = $(this).data('moneda');
+  productosOrden[idx].moneda_descuento = moneda;
+  // Al cambiar moneda también se borra y regresa a 0 para evitar conflictos
+  productosOrden[idx].descuento = 0;
+  productosOrden[idx].monto_descuento_valor = 0;
+  renderProductos();
+  $(`#contDescMonto_${idx} input`).focus();
+});
+
+// Input de Descuento Porcentaje
+$(document).off('input', '.inputDescPorc').on('input', '.inputDescPorc', function () {
+  let idx = $(this).data('index');
+  let rawVal = $(this).val();
+  if (rawVal === '' || rawVal === null) {
+    productosOrden[idx].descuento = 0;
+    productosOrden[idx].monto_descuento_valor = 0;
+    actualizarFilaDescuentoYTotales(idx, false);
+    return;
+  }
+  let val = parseFloat(rawVal);
+  if (isNaN(val) || val < 0) {
+    val = 0;
+  }
+  if (val > 100) {
+    val = 100;
+    $(this).val(100);
+  }
+  productosOrden[idx].descuento = val;
+  let p = productosOrden[idx];
+  let subBruto = p.cantidad * p.precio;
+  let montoUsd = subBruto * (val / 100);
+  p.monto_descuento_valor = p.moneda_descuento === 'Bs' ? parseFloat((montoUsd * tasaBolivar).toFixed(2)) : parseFloat(montoUsd.toFixed(2));
+  actualizarFilaDescuentoYTotales(idx, false);
+});
+
+// Input de Descuento Monto
+$(document).off('input', '.inputDescMonto').on('input', '.inputDescMonto', function () {
+  let idx = $(this).data('index');
+  let rawVal = $(this).val();
+  if (rawVal === '' || rawVal === null) {
+    productosOrden[idx].descuento = 0;
+    productosOrden[idx].monto_descuento_valor = 0;
+    actualizarFilaDescuentoYTotales(idx, false);
+    return;
+  }
+  let val = parseFloat(rawVal);
+  let p = productosOrden[idx];
+  let subBruto = p.cantidad * p.precio;
+  let maxPermitido = p.moneda_descuento === 'Bs' ? (subBruto * tasaBolivar) : subBruto;
+
+  if (isNaN(val) || val < 0) {
+    val = 0;
+  }
+  if (val > maxPermitido) {
+    val = maxPermitido;
+    $(this).val(val.toFixed(2));
+  }
+  p.monto_descuento_valor = val;
+
+  let porcentaje = 0;
+  if (maxPermitido > 0) {
+    porcentaje = (val / maxPermitido) * 100;
+  }
+  if (porcentaje > 100) porcentaje = 100;
+  p.descuento = parseFloat(porcentaje.toFixed(2));
+  actualizarFilaDescuentoYTotales(idx, false);
 });
 
 // Quitar producto
@@ -1276,6 +1803,34 @@ $(document).off('click', '.quitarServOrden').on('click', '.quitarServOrden', fun
 
 // Toggle del switch Presupuesto — recalcula totales para actualizar botón y texto
 $(document).off('change', '#chkPresupuestoOrden').on('change', '#chkPresupuestoOrden', function () {
+  let isChecked = $(this).is(':checked');
+  if (!isChecked) {
+    // Al desmarcar presupuesto, verificar si hay productos agregados que no poseen stock
+    let productosSinStock = [];
+    let consumoPorProducto = {};
+    productosOrden.forEach(p => {
+      let id = p.id_producto;
+      if (!consumoPorProducto[id]) {
+        consumoPorProducto[id] = { nombre: p.nombre_general || p.nombre, vol: 0, stock: p.stock, unidad: p.unidad };
+      }
+      consumoPorProducto[id].vol += (p.cantidad * p.capacidad);
+    });
+    Object.keys(consumoPorProducto).forEach(id => {
+      let c = consumoPorProducto[id];
+      if (c.vol > c.stock) {
+        productosSinStock.push(`<b>${c.nombre}</b>: Stock actual ${c.stock} ${c.unidad}, requiere ${c.vol % 1 === 0 ? c.vol : c.vol.toFixed(2)} ${c.unidad}`);
+      }
+    });
+
+    if (productosSinStock.length > 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Productos sin Stock Suficiente',
+        html: `Al cambiar a Orden de Entrega se valida el inventario disponible.<br>Los siguientes productos no poseen stock suficiente:<br><ul class="text-start mt-2"><li>${productosSinStock.join('</li><li>')}</li></ul>`,
+        confirmButtonColor: '#3085d6'
+      });
+    }
+  }
   calcularTotales();
 });
 
@@ -1406,17 +1961,26 @@ async function cargarPresupuestoEnModal(idOrden) {
       if (pres) {
         let nombreCompleto = pres.nombre_producto || '';
         if (pres.nombre_presentacion) nombreCompleto += ` (${pres.nombre_presentacion})`;
+        let capacidad = parseFloat(pres.cantidad_pmp || 1);
+        let precioBase = parseFloat(pres.precio_producto || p.precio_producto || 0);
+        let precioPres = precioBase * capacidad;
+        let desc = parseFloat(p.descuento_producto || 0);
         productosOrden.push({
+          id_producto_factura: p.id_producto_factura || null,
           id_presentacion_producto: p.id_presentacion_producto,
           id_producto: pres.id_producto,
           nombre: nombreCompleto,
           nombre_general: pres.nombre_producto || '',
-          precio: parseFloat(p.precio_producto),
+          precio: precioPres,
           cantidad: parseInt(p.cantidad_producto),
           stock: parseFloat(pres.stock_producto ?? 0),
-          capacidad: parseFloat(pres.cantidad_pmp || 1),
+          capacidad: capacidad,
           unidad: pres.nombre_unidad_medida || 'Unidades',
-          presentacion: pres.nombre_presentacion || ''
+          presentacion: pres.nombre_presentacion || '',
+          descuento: desc,
+          tipo_descuento: desc > 0 ? 'porcentaje' : 'ninguno',
+          moneda_descuento: '$',
+          monto_descuento_valor: 0
         });
       }
     });
@@ -1533,9 +2097,14 @@ $(document).off('click', '.btnProcesarPresupuestoDetalle').on('click', '.btnProc
 });
 
 // Validación en tiempo real
-$(document).off('input', '.validar input, .validar select');
-$(document).on('input', '.validar input, .validar select', function () {
-  validarEnTiempoReal(this, 'ordenesEntregasPresupuestos');
+$(document).off('input change', '.validar input, .validar select, .validar textarea');
+$(document).on('input change', '.validar input, .validar select, .validar textarea', function () {
+  let form = $(this).closest('form');
+  let modulo = 'ordenesEntregasPresupuestos';
+  if (form.attr('id') === 'formRegistrarClienteRapido') {
+    modulo = 'clientes';
+  }
+  validarEnTiempoReal(this, modulo);
 });
 
 async function validarCedulaRepartidorOrden(cedula) {
@@ -2055,6 +2624,14 @@ $(document).off('submit', '#formOrden').on('submit', '#formOrden', async functio
     return;
   }
 
+  for (let p of productosOrden) {
+    let d = parseFloat(p.descuento || 0);
+    if (isNaN(d) || d < 0 || d > 100) {
+      Swal.fire('Error', `El descuento para el producto "${p.nombre}" debe estar entre 0% y 100%`, 'warning');
+      return;
+    }
+  }
+
   let esPresupuesto = $('#chkPresupuestoOrden').is(':checked');
 
   // Siempre validamos fecha y ubicación de servicios, tanto para OEP normal como para Presupuesto
@@ -2195,7 +2772,7 @@ async function abrirModalPagos(idOrden) {
   if (monDolar) bsRate = parseFloat(monDolar.valor_moneda);
 
   let metodosOpt = '<option value="">Seleccione...</option>' + resMetodos.filter(m => m.status == 1).map(m => `<option value="${m.id_metodo_pago}" data-moneda="${m.necesita_moneda}" data-emisor="${m.necesita_banco_emisor}" data-receptor="${m.necesita_banco_receptor}" data-ref="${m.necesita_referencia}">${m.nombre_metodo_pago}</option>`).join('');
-  let monedasOpt = resMonedas.filter(m => m.status == 1).map(m => `<option value="${m.id_moneda}" data-valor="${m.valor_moneda}">${m.nombre_moneda}</option>`).join('');
+  let monedasOpt = resMonedas.filter(m => m.status == 1).map(m => `<option value="${m.id_moneda}" data-valor="${m.valor_moneda}" data-simbolo="${m.simbolo_moneda || ''}" data-nombre="${m.nombre_moneda}">${m.nombre_moneda}</option>`).join('');
   let bancosOpt = '<option value="">Seleccione...</option>' + (Array.isArray(resBancos) ? resBancos.filter(b => b.status == 1).map(b => `<option value="${b.id_banco}">${b.nombre_banco}</option>`).join('') : '');
 
   // Seteamos la información en el modal estático
@@ -2209,6 +2786,7 @@ async function abrirModalPagos(idOrden) {
   firstRow.find('.btn-eliminar-pago').addClass('d-none');
   firstRow.find('.input-monto-pago').val('');
   firstRow.find('.input-referencia-pago').val('');
+  firstRow.find('.span-simbolo-moneda').text('$');
   firstRow.find('.sel-metodo-pago').html(metodosOpt).prop('selectedIndex', 0);
   firstRow.find('.sel-moneda-pago').html(monedasOpt).prop('selectedIndex', 0);
   firstRow.find('.sel-banco-emisor').html(bancosOpt).prop('selectedIndex', 0);
@@ -2225,6 +2803,8 @@ async function abrirModalPagos(idOrden) {
 
   let calcularRestanteModal = () => {
     let sumPagadoEnModal = 0;
+    let ultimaMonedaSeleccionada = null;
+
     $('#modalPagosOrden .fila-pago').each(function () {
       let rawVal = $(this).find('.input-monto-pago').val() || '0';
       let valInput = parsearMonto(rawVal);
@@ -2232,13 +2812,37 @@ async function abrirModalPagos(idOrden) {
       let reqMoneda = optMetodo.data('moneda') == 1;
 
       let tasaMonedaSeleccionada = 1; // Por defecto Bolívares tiene valor 1
+      let simboloMonedaFila = '$';
 
       if (reqMoneda) {
         let optMoneda = $(this).find('.sel-moneda-pago option:selected');
         if (optMoneda.val() !== '') {
           tasaMonedaSeleccionada = parseFloat(optMoneda.data('valor') || 1);
+          let simb = optMoneda.data('simbolo');
+          let nomb = (optMoneda.data('nombre') || '').toUpperCase();
+          simboloMonedaFila = simb || (nomb === 'DÓLAR' || nomb === 'DOLAR' ? '$' : (nomb === 'BÓLIVAR' || nomb === 'BOLIVAR' || nomb === 'BS' ? 'Bs' : nomb));
+          ultimaMonedaSeleccionada = {
+            id_moneda: optMoneda.val(),
+            nombre: nomb,
+            simbolo: simboloMonedaFila,
+            valor: tasaMonedaSeleccionada
+          };
+        }
+      } else {
+        let nombreMetodo = (optMetodo.text() || '').toUpperCase();
+        if (nombreMetodo.includes('PAGO MÓVIL') || nombreMetodo.includes('PAGO MOVIL') || nombreMetodo.includes('BIOPAGO') || nombreMetodo.includes('PUNTO DE VENTA') || nombreMetodo.includes('BOLÍVAR') || nombreMetodo.includes('BOLIVAR')) {
+          simboloMonedaFila = 'Bs';
+          ultimaMonedaSeleccionada = {
+            id_moneda: '',
+            nombre: 'BOLÍVAR',
+            simbolo: 'Bs',
+            valor: 1
+          };
         }
       }
+
+      // Actualizamos el span de la fila con el símbolo de la moneda
+      $(this).find('.span-simbolo-moneda').text(simboloMonedaFila);
 
       // Formula universal: (monto * valor_de_su_moneda_en_bs) / valor_del_dolar_en_bs
       let montoEnDolares = (valInput * tasaMonedaSeleccionada) / bsRate;
@@ -2247,13 +2851,43 @@ async function abrirModalPagos(idOrden) {
 
     let nuevoRestante = restante - sumPagadoEnModal;
     let excede = nuevoRestante < -0.01;
+    let restanteBs = nuevoRestante * bsRate;
+
+    // Determinamos qué moneda y conversión mostrar en el RESTANTE
+    let htmlRestante = '';
+    if (ultimaMonedaSeleccionada && ultimaMonedaSeleccionada.nombre !== 'DÓLAR' && ultimaMonedaSeleccionada.nombre !== 'DOLAR') {
+      if (ultimaMonedaSeleccionada.nombre === 'BÓLIVAR' || ultimaMonedaSeleccionada.nombre === 'BOLIVAR' || ultimaMonedaSeleccionada.nombre === 'BS') {
+        let montoEnBs = restanteBs;
+        if (excede) {
+          htmlRestante = `<span class="text-danger">Bs ${montoEnBs.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / $ ${nuevoRestante.toFixed(2)} — ¡Excede el monto!</small>`;
+        } else {
+          htmlRestante = `Bs ${montoEnBs.toFixed(2)} <small class="text-white fw-normal fs-6"> / $ ${nuevoRestante.toFixed(2)}</small>`;
+        }
+      } else {
+        // Moneda extranjera (ej. Euro): se convierte de acuerdo al dólar y bolívar
+        let montoMoneda = ultimaMonedaSeleccionada.valor > 0 ? (restanteBs / ultimaMonedaSeleccionada.valor) : 0;
+        let simb = ultimaMonedaSeleccionada.simbolo || '€';
+        if (excede) {
+          htmlRestante = `<span class="text-danger">${simb} ${montoMoneda.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)} — ¡Excede el monto!</small>`;
+        } else {
+          htmlRestante = `${simb} ${montoMoneda.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)}</small>`;
+        }
+      }
+    } else {
+      // Dólar por defecto
+      if (excede) {
+        htmlRestante = `<span class="text-danger">$${nuevoRestante.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)} — ¡Excede el monto!</small>`;
+      } else {
+        htmlRestante = `$${nuevoRestante.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)}</small>`;
+      }
+    }
+
+    $('#pagoRestante').html(htmlRestante);
 
     if (excede) {
-      $('#pagoRestante').html(`<span class="text-danger">$${nuevoRestante.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / Bs ${(nuevoRestante * bsRate).toFixed(2)} — ¡Excede el monto!</small>`);
-      $('#btnConfirmarPago').prop('disabled', true).addClass('btn-secondary').removeClass('btn-primary');
+      $('#btnConfirmarPago').prop('disabled', true).addClass('btn-secondary').removeClass('btn-primary fact-pagos-grad');
     } else {
-      $('#pagoRestante').html(`$${nuevoRestante.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(nuevoRestante * bsRate).toFixed(2)}</small>`);
-      $('#btnConfirmarPago').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+      $('#btnConfirmarPago').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary fact-pagos-grad');
     }
   };
 
@@ -2285,12 +2919,15 @@ async function abrirModalPagos(idOrden) {
     if (!reqEmisor) fila.find('.sel-banco-emisor').prop('selectedIndex', 0);
     if (!reqReceptor) fila.find('.sel-banco-receptor').prop('selectedIndex', 0);
     if (!reqRef) fila.find('.input-referencia-pago').val('');
+
+    calcularRestanteModal();
   });
 
   $(document).on('click', '#btnAgregarOtroPago', function () {
     let clone = $('#modalPagosOrden .fila-pago').first().clone();
     clone.find('.btn-eliminar-pago').removeClass('d-none');
     clone.find('.input-monto-pago').val('');
+    clone.find('.span-simbolo-moneda').text('$');
     clone.find('.sel-metodo-pago').prop('selectedIndex', 0);
     clone.find('.sel-moneda-pago').prop('selectedIndex', 0);
     clone.find('.sel-banco-emisor').prop('selectedIndex', 0);
@@ -2316,10 +2953,10 @@ async function abrirModalPagos(idOrden) {
       let reqRef = optMetodo.data('ref') == 1;
 
       let metodo = $(this).find('.sel-metodo-pago').val();
-      let moneda = $(this).find('.sel-moneda-pago').val() || null;
-      let bancoE = $(this).find('.sel-banco-emisor').val() || null;
-      let bancoR = $(this).find('.sel-banco-receptor').val() || null;
-      let ref = $(this).find('.input-referencia-pago').val() || null;
+      let moneda = reqMoneda ? ($(this).find('.sel-moneda-pago').val() || null) : null;
+      let bancoE = reqEmisor ? ($(this).find('.sel-banco-emisor').val() || null) : null;
+      let bancoR = reqReceptor ? ($(this).find('.sel-banco-receptor').val() || null) : null;
+      let ref = reqRef ? ($(this).find('.input-referencia-pago').val() || null) : null;
       let rawMonto = $(this).find('.input-monto-pago').val() || '0';
       let monto = parsearMonto(rawMonto);
 
@@ -2347,21 +2984,20 @@ async function abrirModalPagos(idOrden) {
     });
 
     if (!valido || pagosEnvio.length === 0) {
-      Swal.fire('Atención', 'Campos faltantes o valor de moneda igual a 0', 'warning');
+      Swal.fire('Atención', 'Campos faltantes o valor de monto igual a 0', 'warning');
       return;
     }
 
     // Validar que la suma no exceda el restante
     let sumEnvio = 0;
-    pagosEnvio.forEach(p => {
-      let reqMoneda = true; // Por defecto lo tratamos como true para evitar nulos
-      let optMetodo = $('#modalPagosOrden .fila-pago').eq(pagosEnvio.indexOf(p)).find('.sel-metodo-pago option:selected');
-      if (optMetodo.length) reqMoneda = optMetodo.data('moneda') == 1;
+    pagosEnvio.forEach((p, idx) => {
+      let optMetodo = $('#modalPagosOrden .fila-pago').eq(idx).find('.sel-metodo-pago option:selected');
+      let reqMoneda = optMetodo.length ? optMetodo.data('moneda') == 1 : false;
 
       let tasaMonedaSeleccionada = 1;
 
       if (reqMoneda) {
-        let optMoneda = $('#modalPagosOrden .fila-pago').eq(pagosEnvio.indexOf(p)).find('.sel-moneda-pago option:selected');
+        let optMoneda = $('#modalPagosOrden .fila-pago').eq(idx).find('.sel-moneda-pago option:selected');
         if (optMoneda.val() !== '') {
           tasaMonedaSeleccionada = parseFloat(optMoneda.data('valor') || 1);
         }

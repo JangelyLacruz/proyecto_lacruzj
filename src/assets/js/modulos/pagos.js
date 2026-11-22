@@ -11,7 +11,7 @@ let dtPagos;
 let dtOEPs;
 let oepsSeleccionadas = {};
 let metodosPagoOptions = '<option value="">Seleccione...</option>';
-let monedasOptions = '<option value="">Seleccione...</option>';
+let monedasOptions = '';
 let bancosOptions = '<option value="">Seleccione...</option>';
 let tasaDolar = 1;
 let oepActual = null;
@@ -125,28 +125,15 @@ async function cargarCatalogos() {
     let [resMetodos, resMonedas, resBancos] = await Promise.all([pMetodos, pMonedas, pBancos]);
 
     if (Array.isArray(resMetodos)) {
-      resMetodos.forEach(m => {
-        if (m.status == 1) {
-          metodosPagoOptions += `<option value="${m.id_metodo_pago}" data-moneda="${m.necesita_moneda}" data-emisor="${m.necesita_banco_emisor}" data-receptor="${m.necesita_banco_receptor}" data-ref="${m.necesita_referencia}">${m.nombre_metodo_pago}</option>`;
-        }
-      });
+      metodosPagoOptions = '<option value="">Seleccione...</option>' + resMetodos.filter(m => m.status == 1).map(m => `<option value="${m.id_metodo_pago}" data-moneda="${m.necesita_moneda}" data-emisor="${m.necesita_banco_emisor}" data-receptor="${m.necesita_banco_receptor}" data-ref="${m.necesita_referencia}">${m.nombre_metodo_pago}</option>`).join('');
     }
     if (Array.isArray(resMonedas)) {
-      resMonedas.forEach(m => {
-        if (m.status == 1) {
-          monedasOptions += `<option value="${m.id_moneda}" data-valor="${m.valor_moneda}">${m.simbolo_moneda} - ${m.nombre_moneda}</option>`;
-          if (m.nombre_moneda.toUpperCase() === 'DÓLAR' || m.nombre_moneda.toUpperCase() === 'DOLAR') {
-            tasaDolar = parseFloat(m.valor_moneda);
-          }
-        }
-      });
+      monedasOptions = resMonedas.filter(m => m.status == 1).map(m => `<option value="${m.id_moneda}" data-valor="${m.valor_moneda}" data-simbolo="${m.simbolo_moneda || ''}" data-nombre="${m.nombre_moneda}">${m.nombre_moneda}</option>`).join('');
+      let monDolar = resMonedas.find(m => m.nombre_moneda.toUpperCase() === 'DÓLAR' || m.nombre_moneda.toUpperCase() === 'DOLAR');
+      if (monDolar) tasaDolar = parseFloat(monDolar.valor_moneda);
     }
     if (Array.isArray(resBancos)) {
-      resBancos.forEach(b => {
-        if (b.status == 1) {
-          bancosOptions += `<option value="${b.id_banco}">${b.nombre_banco}</option>`;
-        }
-      });
+      bancosOptions = '<option value="">Seleccione...</option>' + resBancos.filter(b => b.status == 1).map(b => `<option value="${b.id_banco}">${b.nombre_banco}</option>`).join('');
     }
   } catch (e) {
     console.log("Error cargando catalogos: ", e);
@@ -217,6 +204,18 @@ function inicializarTablas() {
   });
 }
 
+function actualizarBotonesEliminar() {
+  let filas = $("#contenedorDetallesPagoModulo .fila-pago");
+  if (filas.length <= 1) {
+    filas.find(".btn-eliminar-pago").addClass("d-none");
+  } else {
+    filas.find(".btn-eliminar-pago").removeClass("d-none");
+  }
+  filas.each(function(idx) {
+    $(this).find(".nroDetalle").text(`#${idx + 1}`);
+  });
+}
+
 function agregarFilaPago(datos = null) {
   try {
     let numFilas = $("#contenedorDetallesPagoModulo .fila-pago").length + 1;
@@ -227,35 +226,44 @@ function agregarFilaPago(datos = null) {
     }
     
     $nuevo.find(".nroDetalle").text(`#${numFilas}`);
-    $nuevo.find(".sel-metodo-pago").html(metodosPagoOptions);
-    
-    // Quitar "Seleccione..." para que por defecto agarre la primera moneda (Bolívares)
-    let mOptions = monedasOptions.replace('<option value="">Seleccione...</option>', '');
-    $nuevo.find(".sel-moneda-pago").html(mOptions);
-    
-    $nuevo.find(".sel-banco-emisor").html(bancosOptions);
-    $nuevo.find(".sel-banco-receptor").html(bancosOptions);
-
-    if (numFilas > 1) {
-      $nuevo.find(".btn-eliminar-pago").removeClass("d-none");
-    }
+    $nuevo.find(".sel-metodo-pago").html(metodosPagoOptions).prop("selectedIndex", 0);
+    $nuevo.find(".sel-moneda-pago").html(monedasOptions).prop("selectedIndex", 0);
+    $nuevo.find(".sel-banco-emisor").html(bancosOptions).prop("selectedIndex", 0);
+    $nuevo.find(".sel-banco-receptor").html(bancosOptions).prop("selectedIndex", 0);
+    $nuevo.find(".input-referencia-pago").val("");
+    $nuevo.find(".input-monto-pago").val("");
+    $nuevo.find(".span-simbolo-moneda").text("$");
+    $nuevo.find(".col-moneda-pago, .col-banco-emisor, .col-banco-receptor, .col-referencia-pago").addClass("d-none");
 
     if (datos) {
       $nuevo.find(".sel-metodo-pago").val(datos.id_metodo_pago);
-      $nuevo.find(".sel-moneda-pago").val(datos.id_moneda);
-      $nuevo.find(".sel-banco-emisor").val(datos.id_banco_emisor);
-      $nuevo.find(".sel-banco-receptor").val(datos.id_banco_receptor);
-      $nuevo.find(".input-referencia-pago").val(datos.referencia_pago);
+      $nuevo.find(".sel-metodo-pago").trigger("change");
+
+      if (datos.id_moneda) {
+        $nuevo.find(".sel-moneda-pago").val(datos.id_moneda);
+      }
+      if (datos.id_banco_emisor) {
+        $nuevo.find(".sel-banco-emisor").val(datos.id_banco_emisor);
+      }
+      if (datos.id_banco_receptor) {
+        $nuevo.find(".sel-banco-receptor").val(datos.id_banco_receptor);
+      }
+      if (datos.referencia_pago) {
+        $nuevo.find(".input-referencia-pago").val(datos.referencia_pago);
+      }
       
       let montoFormateado = datos.monto_pago ? datos.monto_pago.toString().replace('.', ',') : '';
       $nuevo.find(".input-monto-pago").val(montoFormateado);
+    } else {
+      $nuevo.find(".sel-metodo-pago").trigger("change");
     }
 
     $("#contenedorDetallesPagoModulo").append($nuevo);
     $nuevo.css("display", "");
-    $nuevo.find(".sel-metodo-pago").trigger("change");
+    actualizarBotonesEliminar();
+    calcularRestante();
   } catch (e) {
-    alert("Error en agregarFilaPago: " + e.message);
+    console.error("Error en agregarFilaPago: ", e);
   }
 }
 
@@ -267,15 +275,18 @@ function vaciarFormulario() {
     }
     form.find("input[name=accion]").val("registrar");
     $("#inputIdPago").val("").prop("disabled", true);
-    $(".tituloModal").text("Registrar Pago");
+    $(".tituloModal").text("Detalles del Pago");
     oepActual = null;
     $("#infoTotalesOEP").addClass("d-none");
-    $("#btnAgregarOtroPagoModulo").removeClass("d-none");
+    $("#btnAgregarOtroPagoModulo").addClass("d-none");
     $("#contenedorDetallesPagoModulo").empty();
     $("#contenedorComprobantesExistentes").empty();
-    agregarFilaPago();
+    $("#totalOrdenSel").text("$0.00");
+    $("#pagadoOrdenSel").text("$0.00");
+    $("#restanteOrdenSel").text("$0.00");
+    $('.btnEnviarFormulario').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary').css('background', 'linear-gradient(135deg, #1a56db, #0ea5e9)');
   } catch (e) {
-    alert("Error en vaciarFormulario: " + e.message);
+    console.error("Error en vaciarFormulario: ", e);
   }
 }
 
@@ -283,28 +294,49 @@ function calcularRestante() {
   if (!oepActual) return;
   
   let totalOrden = parseFloat(oepActual.total_orden) || 0;
-  let restanteOriginal = parseFloat(oepActual.restante) || 0;
-  let yaPagadoOriginal = totalOrden - restanteOriginal;
+  let restanteOriginal = (oepActual.restante !== null && oepActual.restante !== undefined) ? parseFloat(oepActual.restante) : totalOrden;
   
   let sumPagadoEnModal = 0;
+  let ultimaMonedaSeleccionada = null;
+
   $('#contenedorDetallesPagoModulo .fila-pago').each(function () {
     let rawVal = $(this).find('.input-monto-pago').val() || '0';
     let valInput = parsearMonto(rawVal);
     let optMetodo = $(this).find('.sel-metodo-pago option:selected');
     let reqMoneda = optMetodo.data('moneda') == 1;
 
-    let tasaMonedaSeleccionada = 1; // Por defecto Bolívares = 1
+    let tasaMonedaSeleccionada = 1; // Por defecto Bolívares tiene valor 1
+    let simboloMonedaFila = '$';
 
-    // Siempre leer el valor de la moneda seleccionada en el selector,
-    // independientemente de si el método requiere moneda o no.
-    // Si el selector está en Bolívar (data-valor=1) la fórmula sigue siendo correcta.
-    let optMoneda = $(this).find('.sel-moneda-pago option:selected');
-    if (optMoneda.length && optMoneda.val() !== '') {
-      let dataValor = parseFloat(optMoneda.data('valor'));
-      if (!isNaN(dataValor) && dataValor > 0) {
-        tasaMonedaSeleccionada = dataValor;
+    if (reqMoneda) {
+      let optMoneda = $(this).find('.sel-moneda-pago option:selected');
+      if (optMoneda.length && optMoneda.val() !== '') {
+        tasaMonedaSeleccionada = parseFloat(optMoneda.data('valor') || 1);
+        let simb = optMoneda.data('simbolo');
+        let nomb = (optMoneda.data('nombre') || '').toUpperCase();
+        simboloMonedaFila = simb || (nomb === 'DÓLAR' || nomb === 'DOLAR' ? '$' : (nomb === 'BÓLIVAR' || nomb === 'BOLIVAR' || nomb === 'BS' ? 'Bs' : nomb));
+        ultimaMonedaSeleccionada = {
+          id_moneda: optMoneda.val(),
+          nombre: nomb,
+          simbolo: simboloMonedaFila,
+          valor: tasaMonedaSeleccionada
+        };
+      }
+    } else {
+      let nombreMetodo = (optMetodo.text() || '').toUpperCase();
+      if (nombreMetodo.includes('PAGO MÓVIL') || nombreMetodo.includes('PAGO MOVIL') || nombreMetodo.includes('BIOPAGO') || nombreMetodo.includes('PUNTO DE VENTA') || nombreMetodo.includes('BOLÍVAR') || nombreMetodo.includes('BOLIVAR')) {
+        simboloMonedaFila = 'Bs';
+        ultimaMonedaSeleccionada = {
+          id_moneda: '',
+          nombre: 'BOLÍVAR',
+          simbolo: 'Bs',
+          valor: 1
+        };
       }
     }
+
+    // Actualizamos el span de la fila con el símbolo de la moneda
+    $(this).find('.span-simbolo-moneda').text(simboloMonedaFila);
 
     // Formula universal: (monto * valor_de_su_moneda_en_bs) / valor_del_dolar_en_bs
     let montoEnDolares = (valInput * tasaMonedaSeleccionada) / tasaDolar;
@@ -313,17 +345,43 @@ function calcularRestante() {
 
   let nuevoRestante = restanteOriginal - sumPagadoEnModal;
   let excede = nuevoRestante < -0.01;
-  let nuevoPagado = yaPagadoOriginal + sumPagadoEnModal;
+  let restanteBs = nuevoRestante * tasaDolar;
 
-  // Actualizar UI con formato dual
-  $('#pagadoOrdenSel').html(`$${nuevoPagado.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(nuevoPagado * tasaDolar).toFixed(2)}</small>`);
-  
-  if (excede) {
-    $('#restanteOrdenSel').html(`<span class="text-danger">$${nuevoRestante.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / Bs ${(nuevoRestante * tasaDolar).toFixed(2)} — ¡Excede el monto!</small>`);
-    $('.btnEnviarFormulario').prop('disabled', true).addClass('btn-secondary').removeClass('btn-primary');
+  // Determinamos qué moneda y conversión mostrar en el RESTANTE
+  let htmlRestante = '';
+  if (ultimaMonedaSeleccionada && ultimaMonedaSeleccionada.nombre !== 'DÓLAR' && ultimaMonedaSeleccionada.nombre !== 'DOLAR') {
+    if (ultimaMonedaSeleccionada.nombre === 'BÓLIVAR' || ultimaMonedaSeleccionada.nombre === 'BOLIVAR' || ultimaMonedaSeleccionada.nombre === 'BS') {
+      let montoEnBs = restanteBs;
+      if (excede) {
+        htmlRestante = `<span class="text-danger">Bs ${montoEnBs.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / $ ${nuevoRestante.toFixed(2)} — ¡Excede el monto!</small>`;
+      } else {
+        htmlRestante = `Bs ${montoEnBs.toFixed(2)} <small class="text-white fw-normal fs-6"> / $ ${nuevoRestante.toFixed(2)}</small>`;
+      }
+    } else {
+      // Moneda extranjera (ej. Euro): se convierte de acuerdo al dólar y bolívar
+      let montoMoneda = ultimaMonedaSeleccionada.valor > 0 ? (restanteBs / ultimaMonedaSeleccionada.valor) : 0;
+      let simb = ultimaMonedaSeleccionada.simbolo || '€';
+      if (excede) {
+        htmlRestante = `<span class="text-danger">${simb} ${montoMoneda.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)} — ¡Excede el monto!</small>`;
+      } else {
+        htmlRestante = `${simb} ${montoMoneda.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)}</small>`;
+      }
+    }
   } else {
-    $('#restanteOrdenSel').html(`$${nuevoRestante.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(nuevoRestante * tasaDolar).toFixed(2)}</small>`);
-    $('.btnEnviarFormulario').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary');
+    // Dólar por defecto
+    if (excede) {
+      htmlRestante = `<span class="text-danger">$${nuevoRestante.toFixed(2)}</span> <small class="text-danger fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)} — ¡Excede el monto!</small>`;
+    } else {
+      htmlRestante = `$${nuevoRestante.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${restanteBs.toFixed(2)}</small>`;
+    }
+  }
+
+  $('#restanteOrdenSel').html(htmlRestante);
+
+  if (excede) {
+    $('.btnEnviarFormulario').prop('disabled', true).addClass('btn-secondary').removeClass('btn-primary').css('background', '');
+  } else {
+    $('.btnEnviarFormulario').prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary').css('background', 'linear-gradient(135deg, #1a56db, #0ea5e9)');
   }
 }
 
@@ -361,18 +419,13 @@ $(document).off("click", "#btnAgregarOtroPagoModulo").on("click", "#btnAgregarOt
 });
 
 $(document).off("click", ".btn-eliminar-pago").on("click", ".btn-eliminar-pago", function () {
-  $(this).closest(".fila-pago").fadeOut(300, function() {
-    $(this).remove();
-    $("#contenedorDetallesPagoModulo .fila-pago").each(function(idx) {
-      $(this).find(".nroDetalle").text(`#${idx + 1}`);
-    });
-    calcularRestante();
-  });
+  $(this).closest(".fila-pago").remove();
+  actualizarBotonesEliminar();
+  calcularRestante();
 });
 
 $(document).off("input", "#contenedorDetallesPagoModulo .input-monto-pago").on("input", "#contenedorDetallesPagoModulo .input-monto-pago", function() {
-  // setTimeout(0) ensures we read the value AFTER the dinero mask has reformatted it,
-  // since the mask sets .val() synchronously in its own input handler (which doesn't re-fire input).
+  // setTimeout(0) ensures we read the value AFTER the dinero mask has reformatted it
   setTimeout(calcularRestante, 0);
 });
 $(document).off("blur", "#contenedorDetallesPagoModulo .input-monto-pago").on("blur", "#contenedorDetallesPagoModulo .input-monto-pago", function() {
@@ -412,34 +465,31 @@ $(document).off("click", ".btnElegirOEP").on("click", ".btnElegirOEP", function 
       $("#inputIdOrdenPago").val(oep.id_orden_entrega_presupuesto);
       $("#inputClienteOEP").val(oep.CLIENTE);
 
-      let total = parseFloat(oep.total_orden).toFixed(2);
-      let restante = parseFloat(oep.restante).toFixed(2);
-      let pagado = (parseFloat(oep.total_orden) - parseFloat(oep.restante)).toFixed(2);
+      let total = parseFloat(oep.total_orden || 0);
+      let restante = (oep.restante !== null && oep.restante !== undefined) ? parseFloat(oep.restante) : total;
+      let cancelado = total - restante;
 
-      $("#totalOrdenSel").html(`$${total} <small class="text-white fw-normal fs-6"> / Bs ${(total * tasaDolar).toFixed(2)}</small>`);
-      $("#pagadoOrdenSel").html(`$${pagado} <small class="text-white fw-normal fs-6"> / Bs ${(pagado * tasaDolar).toFixed(2)}</small>`);
-      $("#restanteOrdenSel").html(`$${restante} <small class="text-white fw-normal fs-6"> / Bs ${(restante * tasaDolar).toFixed(2)}</small>`);
+      $("#totalOrdenSel").text(`$${total.toFixed(2)}`);
+      $("#pagadoOrdenSel").html(`$${cancelado.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(cancelado * tasaDolar).toFixed(2)}</small>`);
+      $("#restanteOrdenSel").html(`$${restante.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(restante * tasaDolar).toFixed(2)}</small>`);
 
       $("#infoTotalesOEP").removeClass("d-none");
       $("#btnAgregarOtroPagoModulo").removeClass("d-none");
       
-      // Garantizar que haya al menos 1 fila de pago
-      if ($("#contenedorDetallesPagoModulo .fila-pago").length === 0) {
-        agregarFilaPago();
-      }
+      $("#contenedorDetallesPagoModulo").empty();
+      agregarFilaPago();
 
-      calcularRestante();
       $("#modalSelOEP").modal("hide");
     }
   } catch (e) {
-    alert("Error en btnElegirOEP: " + e.message);
+    console.error("Error en btnElegirOEP: ", e);
   }
 });
 
 $(document).off("click", ".btnEnviarFormulario").on("click", ".btnEnviarFormulario", async function () {
   const form = $(".formularioAjax");
-  if (!form[0].checkValidity()) {
-    form[0].reportValidity();
+  if (!oepActual || !$("#inputIdOrdenPago").val()) {
+    Swal.fire('Atención', 'Debe seleccionar una Orden para asociar el pago', 'warning');
     return;
   }
 
@@ -454,10 +504,10 @@ $(document).off("click", ".btnEnviarFormulario").on("click", ".btnEnviarFormular
     let reqRef = optMetodo.data('ref') == 1;
 
     let metodo = $(this).find(".sel-metodo-pago").val();
-    let moneda = $(this).find(".sel-moneda-pago").val() || null;
-    let bancoE = $(this).find(".sel-banco-emisor").val() || null;
-    let bancoR = $(this).find(".sel-banco-receptor").val() || null;
-    let ref = $(this).find(".input-referencia-pago").val() || null;
+    let moneda = reqMoneda ? ($(this).find(".sel-moneda-pago").val() || null) : null;
+    let bancoE = reqEmisor ? ($(this).find(".sel-banco-emisor").val() || null) : null;
+    let bancoR = reqReceptor ? ($(this).find(".sel-banco-receptor").val() || null) : null;
+    let ref = reqRef ? ($(this).find(".input-referencia-pago").val() || null) : null;
     let rawMonto = $(this).find(".input-monto-pago").val() || '0';
     let monto = parsearMonto(rawMonto);
 
@@ -486,11 +536,52 @@ $(document).off("click", ".btnEnviarFormulario").on("click", ".btnEnviarFormular
 
   if (!valido || pagosArr.length === 0) {
     Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'Debe completar correctamente todos los detalles de pago.'
+      icon: 'warning',
+      title: 'Atención',
+      text: 'Campos faltantes o valor de monto igual a 0.'
     });
     return;
+  }
+
+  // Validar que la suma no exceda el restante
+  let sumEnvio = 0;
+  pagosArr.forEach((p, idx) => {
+    let optMetodo = $('#contenedorDetallesPagoModulo .fila-pago').eq(idx).find('.sel-metodo-pago option:selected');
+    let reqMoneda = optMetodo.length ? optMetodo.data('moneda') == 1 : false;
+
+    let tasaMonedaSeleccionada = 1;
+
+    if (reqMoneda) {
+      let optMoneda = $('#contenedorDetallesPagoModulo .fila-pago').eq(idx).find('.sel-moneda-pago option:selected');
+      if (optMoneda.val() !== '') {
+        tasaMonedaSeleccionada = parseFloat(optMoneda.data('valor') || 1);
+      }
+    }
+
+    let parsedMonto = parsearMonto(p.monto_pago);
+    sumEnvio += (parsedMonto * tasaMonedaSeleccionada) / tasaDolar;
+  });
+
+  let restanteMax = parseFloat(oepActual.restante) || 0;
+  if (sumEnvio > restanteMax + 0.01) {
+    Swal.fire('Atención', 'El monto total de los pagos excede el restante de la Orden.', 'warning');
+    return;
+  }
+
+  let files = $('#inputComprobantesPago')[0].files;
+  let nuevos = files ? files.length : 0;
+  let existentes = $("#contenedorComprobantesExistentes .comp-card").length;
+  if (existentes + nuevos > 3) {
+    Swal.fire('Atención', 'Solo puedes subir un máximo de 3 comprobantes por Orden', 'warning');
+    return;
+  }
+  for (let i = 0; i < nuevos; i++) {
+    let f = files[i];
+    let ext = f.name.split('.').pop().toLowerCase();
+    if (!['jpg', 'jpeg', 'png', 'webp'].includes(ext)) {
+      Swal.fire('Atención', 'El archivo ' + f.name + ' no tiene un formato válido (solo JPG, PNG y WEBP)', 'warning');
+      return;
+    }
   }
 
   // Remove old hidden input if exists
@@ -536,13 +627,13 @@ $(document).off("click", ".btnEditar").on("click", ".btnEditar", async function 
       restante: resp.restante
     };
 
-    let total = parseFloat(resp.total_orden).toFixed(2);
-    let restante = parseFloat(resp.restante).toFixed(2);
-    let pagado = (parseFloat(resp.total_orden) - parseFloat(resp.restante)).toFixed(2);
+    let total = parseFloat(resp.total_orden || 0);
+    let restante = (resp.restante !== null && resp.restante !== undefined) ? parseFloat(resp.restante) : total;
+    let cancelado = total - restante;
 
-    $("#totalOrdenSel").html(`$${total} <small class="text-white fw-normal fs-6"> / Bs ${(total * tasaDolar).toFixed(2)}</small>`);
-    $("#pagadoOrdenSel").html(`$${pagado} <small class="text-white fw-normal fs-6"> / Bs ${(pagado * tasaDolar).toFixed(2)}</small>`);
-    $("#restanteOrdenSel").html(`$${restante} <small class="text-white fw-normal fs-6"> / Bs ${(restante * tasaDolar).toFixed(2)}</small>`);
+    $("#totalOrdenSel").text(`$${total.toFixed(2)}`);
+    $("#pagadoOrdenSel").html(`$${cancelado.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(cancelado * tasaDolar).toFixed(2)}</small>`);
+    $("#restanteOrdenSel").html(`$${restante.toFixed(2)} <small class="text-white fw-normal fs-6"> / Bs ${(restante * tasaDolar).toFixed(2)}</small>`);
 
     $("#infoTotalesOEP").removeClass("d-none");
     $("#btnAgregarOtroPagoModulo").removeClass("d-none");
@@ -575,6 +666,15 @@ $(document).off("click", ".btnEditar").on("click", ".btnEditar", async function 
     }
 
     $(".modalRegistrar").modal("show");
+  }
+});
+
+$(document).off("change", "#inputComprobantesPago").on("change", "#inputComprobantesPago", function () {
+  let files = this.files ? this.files.length : 0;
+  let existentes = $("#contenedorComprobantesExistentes .comp-card").length;
+  if (existentes + files > 3) {
+    Swal.fire('Atención', 'Solo puedes subir un máximo de 3 comprobantes por Orden', 'warning');
+    this.value = '';
   }
 });
 

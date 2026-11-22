@@ -39,12 +39,23 @@ $archivoModulo = $directorioJs . $nombreModulo . $versionJs;
 <?php endif; ?>
 
 <!-- CHAT BOT -->
+
 <?php
 
 use src\modelos\accesosModelo;
 
-$objAcceso = new accesosModelo();
-if ($_SESSION['vistaActual'] != 'login' && !$objAcceso->validarPermisos('chatbot', 'ver chatbot')): ?>
+$mostrarChatbot = false;
+if (($_SESSION['vistaActual'] ?? '') == 'landing') {
+  $mostrarChatbot = true;
+} elseif (($_SESSION['vistaActual'] ?? '') != 'login') {
+  try {
+    $objAcceso = new accesosModelo();
+    $mostrarChatbot = !$objAcceso->validarPermisos('chatbot', 'ver chatbot');
+  } catch (\Throwable $e) {
+    $mostrarChatbot = false;
+  }
+}
+if ($mostrarChatbot): ?>
   <!-- Chatbot Toggle Button -->
   <button id="chatbot-toggle-btn" class="btn btn-primary rounded-circle shadow-lg d-flex align-items-center justify-content-center" style="position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; z-index: 1050; font-size: 24px; background-color: #0d6efd; border: none;">
     <i class="fi fi-rr-headset"></i>
@@ -84,9 +95,9 @@ if ($_SESSION['vistaActual'] != 'login' && !$objAcceso->validarPermisos('chatbot
 
     <!-- Suggestions -->
     <div id="chatbot-suggestions" class="px-3 py-2 bg-white d-flex overflow-auto flex-shrink-0" style="white-space: nowrap; border-top: 1px solid #dee2e6;">
-      <button class="btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Soporte técnico</button>
-      <button class="btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Presupuesto</button>
-      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3">Hablar con huma...</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Soporte técnico</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill me-2 px-3">Presupuesto</button>
+      <button class="btnSugerenciaChatBot btn btn-sm btn-outline-secondary rounded-pill px-3">Hablar con huma...</button>
     </div>
 
     <!-- Input Area -->

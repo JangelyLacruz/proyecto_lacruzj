@@ -19,7 +19,7 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade modalRegistrar" tabindex="-1">
   <div class="modal-dialog modal-xl">
     <div class="modal-content border-0">
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title"><i class="fi fi-rs-broom me-2"></i> Agregar Nuevo Servicio</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -64,7 +64,7 @@ echo $componente->listaDataTable($instruccionesLista);
             <!-- Productos que consume el servicio -->
             <div class="col-12 mb-3">
               <div class="serv-productos-card">
-                <div class="serv-productos-header">
+                <div class="serv-productos-header" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
                   <span class="serv-header-title">
                     <i class="fi fi-rs-box"></i> Productos que consume el servicio
                   </span>
@@ -95,7 +95,7 @@ echo $componente->listaDataTable($instruccionesLista);
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i> Cancelar
           </button>
-          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;">
             <i class="fas fa-save me-2"></i> Guardar Servicio
           </button>
         </div>
@@ -108,7 +108,7 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade modalActualizar" tabindex="-1">
   <div class="modal-dialog modal-xl">
     <div class="modal-content border-0">
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title"><i class="fi fi-rs-pen-circle me-2"></i> Editar Servicio</h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -189,7 +189,7 @@ echo $componente->listaDataTable($instruccionesLista);
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i> Cancelar
           </button>
-          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;">
             <i class="fas fa-save me-2"></i> Guardar Cambios
           </button>
         </div>

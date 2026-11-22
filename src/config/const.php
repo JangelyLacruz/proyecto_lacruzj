@@ -2,10 +2,17 @@
 
 // #region [ CONSTANTES DE LA BD ]
 
-const DB_SERVER = "localhost";
-const DB_NAME = "proyecto_lacruz";
-const DB_USER = "root";
-const DB_PASS = "";
+
+//Busqueda de variables de entorno en el servidor
+$rutaCredenciales = dirname(__DIR__,3) . '/.env.php';
+if (file_exists($rutaCredenciales)) {
+  $variablesEntornoHosting = require_once $rutaCredenciales;
+}
+
+define('DB_HOST', $variablesEntornoHosting['DB_HOST'] ?? $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_NAME', $variablesEntornoHosting['DB_NAME'] ?? $_ENV['DB_NAME'] ?? 'proyecto_lacruz');
+define('DB_USER', $variablesEntornoHosting['DB_USER'] ?? $_ENV['DB_USER'] ?? 'root');
+define('DB_PASS', $variablesEntornoHosting['DB_PASS'] ?? $_ENV['DB_PASS'] ?? '');
 
 // #endregion [ CONSTANTES DE LA BD ]
 
@@ -26,11 +33,10 @@ define('HOSTING', ($_SERVER['HTTP_HOST'] ?? 'localhost'));
 define('APP_URL', $PROTOCOLO .  HOSTING . (HOSTING === 'localhost' ? "/proyecto-lacruz-j/" : '/'));
 define('APP_DIR_ROOT',$_SERVER['DOCUMENT_ROOT'] . (HOSTING === 'localhost' ? "/proyecto-lacruz-j/" : '/'));
 const modoDev = true;
-const coorJLACRUZ = ['latitud' => 10.063276, 'longitud' => -69.31708];
+const coorJLACRUZ = ['latitud' => 10.02884, 'longitud' => -69.25703];
 const APP_NAME = "MULTISERVICIOS JLACRUZ C.A.";
 const APP_SESSION_NAME = "JLACRUZ";
 date_default_timezone_set("America/Caracas");
-
 const DIR_IMG = "src/assets/images/";
 
 // #endregion [ CONSTANTES DE LA APP ]
@@ -228,7 +234,6 @@ define('molBooleanoInt', [
   "maxL" => maxRegexValorBoleano,
   "regex" => regexValorBoleano,
 ]);
-
 define('molCuerpoCorreo', [
   'tipo' => 'string',
   "minL" => minRegexCuerpoCorreo,

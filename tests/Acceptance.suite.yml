@@ -5,11 +5,47 @@
 
 actor: AcceptanceTester
 modules:
-    enabled:
-        - PhpBrowser:
-            url: 'http://localhost/proyecto-lacruz-j'
-# Add Codeception\Step\Retry trait to AcceptanceTester to enable retries
+  enabled:
+    - WebDriver:
+        url: "http://localhost/proyecto-lacruz-j"
+        browser: chrome
+        port: 9515
+        path: ''
+        window_size: 1280x800
+        capabilities:
+          # pageLoadStrategy: 'none'
+          goog:chromeOptions:
+            args:
+              # - "--headless=new" # descomentar para que ChromeDriver se ejecute sin IG
+              - "--disable-gpu"
+              - "--no-sandbox"
+              - '--disable-software-rasterizer'
+              - '--disable-dev-shm-usage'
+              - '--disable-extensions'
+              - '--disable-background-networking'
+              - '--disable-sync'
+              - '--mute-audio'
+              - '--log-level=3'
+    - Asserts
+    - \Tests\Support\Helper\Acceptance
+    # - PhpBrowser:
+    #     url: "http://localhost/proyecto-lacruz-j"
 step_decorators:
-    - Codeception\Step\ConditionalAssertion
-    - Codeception\Step\TryTo
-    - Codeception\Step\Retry
+  - Codeception\Step\ConditionalAssertion
+  - Codeception\Step\TryTo
+  - Codeception\Step\Retry
+env:
+  ci:
+    modules:
+      config:
+        WebDriver:
+          url: "http://127.0.0.1:8000/proyecto-lacruz-j/"
+          port: 9515
+          path: ''
+          window_size: 1280x800
+          capabilities:
+            goog:chromeOptions:
+              args:
+                - "--disable-gpu"
+                - "--no-sandbox"
+                - "--headless=new"

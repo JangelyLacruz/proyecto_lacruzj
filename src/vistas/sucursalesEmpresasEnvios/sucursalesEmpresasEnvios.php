@@ -16,7 +16,7 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade modalRegistrar" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content border-0">
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title" id="registrarUsuarioModalLabel">
           <i class="fas fa-user-plus me-2"></i> Agregar Nueva Sucursal de Empresa de Envíos
         </h5>
@@ -51,7 +51,7 @@ echo $componente->listaDataTable($instruccionesLista);
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i> Cancelar
           </button>
-          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;">
             <i class="fas fa-save me-2"></i> Guardar
           </button>
         </div>
@@ -65,7 +65,7 @@ echo $componente->listaDataTable($instruccionesLista);
 <div class="modal fade modalActualizar" tabindex="-1">
   <div class="modal-dialog modal-lg">
     <div class="modal-content border-0">
-      <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb);">
+      <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9);">
         <h5 class="modal-title">
           <i class="fas fa-edit me-2"></i> Editar
         </h5>
@@ -100,7 +100,7 @@ echo $componente->listaDataTable($instruccionesLista);
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
             <i class="fas fa-times me-2"></i> Cancelar
           </button>
-          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
+          <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;">
             <i class="fas fa-save me-2"></i> Guardar
           </button>
         </div>

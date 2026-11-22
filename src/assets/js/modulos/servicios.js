@@ -148,7 +148,7 @@ async function abrirSelectorProductosServicio(modalPadre) {
       <td>${stock}</td>
       <td>
         <button class="btn btn-sm text-white selProdServicio"
-          style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;"
+          style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;"
           data-id="${id}" data-nombre="${nombre} (${unidad})">
           <i class="fi fi-rs-plus me-1"></i>Agregar
         </button>
@@ -162,7 +162,7 @@ async function abrirSelectorProductosServicio(modalPadre) {
     <div class="modal fade" id="modalSelProdServicio">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
-          <div class="modal-header text-white" style="background: linear-gradient(135deg, #4e54c8, #8f94fb); border: none;">
+          <div class="modal-header text-white" style="background: linear-gradient(135deg, #1a56db, #0ea5e9); border: none;">
             <h5 class="modal-title"><i class="fi fi-rs-box me-2"></i>Seleccionar Producto</h5>
             <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>

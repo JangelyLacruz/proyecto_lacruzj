@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 25-09-2026 a las 14:37:22
+-- Tiempo de generación: 04-11-2026 a las 13:52:41
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `proyecto_lacruz`
 --
+CREATE DATABASE IF NOT EXISTS `proyecto_lacruz` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `proyecto_lacruz`;
 
 DELIMITER $$
 --
@@ -410,7 +412,7 @@ INSERT INTO `clientes` (`rif_cedula_cliente`, `razon_social_cliente`, `telefono_
 ('V304856845', '54114', '04169484646', 'andersonfreitez66@gmail.com', 'hhhh', 0),
 ('V30485686', 'Anderson Freitez', '04169999999', 'andersonfreitez6999@gmail.com', 'SANARE', 0),
 ('V30485688', 'Anderson Freitez', '04169484640', 'andersonfremitez6@gmail.com', 'BARQUISIMETO', 0),
-('V30485689', 'ANDEROSN FREITEZ', '04169484648', 'andersonfreitez6@gmail.con', 'David', 0),
+('V30485689', 'Anderson Freitez', '04169484640', 'andersonfreitez56@gmail.com', 'BARQUISIMETO', 1),
 ('V30485694', 'Anderson Freitez', '04169484699', 'andersonfreitez996@gmail.com', 'BARQUISIMETO', 0),
 ('V33333331', 'ANDEROSN FREITEZaa', '04161234569', 'andersonfreitez6@gmail.coj', 'ANDERSON', 0),
 ('V33333332', 'ANDEROSN FREITEZ', '04161234567', 'andersonfreitez12@gmail.com', 'Sanare', 0),
@@ -884,6 +886,7 @@ CREATE TABLE `materias_primas_compras` (
   `id_materia_prima` varchar(20) NOT NULL,
   `id_compra` varchar(20) NOT NULL,
   `cantidad_materia_prima` decimal(20,2) NOT NULL,
+  `costo_compra` decimal(20,2) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -891,17 +894,17 @@ CREATE TABLE `materias_primas_compras` (
 -- Volcado de datos para la tabla `materias_primas_compras`
 --
 
-INSERT INTO `materias_primas_compras` (`id_materia_prima_compra`, `id_materia_prima`, `id_compra`, `cantidad_materia_prima`, `status`) VALUES
-(1, 'MATE-26123-00001-66', '10', 2.00, 0),
-(2, 'MATE-26123-00001-66', '10', 5.00, 0),
-(10, 'MATE-26123-00001-66', '12', 12.00, 0),
-(11, 'MATE-26123-00001-66', '12', 13.00, 0),
-(12, 'MATE-26123-00001-66', '13', 20.00, 0),
-(14, 'MATE-26123-00001-66', '14', 10.00, 0),
-(15, 'MATE-26123-00001-66', '15', 1.00, 0),
-(16, 'MATE-26123-00001-66', '16', 1.00, 0),
-(17, 'MATE-26123-00001-66', '17', 2.00, 0),
-(18, 'MATE-26123-00001-66', '18', 10.00, 1);
+INSERT INTO `materias_primas_compras` (`id_materia_prima_compra`, `id_materia_prima`, `id_compra`, `cantidad_materia_prima`, `costo_compra`, `status`) VALUES
+(1, 'MATE-26123-00001-66', '10', 2.00, 0.00, 0),
+(2, 'MATE-26123-00001-66', '10', 5.00, 0.00, 0),
+(10, 'MATE-26123-00001-66', '12', 12.00, 0.00, 0),
+(11, 'MATE-26123-00001-66', '12', 13.00, 0.00, 0),
+(12, 'MATE-26123-00001-66', '13', 20.00, 0.00, 0),
+(14, 'MATE-26123-00001-66', '14', 10.00, 0.00, 0),
+(15, 'MATE-26123-00001-66', '15', 1.00, 0.00, 0),
+(16, 'MATE-26123-00001-66', '16', 1.00, 0.00, 0),
+(17, 'MATE-26123-00001-66', '17', 2.00, 0.00, 0),
+(18, 'MATE-26123-00001-66', '18', 10.00, 0.00, 1);
 
 -- --------------------------------------------------------
 
@@ -1238,7 +1241,8 @@ INSERT INTO `precios_productos` (`id_precio_producto`, `id_producto`, `precio_pr
 (101, 'PROD-26222-00004-43', 1.00, '2026-08-12 00:48:20', 0),
 (102, 'PROD-26222-00005-98', 1.00, '2026-08-12 00:48:53', 0),
 (103, 'PROD-26222-00006-10', 10.00, '2026-08-12 00:50:58', 0),
-(104, 'PROD-26265-00001-91', 1.00, '2026-09-23 16:33:04', 1);
+(104, 'PROD-26265-00001-91', 1.00, '2026-09-23 16:33:04', 1),
+(105, 'PROD-26271-00001-75', 1.00, '2026-09-29 17:09:28', 1);
 
 -- --------------------------------------------------------
 
@@ -1432,7 +1436,13 @@ INSERT INTO `presentaciones_productos` (`id_presentacion_producto`, `id_producto
 ('PRPR-26265-00003-15', 'PROD-26265-00001-91', 'PRES-26159-00002-78', 1, '', 1),
 ('PRPR-26265-00004-21', 'PROD-26265-00001-91', 'PRES-26159-00003-24', 0, '', 1),
 ('PRPR-26265-00005-57', 'PROD-26265-00001-91', 'PRES-26177-00001-19', 0, '', 1),
-('PRPR-26265-00006-77', 'PROD-26265-00001-91', 'PRES-26177-00002-40', 1, '', 1);
+('PRPR-26265-00006-77', 'PROD-26265-00001-91', 'PRES-26177-00002-40', 1, '', 1),
+('PRPR-26271-00001-86', 'PROD-26271-00001-75', 'PRES-26123-00001-28', 1, '', 1),
+('PRPR-26271-00002-41', 'PROD-26271-00001-75', 'PRES-26159-00001-42', 1, '', 1),
+('PRPR-26271-00003-95', 'PROD-26271-00001-75', 'PRES-26159-00002-78', 1, '', 1),
+('PRPR-26271-00004-53', 'PROD-26271-00001-75', 'PRES-26159-00003-24', 1, '', 1),
+('PRPR-26271-00005-39', 'PROD-26271-00001-75', 'PRES-26177-00001-19', 1, '', 1),
+('PRPR-26271-00006-38', 'PROD-26271-00001-75', 'PRES-26177-00002-40', 1, '', 1);
 
 -- --------------------------------------------------------
 
@@ -1486,7 +1496,8 @@ INSERT INTO `productos` (`id_producto`, `id_unidad_medida`, `id_categoria_produc
 ('PROD-26222-00004-43', 2, 1, 'CLOROf', 1.00, 1.00, 5.00, 0),
 ('PROD-26222-00005-98', 2, 2, 'CLOROm', 1.00, 1.00, 5.00, 0),
 ('PROD-26222-00006-10', 2, 1, 'CLOROs', 10.00, 1.00, 5.00, 0),
-('PROD-26265-00001-91', 2, 2, 'CLORO2', 1.00, 10.00, 5.00, 1);
+('PROD-26265-00001-91', 2, 2, 'CLORO2', 1.00, 10.00, 5.00, 1),
+('PROD-26271-00001-75', 2, 2, 'VENENO DE RATÓN', 1.00, 10.00, 5.00, 1);
 
 --
 -- Disparadores `productos`
@@ -1523,6 +1534,7 @@ CREATE TABLE `productos_compras` (
   `id_presentacion_producto` varchar(20) NOT NULL,
   `id_compra` varchar(20) NOT NULL,
   `cantidad_producto` decimal(20,2) NOT NULL,
+  `precio_compra` decimal(20,2) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -2514,7 +2526,7 @@ ALTER TABLE `precios_materias_primas`
 -- AUTO_INCREMENT de la tabla `precios_productos`
 --
 ALTER TABLE `precios_productos`
-  MODIFY `id_precio_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `id_precio_producto` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- AUTO_INCREMENT de la tabla `precios_rutas`

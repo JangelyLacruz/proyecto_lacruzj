@@ -384,7 +384,7 @@ $(document).off('submit', '.formularioAjax');
 $(document).on('submit', '.formularioAjax', async function (e) {
   e.preventDefault();
   let resultado
-  if ($(this).hasClass('login')) {
+  if ($(this).hasClass('login') && window.navigator.onLine) {
     const respuestaCaptcha = grecaptcha.getResponse();
     if (respuestaCaptcha === "" && !modoDev) {
       e.preventDefault();
