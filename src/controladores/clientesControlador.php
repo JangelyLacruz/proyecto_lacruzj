@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["accion"]) && isset($_S
       echo json_encode($resultado);
       exit();
     default:
-      $modeloCambiosIva->DECORE([
+      $objeto->DECORE([
         'icono' => 'error',
         'titulo' => 'Acción no reconocida'
       ]);
