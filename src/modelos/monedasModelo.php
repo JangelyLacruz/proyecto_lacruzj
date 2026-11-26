@@ -46,7 +46,9 @@ class monedasModelo extends conexion {
           "minimo" => minRegexPrecio,
           "maximo" => maxRegexPrecio,
           "expresion_re" => regexPrecio,
-          'comaPunto' => true
+          'comaPunto' => true,
+          'noCero' => true,
+          "tabla" => "monedas",
         ],
         'nombre_moneda' => [
           "campo_nombre" => "nombre_moneda",
